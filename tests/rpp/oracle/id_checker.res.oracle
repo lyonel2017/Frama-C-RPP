@@ -1,0 +1,8 @@
+[kernel] Parsing tests/rpp/id_checker.c (with preprocessing)
+[kernel:annot-error] tests/rpp/id_checker.c:14: Warning: 
+  Unknow label: Post_id1 in \at( k, Post_id1 )
+  . Ignoring logic specification of function g
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] User Error: stopping on file "tests/rpp/id_checker.c" that has errors. Add
+  '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

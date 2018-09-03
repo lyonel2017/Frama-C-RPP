@@ -1,0 +1,7 @@
+[kernel] Parsing tests/rpp/no_spec.c (with preprocessing)
+[rpp] ***************************************
+[rpp] Rpp start
+[rpp] ***************************************
+[rpp] tests/rpp/no_spec.c:11: User Error: 
+  The RPP require \assigns \from annotations for function g
+[kernel] Plug-in rpp aborted: invalid user input.

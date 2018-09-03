@@ -1,0 +1,7 @@
+[kernel] Parsing tests/rpp/let_requires.c (with preprocessing)
+[rpp] ***************************************
+[rpp] Rpp start
+[rpp] ***************************************
+[rpp] User Error: Unsupported predicate in requires clause:
+   \let y = x + 1; y > 0
+[kernel] Plug-in rpp aborted: invalid user input.

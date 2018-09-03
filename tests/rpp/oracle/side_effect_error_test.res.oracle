@@ -1,0 +1,8 @@
+[kernel] Parsing tests/rpp/side_effect_error_test.c (with preprocessing)
+[kernel:annot-error] tests/rpp/side_effect_error_test.c:12: Warning: 
+  Unknow label: Pre_id5 in \at( y, Pre_id5 )
+  . Ignoring logic specification of function f
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] User Error: stopping on file "tests/rpp/side_effect_error_test.c" that has errors. Add
+  '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

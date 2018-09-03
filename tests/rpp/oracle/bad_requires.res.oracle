@@ -1,0 +1,7 @@
+[kernel] Parsing tests/rpp/bad_requires.c (with preprocessing)
+[rpp] ***************************************
+[rpp] Rpp start
+[rpp] ***************************************
+[rpp] User Error: Unsupported predicate in requires clause:
+   0 ≤ local_variable_relational_1 ∨ 0 ≤ y
+[kernel] Plug-in rpp aborted: invalid user input.
