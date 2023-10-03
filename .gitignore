@@ -178,3 +178,6 @@ Makefile.plugin.generated
 /doc/Grammar/grammar.fdb_latexmk
 /doc/Grammar/grammar.fls
 /doc/Grammar/grammar.synctex.gz
+/rpp-manual.pdf
+/frama-c-rpp-*
+/LICENSE

@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -37,12 +37,10 @@ let id_checker identifier loc id_hash =
   | FormalLabel(s) ->
     ( match Str.bounded_split (Str.regexp "_") s 2 with
       | "Pre":: id :: [] | "Post" :: id :: []->
-        let _ = (try (Hashtbl.find id_hash id) with
-            | Not_found -> Rpp_options.Self.fatal ~source:loc  "Unknown label: @ @[%s@] @." s
-            | _ -> assert false)
-        in true
-      | _ -> false)
-  |  _ ->  false
+        if not (Hashtbl.mem id_hash id) then
+          Rpp_options.Self.fatal ~source:loc  "Unknown label: @ @[%s@] @." s
+      | _ -> ())
+  |  _ -> ()
 
 let id_update identifier loc id_hash  =
   match identifier with
@@ -224,17 +222,8 @@ let rpp_extend_checker check =
           Rpp_options.Self.fatal ~source:loc "Expect no label for built-in \\callresult:@. @[%a@]"
             Printer.pp_term t
         | Tat(v,l)->
-          let new_label = id_update l loc id_hash in
-          let need_upadte = Cil_datatype.Logic_label.equal new_label l in
-          begin
-            match need_upadte with
-            | false ->
-              let new_term =
-                {t with term_node = Tat(v,new_label)}
-              in
-              Cil.ChangeTo new_term
-            | true -> super#vterm t
-          end
+          id_checker l loc id_hash;
+          self#vterm v
         | _ -> super#vterm t
 
       method! vpredicate p =
@@ -251,25 +240,16 @@ let rpp_extend_checker check =
                         "\\callset contain no \\call: @. @[%a@] @." Printer.pp_term x
             ) terms;
           Cil.SkipChildren
-        | Papp (a,labels,param) ->
-          let new_labels = List.map  (fun y -> (id_update y loc id_hash)) labels in
-          let need_update =
-            List.fold_left2 (fun acc x y -> acc && Cil_datatype.Logic_label.equal x y)
-              true new_labels labels
-          in
-          begin
-            match need_update with
-            | false ->
-              let new_labels = List.map  (fun y -> (id_update y loc id_hash)) labels in
-              let new_pred =
-                {p with pred_content = Papp(a,new_labels,param)}
-              in
-              Cil.ChangeTo new_pred
-            | true -> super#vpredicate p
-          end
-        | _ ->
-          super#vpredicate p
-
+        | Papp (li,labels,params) ->
+          List.iter (fun l -> id_checker l loc id_hash) labels;
+          ignore (super#vlogic_info_use li);
+          List.iter
+            (fun t ->
+               ignore
+                 (Visitor.visitFramacTerm (self:>Visitor.frama_c_visitor) t))
+            params;
+          Cil.SkipChildren
+        | _ -> super#vpredicate p
     end
   end
   in

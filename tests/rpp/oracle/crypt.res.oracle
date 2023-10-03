@@ -55,6 +55,17 @@ int DeCryptage(int t, int key)
   return __retres;
 }
 
+/*@ requires x > 0;
+    ensures \result ≡ \old(x); */
+int main(int x)
+{
+  int inter;
+  int k = 5;
+  inter = Cryptage(x,k);
+  inter = DeCryptage(inter,k);
+  return inter;
+}
+
 /*@ requires key ≥ 0;
     requires key ≥ 0 ∧ t > 0; */
 void relational_wrapper_1(int t, int key)
@@ -73,7 +84,7 @@ void relational_wrapper_1(int t, int key)
     __retres_2 = local_variable_relational_1 - key;
     return_variable_relational_1 = __retres_2;
   }
-  /*@ assert Rpp: return_variable_relational_1 ≡ t; */
+  /*@ check Rpp: return_variable_relational_1 ≡ t; */
   return;
 }
 
@@ -87,19 +98,8 @@ void relational_wrapper_2(int t, int key)
     __retres_3 = t + key;
     return_variable_relational_2 = __retres_3;
   }
-  /*@ assert Rpp: return_variable_relational_2 > 0; */
+  /*@ check Rpp: return_variable_relational_2 > 0; */
   return;
-}
-
-/*@ requires x > 0;
-    ensures \result ≡ \old(x); */
-int main(int x)
-{
-  int inter;
-  int k = 5;
-  inter = Cryptage(x,k);
-  inter = DeCryptage(inter,k);
-  return inter;
 }
 
 

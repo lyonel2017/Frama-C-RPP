@@ -14,9 +14,6 @@ struct SolutionComparator {
 
 /*@ requires \valid(t+(0..1));
   @ assigns \result \from o1,o2,t[0..1];
-  @ relational \forall struct SolutionComparator x1,x2, int * t; \callpure(compare,x1,x2,t) == -(\callpure(compare,x2,x1,t));
-  @ relational \forall struct SolutionComparator x1,x2,x3, int *t; (\callpure(compare,x1,x2,t) > 0 && \callpure(compare,x2,x3,t) > 0) ==> \callpure(compare,x1,x3,t) > 0;
-  @ relational \forall struct SolutionComparator x1,x2,x3, int *t; \callpure(compare,x1,x2,t) == 0 ==> (\callpure(compare,x1,x3,t) == \callpure(compare,x2,x3,t));
 */
 int compare(struct SolutionComparator o1, struct SolutionComparator o2, int *t) {
   int v1 = o1.getValue;
@@ -65,3 +62,20 @@ int compare(struct SolutionComparator o1, struct SolutionComparator o2, int *t) 
       return 0;
   }
 }
+
+/*@ relational
+      \forall struct SolutionComparator x1,x2, int * t;
+      \callpure(compare,x1,x2,t) == -(\callpure(compare,x2,x1,t));
+*/
+
+/*@ relational
+      \forall struct SolutionComparator x1,x2,x3, int *t;
+      (\callpure(compare,x1,x2,t) > 0 && \callpure(compare,x2,x3,t) > 0)
+      ==> \callpure(compare,x1,x3,t) > 0;
+*/
+
+/*@ relational
+      \forall struct SolutionComparator x1,x2,x3, int *t;
+      \callpure(compare,x1,x2,t) == 0
+      ==> (\callpure(compare,x1,x3,t) == \callpure(compare,x2,x3,t));
+*/

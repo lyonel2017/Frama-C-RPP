@@ -2,7 +2,6 @@
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
-[rpp] tests/rpp/pointer_exception.c:7: User Error: 
-  Pointer variable x is assigns or used in trace id2 but also in an over trace.
-   Memory sharing is not supported yet. Declare a new pointer variable for trace id2
+[rpp] tests/rpp/pointer_exception.c:13: User Error: 
+  Pointer variable x is assigned or used in trace id2 but also in another trace. Memory sharing is not supported yet. Declare a new pointer variable for trace id2
 [kernel] Plug-in rpp aborted: invalid user input.

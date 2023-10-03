@@ -56,7 +56,7 @@ void relational_wrapper_1(int key)
   ;
   message_id2_1 -= key;
   ;
-  /*@ assert
+  /*@ check
       Rpp:
         \at(message_id1_1,Here) ≡ \at(message_id2_1,Pre) ⇒
         \at(message_id1_1,Pre) ≡ \at(message_id2_1,Here);

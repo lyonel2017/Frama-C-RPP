@@ -79,46 +79,6 @@ int h(int x)
   return x;
 }
 
-void relational_wrapper_1(int x)
-{
-  int return_variable_relational_1;
-  int return_variable_relational_2;
-  return_variable_relational_1 = x;
-  return_variable_relational_2 = x;
-  /*@ assert
-      Rpp: return_variable_relational_1 ≡ return_variable_relational_2;
-  */
-  return;
-}
-
-void relational_wrapper_2(int x)
-{
-  int return_variable_relational_3;
-  int return_variable_relational_4;
-  return_variable_relational_3 = x;
-  return_variable_relational_4 = x;
-  /*@ assert
-      Rpp: return_variable_relational_3 ≡ return_variable_relational_4;
-  */
-  return;
-}
-
-int h_aux_3(int x);
-
-int f_aux_3(int x);
-
-void relational_wrapper_3(int x)
-{
-  int return_variable_relational_5;
-  int return_variable_relational_6;
-  return_variable_relational_5 = h_aux_3(x);
-  return_variable_relational_6 = f_aux_3(x);
-  /*@ assert
-      Rpp: return_variable_relational_5 ≡ return_variable_relational_6;
-  */
-  return;
-}
-
 /*@ assigns \result;
     assigns \result \from x;
     
@@ -140,6 +100,42 @@ int f_aux_3(int x);
       ensures ∀ int x; g_acsl_pure_2(x) ≡ g_acsl_pure_1(x);
  */
 int h_aux_3(int x);
+
+void relational_wrapper_1(int x)
+{
+  int return_variable_relational_1;
+  int return_variable_relational_2;
+  return_variable_relational_1 = x;
+  return_variable_relational_2 = x;
+  /*@ check
+      Rpp: return_variable_relational_1 ≡ return_variable_relational_2;
+  */
+  return;
+}
+
+void relational_wrapper_2(int x)
+{
+  int return_variable_relational_3;
+  int return_variable_relational_4;
+  return_variable_relational_3 = x;
+  return_variable_relational_4 = x;
+  /*@ check
+      Rpp: return_variable_relational_3 ≡ return_variable_relational_4;
+  */
+  return;
+}
+
+void relational_wrapper_3(int x)
+{
+  int return_variable_relational_5;
+  int return_variable_relational_6;
+  return_variable_relational_5 = h_aux_3(x);
+  return_variable_relational_6 = f_aux_3(x);
+  /*@ check
+      Rpp: return_variable_relational_5 ≡ return_variable_relational_6;
+  */
+  return;
+}
 
 
 [rpp] ***************************************

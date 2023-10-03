@@ -1,7 +1,11 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/NzbFile-true.c (with preprocessing)
-[kernel:typing:incompatible-types-call] benchmarks/stackoverflow/NzbFile-true.c:54: Warning: 
+[kernel] Parsing benchmarks/stackoverflow/NzbFile-true.c (with preprocessing)
+[kernel:typing:int-conversion] benchmarks/stackoverflow/NzbFile-true.c:50: Warning: 
+  Conversion from a pointer to an integer without an explicit cast
+[kernel:typing:incompatible-types-call] benchmarks/stackoverflow/NzbFile-true.c:50: Warning: 
   expected 'int' but got argument of type 'int *': o2.FileName
-[kernel:typing:incompatible-types-call] benchmarks/stackoverflow/NzbFile-true.c:54: Warning: 
+[kernel:typing:int-conversion] benchmarks/stackoverflow/NzbFile-true.c:50: Warning: 
+  Conversion from a pointer to an integer without an explicit cast
+[kernel:typing:incompatible-types-call] benchmarks/stackoverflow/NzbFile-true.c:50: Warning: 
   expected 'int' but got argument of type 'int *': o1.FileName
 [rpp] ***************************************
 [rpp] Rpp start
@@ -33,6 +37,16 @@ type invariant NzbFile_is_bool(struct NzbFile s) =
 int IntCompare(int x, int y);
 
 /*@
+axiomatic Relational_axiome_1 {
+  logic int compare_acsl_pure_1(struct NzbFile o1, struct NzbFile o2) ;
+  
+  lemma Relational_lemma_1{L}:
+    ∀ struct NzbFile x1, struct NzbFile x2;
+      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
+  
+  }
+ */
+/*@
 axiomatic Relational_axiome_3 {
   logic int compare_acsl_pure_3(struct NzbFile o1, struct NzbFile o2) ;
   
@@ -40,16 +54,6 @@ axiomatic Relational_axiome_3 {
     ∀ struct NzbFile x1, struct NzbFile x2, struct NzbFile x3;
       compare_acsl_pure_3(x1, x2) ≡ 0 ⇒
       compare_acsl_pure_3(x1, x3) ≡ compare_acsl_pure_3(x2, x3);
-  
-  }
- */
-/*@
-axiomatic Relational_axiome_1 {
-  logic int compare_acsl_pure_1(struct NzbFile o1, struct NzbFile o2) ;
-  
-  lemma Relational_lemma_1{L}:
-    ∀ struct NzbFile x1, struct NzbFile x2;
-      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
   
   }
  */
@@ -146,6 +150,28 @@ int compare(struct NzbFile o1, struct NzbFile o2)
   return_label: return __retres;
 }
 
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
+int IntCompare_aux_3(int x, int y);
+
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
+int IntCompare_aux_2(int x, int y);
+
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
 int IntCompare_aux_1(int x, int y);
 
 void relational_wrapper_1(struct NzbFile x1, struct NzbFile x2)
@@ -286,13 +312,11 @@ void relational_wrapper_1(struct NzbFile x1, struct NzbFile x2)
     }
     return_label_label_5: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
 }
-
-int IntCompare_aux_2(int x, int y);
 
 void relational_wrapper_2(struct NzbFile x1, struct NzbFile x2,
                           struct NzbFile x3)
@@ -501,15 +525,13 @@ void relational_wrapper_2(struct NzbFile x1, struct NzbFile x2,
     }
     return_label_label_17: return_variable_relational_5 = __retres_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
   */
   return;
 }
-
-int IntCompare_aux_3(int x, int y);
 
 void relational_wrapper_3(struct NzbFile x1, struct NzbFile x2,
                           struct NzbFile x3)
@@ -718,37 +740,13 @@ void relational_wrapper_3(struct NzbFile x1, struct NzbFile x2,
     }
     return_label_label_29: return_variable_relational_8 = __retres_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;
   */
   return;
 }
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_3(int x, int y);
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_2(int x, int y);
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_1(int x, int y);
 
 
 [rpp] ***************************************

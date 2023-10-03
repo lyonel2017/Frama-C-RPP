@@ -15,10 +15,7 @@ struct Chromosome{
 
 /*@ requires o1.isNull != 0;
   @ assigns \result \from o1,o2;
-  @ relational \forall struct Chromosome x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct Chromosome x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct Chromosome x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
-  */
+*/
 int compare(struct Chromosome o1, struct Chromosome o2) {
   if(o2.isNull == 0)
     return(1);
@@ -35,3 +32,19 @@ int compare(struct Chromosome o1, struct Chromosome o2) {
   else
     return(-1);
 }
+
+/*@ relational
+      \forall struct Chromosome x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+/*@ relational
+      \forall struct Chromosome x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct Chromosome x1,x2,x3;
+      \callpure(compare,x1,x2) == 0 ==>
+      (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+  */

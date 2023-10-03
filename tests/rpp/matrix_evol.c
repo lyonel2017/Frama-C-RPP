@@ -22,9 +22,7 @@ struct matrix trans2(struct matrix m){
   return m_t;
 }
 
-/*@ assigns \result \from m;
-  @ relational \forall struct matrix m; is_eq(\callpure(trans2,m), \callpure(trans,m),4); 
-*/
+/*@ assigns \result \from m; */
 struct matrix trans( struct matrix m){
 	int i = 0;
 	int j = 0;
@@ -54,14 +52,12 @@ struct matrix trans( struct matrix m){
 	return m_t;
 }
 
-/*@ assigns \result \from m_a,m_b;
-  @ relational \forall struct matrix m1, m2; is_eq(\callpure(trans2,\callpure(sum,m1,m2)),\callpure(sum,\callpure(trans2,m1),\callpure(trans2,m2)),4);
-  @ relational \forall struct matrix m1, m2; is_eq(\callpure(trans,\callpure(sum,m1,m2)),\callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),4);
-  @ relational \forall struct matrix m1, m2; is_eq_test(\callpure(trans,\callpure(sum,m1,m2)), \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),0);
-  @ relational \forall struct matrix m1, m2; is_eq_test(\callpure(trans,\callpure(sum,m1,m2)), \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),1);
-  @ relational \forall struct matrix m1, m2; is_eq_test(\callpure(trans,\callpure(sum,m1,m2)), \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),2);
-  @ relational \forall struct matrix m1, m2; is_eq_test(\callpure(trans,\callpure(sum,m1,m2)), \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),3);
+/*@ relational
+     \forall struct matrix m; is_eq(\callpure(trans2,m), \callpure(trans,m),4); 
 */
+
+
+/*@ assigns \result \from m_a,m_b; */
 struct matrix sum(struct matrix m_a,struct matrix m_b){
   struct matrix m_s;
   int i = 0;
@@ -76,3 +72,38 @@ struct matrix sum(struct matrix m_a,struct matrix m_b){
   return m_s;
 }
 
+/*@ relational
+      \forall struct matrix m1, m2;
+         is_eq(\callpure(trans2,\callpure(sum,m1,m2)),
+               \callpure(sum,\callpure(trans2,m1),\callpure(trans2,m2)),4);
+*/
+
+/*@ relational
+      \forall struct matrix m1, m2;
+        is_eq(\callpure(trans,\callpure(sum,m1,m2)),
+              \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),4);
+*/
+
+/*@ relational
+     \forall struct matrix m1, m2;
+       is_eq_test(\callpure(trans,\callpure(sum,m1,m2)),
+                  \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),0);
+*/
+
+/*@ relational
+     \forall struct matrix m1, m2;
+        is_eq_test(\callpure(trans,\callpure(sum,m1,m2)),
+                   \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),1);
+*/
+
+/*@ relational
+      \forall struct matrix m1, m2;
+        is_eq_test(\callpure(trans,\callpure(sum,m1,m2)),
+                   \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),2);
+*/
+
+/*@ relational
+      \forall struct matrix m1, m2;
+        is_eq_test(\callpure(trans,\callpure(sum,m1,m2)),
+                   \callpure(sum,\callpure(trans,m1),\callpure(trans,m2)),3);
+*/

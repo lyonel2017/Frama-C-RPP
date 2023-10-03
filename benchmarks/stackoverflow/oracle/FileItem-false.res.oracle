@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/FileItem-false.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/FileItem-false.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -11,16 +11,6 @@ struct FileItem {
    int *FileName ;
    int *toInt ;
 };
-/*@
-axiomatic Relational_axiome_1 {
-  logic int compare_acsl_pure_1(struct FileItem o1, struct FileItem o2) ;
-  
-  lemma Relational_lemma_1{L}:
-    ∀ struct FileItem x1, struct FileItem x2;
-      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
-  
-  }
- */
 /*@
 axiomatic Relational_axiome_2 {
   logic int compare_acsl_pure_2(struct FileItem o1, struct FileItem o2) ;
@@ -40,6 +30,16 @@ axiomatic Relational_axiome_3 {
     ∀ struct FileItem x1, struct FileItem x2, struct FileItem x3;
       compare_acsl_pure_3(x1, x2) ≡ 0 ⇒
       compare_acsl_pure_3(x1, x3) ≡ compare_acsl_pure_3(x2, x3);
+  
+  }
+ */
+/*@
+axiomatic Relational_axiome_1 {
+  logic int compare_acsl_pure_1(struct FileItem o1, struct FileItem o2) ;
+  
+  lemma Relational_lemma_1{L}:
+    ∀ struct FileItem x1, struct FileItem x2;
+      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
   
   }
 
@@ -64,7 +64,7 @@ int compare(struct FileItem o1, struct FileItem o2)
       int *n1 = o1.FileName;
       int *n2 = o2.FileName;
       if (n1 != (int *)0) 
-        if (n2 != (int *)0) result = n1 - n2;
+        if (n2 != (int *)0) result = (int)(n1 - n2);
     }
   return result;
 }
@@ -80,7 +80,7 @@ void relational_wrapper_1(struct FileItem x1, struct FileItem x2)
         int *n1_1 = x1.FileName;
         int *n2_1 = x2.FileName;
         if (n1_1 != (int *)0) 
-          if (n2_1 != (int *)0) result_1 = n1_1 - n2_1;
+          if (n2_1 != (int *)0) result_1 = (int)(n1_1 - n2_1);
       }
     return_variable_relational_1 = result_1;
   }
@@ -91,11 +91,11 @@ void relational_wrapper_1(struct FileItem x1, struct FileItem x2)
         int *n1_2 = x2.FileName;
         int *n2_2 = x1.FileName;
         if (n1_2 != (int *)0) 
-          if (n2_2 != (int *)0) result_2 = n1_2 - n2_2;
+          if (n2_2 != (int *)0) result_2 = (int)(n1_2 - n2_2);
       }
     return_variable_relational_2 = result_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
@@ -114,7 +114,7 @@ void relational_wrapper_2(struct FileItem x1, struct FileItem x2,
         int *n1_3 = x1.FileName;
         int *n2_3 = x2.FileName;
         if (n1_3 != (int *)0) 
-          if (n2_3 != (int *)0) result_3 = n1_3 - n2_3;
+          if (n2_3 != (int *)0) result_3 = (int)(n1_3 - n2_3);
       }
     return_variable_relational_3 = result_3;
   }
@@ -125,7 +125,7 @@ void relational_wrapper_2(struct FileItem x1, struct FileItem x2,
         int *n1_4 = x2.FileName;
         int *n2_4 = x3.FileName;
         if (n1_4 != (int *)0) 
-          if (n2_4 != (int *)0) result_4 = n1_4 - n2_4;
+          if (n2_4 != (int *)0) result_4 = (int)(n1_4 - n2_4);
       }
     return_variable_relational_4 = result_4;
   }
@@ -136,11 +136,11 @@ void relational_wrapper_2(struct FileItem x1, struct FileItem x2,
         int *n1_5 = x1.FileName;
         int *n2_5 = x3.FileName;
         if (n1_5 != (int *)0) 
-          if (n2_5 != (int *)0) result_5 = n1_5 - n2_5;
+          if (n2_5 != (int *)0) result_5 = (int)(n1_5 - n2_5);
       }
     return_variable_relational_5 = result_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
@@ -161,7 +161,7 @@ void relational_wrapper_3(struct FileItem x1, struct FileItem x2,
         int *n1_6 = x1.FileName;
         int *n2_6 = x2.FileName;
         if (n1_6 != (int *)0) 
-          if (n2_6 != (int *)0) result_6 = n1_6 - n2_6;
+          if (n2_6 != (int *)0) result_6 = (int)(n1_6 - n2_6);
       }
     return_variable_relational_6 = result_6;
   }
@@ -172,7 +172,7 @@ void relational_wrapper_3(struct FileItem x1, struct FileItem x2,
         int *n1_7 = x1.FileName;
         int *n2_7 = x3.FileName;
         if (n1_7 != (int *)0) 
-          if (n2_7 != (int *)0) result_7 = n1_7 - n2_7;
+          if (n2_7 != (int *)0) result_7 = (int)(n1_7 - n2_7);
       }
     return_variable_relational_7 = result_7;
   }
@@ -183,11 +183,11 @@ void relational_wrapper_3(struct FileItem x1, struct FileItem x2,
         int *n1_8 = x2.FileName;
         int *n2_8 = x3.FileName;
         if (n1_8 != (int *)0) 
-          if (n2_8 != (int *)0) result_8 = n1_8 - n2_8;
+          if (n2_8 != (int *)0) result_8 = (int)(n1_8 - n2_8);
       }
     return_variable_relational_8 = result_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;

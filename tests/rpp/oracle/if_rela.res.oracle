@@ -104,7 +104,7 @@ void relational_wrapper_1(int a, int b, int c)
         if (a > b) med_2 = a;
     return_variable_relational_2 = med_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ return_variable_relational_2;
   */
   return;
@@ -142,7 +142,7 @@ void relational_wrapper_2(int a, int b, int c)
         if (b > c) med_4 = b;
     return_variable_relational_4 = med_4;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_3 ≡ return_variable_relational_4;
   */
   return;

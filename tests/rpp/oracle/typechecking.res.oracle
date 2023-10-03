@@ -1,9 +1,9 @@
 [kernel] Parsing tests/rpp/typechecking.c (with preprocessing)
-[kernel:annot-error] tests/rpp/typechecking.c:6: Warning: 
+[kernel:annot-error] tests/rpp/typechecking.c:10: Warning: 
   Cast are not supported:
    int and float are not compatible for term 
    x2 in call of f 
-  . Ignoring logic specification of function f
+  . Ignoring global annotation
 [kernel] User Error: warning annot-error treated as fatal error.
 [kernel] User Error: stopping on file "tests/rpp/typechecking.c" that has errors. Add
   '-kernel-msg-key pp' for preprocessing command.

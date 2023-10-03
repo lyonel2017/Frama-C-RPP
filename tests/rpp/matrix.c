@@ -18,10 +18,12 @@ struct matrix2 trans(struct matrix2 m_t){
 	return m_t_2;
 }
 
-
-
-/*@ relational \forall struct  matrix2 m; \callpure(det_two,m) == \callpure(det_two,\callpure(trans,m));
-  @ assigns \result \from m_d;*/
+/*@ assigns \result \from m_d;*/
 int det_two(struct matrix2 m_d){
 	return m_d.t[0]*m_d.t[3] - m_d.t[1]*m_d.t[2];
 }
+
+/*@ relational
+     \forall struct  matrix2 m;
+       \callpure(det_two,m) == \callpure(det_two,\callpure(trans,m));
+*/

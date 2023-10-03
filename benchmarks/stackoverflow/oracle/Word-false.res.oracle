@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/Word-false.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/Word-false.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -117,6 +117,28 @@ int compare(struct Word o1, struct Word o2)
   return_label: return __retres;
 }
 
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
+int IntCompare_aux_3(int x, int y);
+
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
+int IntCompare_aux_2(int x, int y);
+
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
 int IntCompare_aux_1(int x, int y);
 
 /*@ requires 0 ≤ x2.length < 1000;
@@ -230,13 +252,11 @@ void relational_wrapper_1(struct Word x1, struct Word x2)
     }
     return_label_label_2: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
 }
-
-int IntCompare_aux_2(int x, int y);
 
 /*@ requires 0 ≤ x1.length < 1000;
     requires 0 ≤ x3.length < 1000;
@@ -403,15 +423,13 @@ void relational_wrapper_2(struct Word x1, struct Word x2, struct Word x3)
     }
     return_label_label_5: return_variable_relational_5 = __retres_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
   */
   return;
 }
-
-int IntCompare_aux_3(int x, int y);
 
 /*@ requires 0 ≤ x2.length < 1000;
     requires 0 ≤ x3.length < 1000;
@@ -578,37 +596,13 @@ void relational_wrapper_3(struct Word x1, struct Word x2, struct Word x3)
     }
     return_label_label_8: return_variable_relational_8 = __retres_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;
   */
   return;
 }
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_3(int x, int y);
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_2(int x, int y);
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_1(int x, int y);
 
 
 [rpp] ***************************************

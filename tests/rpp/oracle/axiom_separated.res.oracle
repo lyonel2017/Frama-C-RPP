@@ -50,7 +50,7 @@ void relational_wrapper_1(int x, int *tb)
     __retres_1 = (*(tb + 1) + *(tb + (x - 1))) + *y_id1_1;
     return_variable_relational_1 = __retres_1;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_1 ≡
         \at(*(tb + 1),Pre) + \at(*(tb + (x - 1)),Pre);

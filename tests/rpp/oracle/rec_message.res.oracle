@@ -36,36 +36,7 @@ void f(int x)
   return;
 }
 
-void f_id2(int x);
-
-int message_id2_1;
-
-void f_id3(int x);
-
 int message_id3_1;
-
-void relational_wrapper_1(int x1)
-{
-  int aux_local_variable_1;
-  if (x1 > 0) {
-    f_id2(x1 - 1);
-    message_id2_1 ++;
-  }
-  ;
-  aux_local_variable_1 = x1 - 1;
-  if (aux_local_variable_1 > 0) {
-    f_id3(aux_local_variable_1 - 1);
-    message_id3_1 ++;
-  }
-  ;
-  /*@ assert
-      Rpp:
-        x1 > 0 ⇒
-        \at(message_id2_1,Pre) ≡ \at(message_id3_1,Pre) ⇒
-        \at(message_id2_1,Here) ≡ 1 + \at(message_id3_1,Here);
-  */
-  return;
-}
 
 /*@ ensures
       \old(x) ≤ 0 ⇒ \at(message_id3_1,Post) ≡ \at(message_id3_1,Pre);
@@ -81,6 +52,8 @@ void relational_wrapper_1(int x1)
  */
 void f_id3(int x);
 
+int message_id2_1;
+
 /*@ ensures
       \old(x) ≤ 0 ⇒ \at(message_id2_1,Post) ≡ \at(message_id2_1,Pre);
     ensures
@@ -94,6 +67,29 @@ void f_id3(int x);
         f_acsl_1(\old(x), \at(message_id2_1,Pre), \at(message_id2_1,Post));
  */
 void f_id2(int x);
+
+void relational_wrapper_1(int x1)
+{
+  int aux_local_variable_1;
+  if (x1 > 0) {
+    f_id2(x1 - 1);
+    message_id2_1 ++;
+  }
+  ;
+  aux_local_variable_1 = x1 - 1;
+  if (aux_local_variable_1 > 0) {
+    f_id3(aux_local_variable_1 - 1);
+    message_id3_1 ++;
+  }
+  ;
+  /*@ check
+      Rpp:
+        x1 > 0 ⇒
+        \at(message_id2_1,Pre) ≡ \at(message_id3_1,Pre) ⇒
+        \at(message_id2_1,Here) ≡ 1 + \at(message_id3_1,Here);
+  */
+  return;
+}
 
 
 [rpp] ***************************************

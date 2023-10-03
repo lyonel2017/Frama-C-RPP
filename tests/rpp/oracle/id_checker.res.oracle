@@ -1,7 +1,6 @@
 [kernel] Parsing tests/rpp/id_checker.c (with preprocessing)
-[kernel:annot-error] tests/rpp/id_checker.c:14: Warning: 
-  Unknow label: Post_id1 in \at( k, Post_id1 )
-  . Ignoring logic specification of function g
+[kernel:annot-error] tests/rpp/id_checker.c:27: Warning: 
+  logic label `Post_id1' not found. Ignoring global annotation
 [kernel] User Error: warning annot-error treated as fatal error.
 [kernel] User Error: stopping on file "tests/rpp/id_checker.c" that has errors. Add
   '-kernel-msg-key pp' for preprocessing command.

@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/PokerHand-true-init.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/PokerHand-true-init.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -92,17 +92,6 @@ axiomatic Relational_axiome_1 {
   }
  */
 /*@
-axiomatic Relational_axiome_2 {
-  logic int compare_acsl_pure_2(struct PokerHand o1, struct PokerHand o2) ;
-  
-  lemma Relational_lemma_2{L}:
-    ∀ struct PokerHand x1, struct PokerHand x2, struct PokerHand x3;
-      compare_acsl_pure_2(x1, x2) > 0 ∧ compare_acsl_pure_2(x2, x3) > 0 ⇒
-      compare_acsl_pure_2(x1, x3) > 0;
-  
-  }
- */
-/*@
 axiomatic Relational_axiome_3 {
   logic int compare_acsl_pure_3(struct PokerHand o1, struct PokerHand o2) ;
   
@@ -110,6 +99,17 @@ axiomatic Relational_axiome_3 {
     ∀ struct PokerHand x1, struct PokerHand x2, struct PokerHand x3;
       compare_acsl_pure_3(x1, x2) ≡ 0 ⇒
       compare_acsl_pure_3(x1, x3) ≡ compare_acsl_pure_3(x2, x3);
+  
+  }
+ */
+/*@
+axiomatic Relational_axiome_2 {
+  logic int compare_acsl_pure_2(struct PokerHand o1, struct PokerHand o2) ;
+  
+  lemma Relational_lemma_2{L}:
+    ∀ struct PokerHand x1, struct PokerHand x2, struct PokerHand x3;
+      compare_acsl_pure_2(x1, x2) > 0 ∧ compare_acsl_pure_2(x2, x3) > 0 ⇒
+      compare_acsl_pure_2(x1, x3) > 0;
   
   }
  */
@@ -211,91 +211,99 @@ int compare(struct PokerHand o1, struct PokerHand o2)
       tmp_27 = indexOf(o1,2);
       if (tmp_27 != -1) {
         _LOR_5:
-        if (tripleCount2 > 1) goto _LOR_4;
-        else 
-          if (tripleCount2 == 1) {
-            int tmp_26;
-            tmp_26 = indexOf(o2,2);
-            if (tmp_26 != -1) {
-              _LOR_4:
-              {
-                int tmp_24;
-                int tmp_25;
-                int higherTriple = lastIndexOf(o1,3);
-                tmp_24 = lastIndexOf(o2,3);
-                ;
-                if (higherTriple == tmp_24) {
-                  int i2 = 0;
-                  /*@ loop invariant 0 ≤ i2 ≤ 13;
-                      loop invariant
-                        ∀ ℤ k;
-                          0 ≤ k < i2 ⇒
-                          k ≡ higherTriple ∨
-                          (o1.hand[k] ≢ 2 ∧ o1.hand[k] ≢ 3 ∧
-                           o2.hand[k] ≢ 2 ∧ o2.hand[k] ≢ 3);
-                      loop assigns i2;
-                  */
-                  while (i2 <= 12) {
-                    if (i2 != higherTriple) {
-                      int tmp_16;
-                      tmp_16 = charAt(o1,i2);
-                      if (tmp_16 == 2) goto _LOR_1;
-                      else {
-                        int tmp_17;
-                        tmp_17 = charAt(o1,i2);
-                        if (tmp_17 == 3) {
-                          int tmp_18;
-                          _LOR_1: tmp_18 = charAt(o2,i2);
-                          if (tmp_18 == 2) goto _LOR_0;
-                          else {
-                            int tmp_19;
-                            tmp_19 = charAt(o2,i2);
-                            if (tmp_19 == 3) {
-                              _LOR_0: __retres = 0;
-                                      goto return_label;
+        {
+          if (tripleCount2 > 1) goto _LOR_4;
+          else 
+            if (tripleCount2 == 1) {
+              int tmp_26;
+              tmp_26 = indexOf(o2,2);
+              if (tmp_26 != -1) {
+                _LOR_4:
+                {
+                  int tmp_24;
+                  int tmp_25;
+                  int higherTriple = lastIndexOf(o1,3);
+                  tmp_24 = lastIndexOf(o2,3);
+                  ;
+                  if (higherTriple == tmp_24) {
+                    int i2 = 0;
+                    /*@ loop invariant 0 ≤ i2 ≤ 13;
+                        loop invariant
+                          ∀ ℤ k;
+                            0 ≤ k < i2 ⇒
+                            k ≡ higherTriple ∨
+                            (o1.hand[k] ≢ 2 ∧ o1.hand[k] ≢ 3 ∧
+                             o2.hand[k] ≢ 2 ∧ o2.hand[k] ≢ 3);
+                        loop assigns i2;
+                    */
+                    while (i2 <= 12) {
+                      if (i2 != higherTriple) {
+                        int tmp_16;
+                        tmp_16 = charAt(o1,i2);
+                        if (tmp_16 == 2) goto _LOR_1;
+                        else {
+                          int tmp_17;
+                          tmp_17 = charAt(o1,i2);
+                          if (tmp_17 == 3) {
+                            int tmp_18;
+                            _LOR_1: tmp_18 = charAt(o2,i2);
+                            if (tmp_18 == 2) goto _LOR_0;
+                            else {
+                              int tmp_19;
+                              tmp_19 = charAt(o2,i2);
+                              if (tmp_19 == 3) {
+                                _LOR_0: {
+                                          __retres = 0;
+                                          goto return_label;
+                                        }
+                              }
                             }
                           }
                         }
                       }
-                    }
-                    if (i2 != higherTriple) {
-                      int tmp_20;
-                      tmp_20 = charAt(o1,i2);
-                      if (tmp_20 == 2) goto _LOR_2;
-                      else {
-                        int tmp_21;
-                        tmp_21 = charAt(o1,i2);
-                        if (tmp_21 == 3) {
-                          _LOR_2: __retres = -1;
-                                  goto return_label;
+                      if (i2 != higherTriple) {
+                        int tmp_20;
+                        tmp_20 = charAt(o1,i2);
+                        if (tmp_20 == 2) goto _LOR_2;
+                        else {
+                          int tmp_21;
+                          tmp_21 = charAt(o1,i2);
+                          if (tmp_21 == 3) {
+                            _LOR_2: {
+                                      __retres = -1;
+                                      goto return_label;
+                                    }
+                          }
                         }
                       }
-                    }
-                    if (i2 != higherTriple) {
-                      int tmp_22;
-                      tmp_22 = charAt(o2,i2);
-                      if (tmp_22 == 2) goto _LOR_3;
-                      else {
-                        int tmp_23;
-                        tmp_23 = charAt(o2,i2);
-                        if (tmp_23 == 3) {
-                          _LOR_3: __retres = 1;
-                                  goto return_label;
+                      if (i2 != higherTriple) {
+                        int tmp_22;
+                        tmp_22 = charAt(o2,i2);
+                        if (tmp_22 == 2) goto _LOR_3;
+                        else {
+                          int tmp_23;
+                          tmp_23 = charAt(o2,i2);
+                          if (tmp_23 == 3) {
+                            _LOR_3: {
+                                      __retres = 1;
+                                      goto return_label;
+                                    }
+                          }
                         }
                       }
+                      i2 ++;
                     }
-                    i2 ++;
                   }
+                  tmp_25 = lastIndexOf(o2,3);
+                  ;
+                  __retres = higherTriple - tmp_25;
+                  goto return_label;
                 }
-                tmp_25 = lastIndexOf(o2,3);
-                ;
-                __retres = higherTriple - tmp_25;
-                goto return_label;
               }
             }
-          }
-        __retres = 1;
-        goto return_label;
+          __retres = 1;
+          goto return_label;
+        }
       }
     }
   if (tripleCount2 > 1) goto _LOR_6;
@@ -304,19 +312,165 @@ int compare(struct PokerHand o1, struct PokerHand o2)
       int tmp_28;
       tmp_28 = indexOf(o2,2);
       if (tmp_28 != -1) {
-        _LOR_6: __retres = -1;
-                goto return_label;
+        _LOR_6: {
+                  __retres = -1;
+                  goto return_label;
+                }
       }
     }
   __retres = 0;
   return_label: return __retres;
 }
 
-int indexOf_aux_1(struct PokerHand o1, int val);
+/*@ assigns \result;
+    assigns \result \from o1, val;
+    
+    behavior some:
+      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
+      ensures 0 ≤ \result < 13;
+      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
+      ensures
+        ∀ ℤ i;
+          \result < i < 13 ⇒
+          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
+      assigns \result;
+      assigns \result \from o1, val;
+    
+    behavior none:
+      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
+      ensures \result ≡ -1;
+      assigns \result;
+      assigns \result \from o1, val;
+ */
+int lastIndexOf_aux_3(struct PokerHand o1, int val);
 
+/*@ ensures \result ≡ (\let tmp = \old(o1.hand); tmp[\old(i)]);
+    assigns \result;
+    assigns \result \from o1, i;
+ */
+int charAt_aux_3(struct PokerHand o1, int i);
+
+/*@ assigns \result;
+    assigns \result \from o1, val;
+    
+    behavior some:
+      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
+      ensures 0 ≤ \result < 13;
+      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
+      ensures
+        ∀ ℤ i;
+          0 ≤ i < \result ⇒
+          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
+      assigns \result;
+      assigns \result \from o1, val;
+    
+    behavior none:
+      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
+      ensures \result ≡ -1;
+      assigns \result;
+      assigns \result \from o1, val;
+ */
+int indexOf_aux_3(struct PokerHand o1, int val);
+
+/*@ assigns \result;
+    assigns \result \from o1, val;
+    
+    behavior some:
+      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
+      ensures 0 ≤ \result < 13;
+      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
+      ensures
+        ∀ ℤ i;
+          \result < i < 13 ⇒
+          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
+      assigns \result;
+      assigns \result \from o1, val;
+    
+    behavior none:
+      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
+      ensures \result ≡ -1;
+      assigns \result;
+      assigns \result \from o1, val;
+ */
+int lastIndexOf_aux_2(struct PokerHand o1, int val);
+
+/*@ ensures \result ≡ (\let tmp = \old(o1.hand); tmp[\old(i)]);
+    assigns \result;
+    assigns \result \from o1, i;
+ */
+int charAt_aux_2(struct PokerHand o1, int i);
+
+/*@ assigns \result;
+    assigns \result \from o1, val;
+    
+    behavior some:
+      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
+      ensures 0 ≤ \result < 13;
+      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
+      ensures
+        ∀ ℤ i;
+          0 ≤ i < \result ⇒
+          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
+      assigns \result;
+      assigns \result \from o1, val;
+    
+    behavior none:
+      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
+      ensures \result ≡ -1;
+      assigns \result;
+      assigns \result \from o1, val;
+ */
+int indexOf_aux_2(struct PokerHand o1, int val);
+
+/*@ assigns \result;
+    assigns \result \from o1, val;
+    
+    behavior some:
+      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
+      ensures 0 ≤ \result < 13;
+      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
+      ensures
+        ∀ ℤ i;
+          \result < i < 13 ⇒
+          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
+      assigns \result;
+      assigns \result \from o1, val;
+    
+    behavior none:
+      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
+      ensures \result ≡ -1;
+      assigns \result;
+      assigns \result \from o1, val;
+ */
+int lastIndexOf_aux_1(struct PokerHand o1, int val);
+
+/*@ ensures \result ≡ (\let tmp = \old(o1.hand); tmp[\old(i)]);
+    assigns \result;
+    assigns \result \from o1, i;
+ */
 int charAt_aux_1(struct PokerHand o1, int i);
 
-int lastIndexOf_aux_1(struct PokerHand o1, int val);
+/*@ assigns \result;
+    assigns \result \from o1, val;
+    
+    behavior some:
+      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
+      ensures 0 ≤ \result < 13;
+      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
+      ensures
+        ∀ ℤ i;
+          0 ≤ i < \result ⇒
+          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
+      assigns \result;
+      assigns \result \from o1, val;
+    
+    behavior none:
+      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
+      ensures \result ≡ -1;
+      assigns \result;
+      assigns \result \from o1, val;
+ */
+int indexOf_aux_1(struct PokerHand o1, int val);
 
 void relational_wrapper_1(struct PokerHand x1, struct PokerHand x2)
 {
@@ -407,94 +561,103 @@ void relational_wrapper_1(struct PokerHand x1, struct PokerHand x2)
         tmp_27_1 = indexOf_aux_1(x1,2);
         if (tmp_27_1 != -1) {
           _LOR_5_label_3:
-          if (tripleCount2_1 > 1) goto _LOR_4_label_4;
-          else 
-            if (tripleCount2_1 == 1) {
-              int tmp_26_1;
-              tmp_26_1 = indexOf_aux_1(x2,2);
-              if (tmp_26_1 != -1) {
-                _LOR_4_label_4:
-                {
-                  int tmp_24_1;
-                  int tmp_25_1;
-                  int higherTriple_1 = lastIndexOf(x1,3);
-                  tmp_24_1 = lastIndexOf_aux_1(x2,3);
-                  ;
-                  if (higherTriple_1 == tmp_24_1) {
-                    int i2_1 = 0;
-                    /*@ loop invariant 0 ≤ i2_1 ≤ 13;
-                        loop invariant
-                          ∀ ℤ k;
-                            0 ≤ k < i2_1 ⇒
-                            k ≡ higherTriple_1 ∨
-                            (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
-                             x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3);
-                        loop assigns i2_1;
-                    */
-                    while (i2_1 <= 12) {
-                      if (i2_1 != higherTriple_1) {
-                        int tmp_16_1;
-                        tmp_16_1 = charAt_aux_1(x1,i2_1);
-                        if (tmp_16_1 == 2) goto _LOR_1_label_5;
-                        else {
-                          int tmp_17_1;
-                          tmp_17_1 = charAt_aux_1(x1,i2_1);
-                          if (tmp_17_1 == 3) {
-                            int tmp_18_1;
-                            _LOR_1_label_5: tmp_18_1 = charAt_aux_1(x2,i2_1);
-                            if (tmp_18_1 == 2) goto _LOR_0_label_6;
-                            else {
-                              int tmp_19_1;
-                              tmp_19_1 = charAt_aux_1(x2,i2_1);
-                              if (tmp_19_1 == 3) {
-                                _LOR_0_label_6:
-                                __retres_1 = 0;
+          {
+            if (tripleCount2_1 > 1) goto _LOR_4_label_4;
+            else 
+              if (tripleCount2_1 == 1) {
+                int tmp_26_1;
+                tmp_26_1 = indexOf_aux_1(x2,2);
+                if (tmp_26_1 != -1) {
+                  _LOR_4_label_4:
+                  {
+                    int tmp_24_1;
+                    int tmp_25_1;
+                    int higherTriple_1 = lastIndexOf(x1,3);
+                    tmp_24_1 = lastIndexOf_aux_1(x2,3);
+                    ;
+                    if (higherTriple_1 == tmp_24_1) {
+                      int i2_1 = 0;
+                      /*@ loop invariant 0 ≤ i2_1 ≤ 13;
+                          loop invariant
+                            ∀ ℤ k;
+                              0 ≤ k < i2_1 ⇒
+                              k ≡ higherTriple_1 ∨
+                              (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
+                               x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3);
+                          loop assigns i2_1;
+                      */
+                      while (i2_1 <= 12) {
+                        if (i2_1 != higherTriple_1) {
+                          int tmp_16_1;
+                          tmp_16_1 = charAt_aux_1(x1,i2_1);
+                          if (tmp_16_1 == 2) goto _LOR_1_label_5;
+                          else {
+                            int tmp_17_1;
+                            tmp_17_1 = charAt_aux_1(x1,i2_1);
+                            if (tmp_17_1 == 3) {
+                              int tmp_18_1;
+                              _LOR_1_label_5:
+                              tmp_18_1 = charAt_aux_1(x2,i2_1);
+                              if (tmp_18_1 == 2) goto _LOR_0_label_6;
+                              else {
+                                int tmp_19_1;
+                                tmp_19_1 = charAt_aux_1(x2,i2_1);
+                                if (tmp_19_1 == 3) {
+                                  _LOR_0_label_6:
+                                  {
+                                    __retres_1 = 0;
+                                    goto return_label_label_2;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        if (i2_1 != higherTriple_1) {
+                          int tmp_20_1;
+                          tmp_20_1 = charAt_aux_1(x1,i2_1);
+                          if (tmp_20_1 == 2) goto _LOR_2_label_7;
+                          else {
+                            int tmp_21_1;
+                            tmp_21_1 = charAt_aux_1(x1,i2_1);
+                            if (tmp_21_1 == 3) {
+                              _LOR_2_label_7:
+                              {
+                                __retres_1 = -1;
                                 goto return_label_label_2;
                               }
                             }
                           }
                         }
-                      }
-                      if (i2_1 != higherTriple_1) {
-                        int tmp_20_1;
-                        tmp_20_1 = charAt_aux_1(x1,i2_1);
-                        if (tmp_20_1 == 2) goto _LOR_2_label_7;
-                        else {
-                          int tmp_21_1;
-                          tmp_21_1 = charAt_aux_1(x1,i2_1);
-                          if (tmp_21_1 == 3) {
-                            _LOR_2_label_7:
-                            __retres_1 = -1;
-                            goto return_label_label_2;
+                        if (i2_1 != higherTriple_1) {
+                          int tmp_22_1;
+                          tmp_22_1 = charAt_aux_1(x2,i2_1);
+                          if (tmp_22_1 == 2) goto _LOR_3_label_8;
+                          else {
+                            int tmp_23_1;
+                            tmp_23_1 = charAt_aux_1(x2,i2_1);
+                            if (tmp_23_1 == 3) {
+                              _LOR_3_label_8:
+                              {
+                                __retres_1 = 1;
+                                goto return_label_label_2;
+                              }
+                            }
                           }
                         }
+                        i2_1 ++;
                       }
-                      if (i2_1 != higherTriple_1) {
-                        int tmp_22_1;
-                        tmp_22_1 = charAt_aux_1(x2,i2_1);
-                        if (tmp_22_1 == 2) goto _LOR_3_label_8;
-                        else {
-                          int tmp_23_1;
-                          tmp_23_1 = charAt_aux_1(x2,i2_1);
-                          if (tmp_23_1 == 3) {
-                            _LOR_3_label_8:
-                            __retres_1 = 1;
-                            goto return_label_label_2;
-                          }
-                        }
-                      }
-                      i2_1 ++;
                     }
+                    tmp_25_1 = lastIndexOf_aux_1(x2,3);
+                    ;
+                    __retres_1 = higherTriple_1 - tmp_25_1;
+                    goto return_label_label_2;
                   }
-                  tmp_25_1 = lastIndexOf_aux_1(x2,3);
-                  ;
-                  __retres_1 = higherTriple_1 - tmp_25_1;
-                  goto return_label_label_2;
                 }
               }
-            }
-          __retres_1 = 1;
-          goto return_label_label_2;
+            __retres_1 = 1;
+            goto return_label_label_2;
+          }
         }
       }
     if (tripleCount2_1 > 1) goto _LOR_6_label_9;
@@ -503,8 +666,10 @@ void relational_wrapper_1(struct PokerHand x1, struct PokerHand x2)
         int tmp_28_1;
         tmp_28_1 = indexOf_aux_1(x2,2);
         if (tmp_28_1 != -1) {
-          _LOR_6_label_9: __retres_1 = -1;
-                          goto return_label_label_2;
+          _LOR_6_label_9: {
+                            __retres_1 = -1;
+                            goto return_label_label_2;
+                          }
         }
       }
     __retres_1 = 0;
@@ -595,95 +760,103 @@ void relational_wrapper_1(struct PokerHand x1, struct PokerHand x2)
         tmp_27_2 = indexOf_aux_1(x2,2);
         if (tmp_27_2 != -1) {
           _LOR_5_label_12:
-          if (tripleCount2_2 > 1) goto _LOR_4_label_13;
-          else 
-            if (tripleCount2_2 == 1) {
-              int tmp_26_2;
-              tmp_26_2 = indexOf_aux_1(x1,2);
-              if (tmp_26_2 != -1) {
-                _LOR_4_label_13:
-                {
-                  int tmp_24_2;
-                  int tmp_25_2;
-                  int higherTriple_2 = lastIndexOf(x2,3);
-                  tmp_24_2 = lastIndexOf_aux_1(x1,3);
-                  ;
-                  if (higherTriple_2 == tmp_24_2) {
-                    int i2_2 = 0;
-                    /*@ loop invariant 0 ≤ i2_2 ≤ 13;
-                        loop invariant
-                          ∀ ℤ k;
-                            0 ≤ k < i2_2 ⇒
-                            k ≡ higherTriple_2 ∨
-                            (x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3 ∧
-                             x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3);
-                        loop assigns i2_2;
-                    */
-                    while (i2_2 <= 12) {
-                      if (i2_2 != higherTriple_2) {
-                        int tmp_16_2;
-                        tmp_16_2 = charAt_aux_1(x2,i2_2);
-                        if (tmp_16_2 == 2) goto _LOR_1_label_14;
-                        else {
-                          int tmp_17_2;
-                          tmp_17_2 = charAt_aux_1(x2,i2_2);
-                          if (tmp_17_2 == 3) {
-                            int tmp_18_2;
-                            _LOR_1_label_14:
-                            tmp_18_2 = charAt_aux_1(x1,i2_2);
-                            if (tmp_18_2 == 2) goto _LOR_0_label_15;
-                            else {
-                              int tmp_19_2;
-                              tmp_19_2 = charAt_aux_1(x1,i2_2);
-                              if (tmp_19_2 == 3) {
-                                _LOR_0_label_15:
-                                __retres_2 = 0;
+          {
+            if (tripleCount2_2 > 1) goto _LOR_4_label_13;
+            else 
+              if (tripleCount2_2 == 1) {
+                int tmp_26_2;
+                tmp_26_2 = indexOf_aux_1(x1,2);
+                if (tmp_26_2 != -1) {
+                  _LOR_4_label_13:
+                  {
+                    int tmp_24_2;
+                    int tmp_25_2;
+                    int higherTriple_2 = lastIndexOf(x2,3);
+                    tmp_24_2 = lastIndexOf_aux_1(x1,3);
+                    ;
+                    if (higherTriple_2 == tmp_24_2) {
+                      int i2_2 = 0;
+                      /*@ loop invariant 0 ≤ i2_2 ≤ 13;
+                          loop invariant
+                            ∀ ℤ k;
+                              0 ≤ k < i2_2 ⇒
+                              k ≡ higherTriple_2 ∨
+                              (x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3 ∧
+                               x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3);
+                          loop assigns i2_2;
+                      */
+                      while (i2_2 <= 12) {
+                        if (i2_2 != higherTriple_2) {
+                          int tmp_16_2;
+                          tmp_16_2 = charAt_aux_1(x2,i2_2);
+                          if (tmp_16_2 == 2) goto _LOR_1_label_14;
+                          else {
+                            int tmp_17_2;
+                            tmp_17_2 = charAt_aux_1(x2,i2_2);
+                            if (tmp_17_2 == 3) {
+                              int tmp_18_2;
+                              _LOR_1_label_14:
+                              tmp_18_2 = charAt_aux_1(x1,i2_2);
+                              if (tmp_18_2 == 2) goto _LOR_0_label_15;
+                              else {
+                                int tmp_19_2;
+                                tmp_19_2 = charAt_aux_1(x1,i2_2);
+                                if (tmp_19_2 == 3) {
+                                  _LOR_0_label_15:
+                                  {
+                                    __retres_2 = 0;
+                                    goto return_label_label_11;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        if (i2_2 != higherTriple_2) {
+                          int tmp_20_2;
+                          tmp_20_2 = charAt_aux_1(x2,i2_2);
+                          if (tmp_20_2 == 2) goto _LOR_2_label_16;
+                          else {
+                            int tmp_21_2;
+                            tmp_21_2 = charAt_aux_1(x2,i2_2);
+                            if (tmp_21_2 == 3) {
+                              _LOR_2_label_16:
+                              {
+                                __retres_2 = -1;
                                 goto return_label_label_11;
                               }
                             }
                           }
                         }
-                      }
-                      if (i2_2 != higherTriple_2) {
-                        int tmp_20_2;
-                        tmp_20_2 = charAt_aux_1(x2,i2_2);
-                        if (tmp_20_2 == 2) goto _LOR_2_label_16;
-                        else {
-                          int tmp_21_2;
-                          tmp_21_2 = charAt_aux_1(x2,i2_2);
-                          if (tmp_21_2 == 3) {
-                            _LOR_2_label_16:
-                            __retres_2 = -1;
-                            goto return_label_label_11;
+                        if (i2_2 != higherTriple_2) {
+                          int tmp_22_2;
+                          tmp_22_2 = charAt_aux_1(x1,i2_2);
+                          if (tmp_22_2 == 2) goto _LOR_3_label_17;
+                          else {
+                            int tmp_23_2;
+                            tmp_23_2 = charAt_aux_1(x1,i2_2);
+                            if (tmp_23_2 == 3) {
+                              _LOR_3_label_17:
+                              {
+                                __retres_2 = 1;
+                                goto return_label_label_11;
+                              }
+                            }
                           }
                         }
+                        i2_2 ++;
                       }
-                      if (i2_2 != higherTriple_2) {
-                        int tmp_22_2;
-                        tmp_22_2 = charAt_aux_1(x1,i2_2);
-                        if (tmp_22_2 == 2) goto _LOR_3_label_17;
-                        else {
-                          int tmp_23_2;
-                          tmp_23_2 = charAt_aux_1(x1,i2_2);
-                          if (tmp_23_2 == 3) {
-                            _LOR_3_label_17:
-                            __retres_2 = 1;
-                            goto return_label_label_11;
-                          }
-                        }
-                      }
-                      i2_2 ++;
                     }
+                    tmp_25_2 = lastIndexOf_aux_1(x1,3);
+                    ;
+                    __retres_2 = higherTriple_2 - tmp_25_2;
+                    goto return_label_label_11;
                   }
-                  tmp_25_2 = lastIndexOf_aux_1(x1,3);
-                  ;
-                  __retres_2 = higherTriple_2 - tmp_25_2;
-                  goto return_label_label_11;
                 }
               }
-            }
-          __retres_2 = 1;
-          goto return_label_label_11;
+            __retres_2 = 1;
+            goto return_label_label_11;
+          }
         }
       }
     if (tripleCount2_2 > 1) goto _LOR_6_label_18;
@@ -692,24 +865,20 @@ void relational_wrapper_1(struct PokerHand x1, struct PokerHand x2)
         int tmp_28_2;
         tmp_28_2 = indexOf_aux_1(x1,2);
         if (tmp_28_2 != -1) {
-          _LOR_6_label_18: __retres_2 = -1;
-                           goto return_label_label_11;
+          _LOR_6_label_18: {
+                             __retres_2 = -1;
+                             goto return_label_label_11;
+                           }
         }
       }
     __retres_2 = 0;
     return_label_label_11: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
 }
-
-int indexOf_aux_2(struct PokerHand o1, int val);
-
-int charAt_aux_2(struct PokerHand o1, int i);
-
-int lastIndexOf_aux_2(struct PokerHand o1, int val);
 
 void relational_wrapper_2(struct PokerHand x1, struct PokerHand x2,
                           struct PokerHand x3)
@@ -802,95 +971,103 @@ void relational_wrapper_2(struct PokerHand x1, struct PokerHand x2,
         tmp_27_3 = indexOf_aux_2(x1,2);
         if (tmp_27_3 != -1) {
           _LOR_5_label_21:
-          if (tripleCount2_3 > 1) goto _LOR_4_label_22;
-          else 
-            if (tripleCount2_3 == 1) {
-              int tmp_26_3;
-              tmp_26_3 = indexOf_aux_2(x2,2);
-              if (tmp_26_3 != -1) {
-                _LOR_4_label_22:
-                {
-                  int tmp_24_3;
-                  int tmp_25_3;
-                  int higherTriple_3 = lastIndexOf(x1,3);
-                  tmp_24_3 = lastIndexOf_aux_2(x2,3);
-                  ;
-                  if (higherTriple_3 == tmp_24_3) {
-                    int i2_3 = 0;
-                    /*@ loop invariant 0 ≤ i2_3 ≤ 13;
-                        loop invariant
-                          ∀ ℤ k;
-                            0 ≤ k < i2_3 ⇒
-                            k ≡ higherTriple_3 ∨
-                            (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
-                             x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3);
-                        loop assigns i2_3;
-                    */
-                    while (i2_3 <= 12) {
-                      if (i2_3 != higherTriple_3) {
-                        int tmp_16_3;
-                        tmp_16_3 = charAt_aux_2(x1,i2_3);
-                        if (tmp_16_3 == 2) goto _LOR_1_label_23;
-                        else {
-                          int tmp_17_3;
-                          tmp_17_3 = charAt_aux_2(x1,i2_3);
-                          if (tmp_17_3 == 3) {
-                            int tmp_18_3;
-                            _LOR_1_label_23:
-                            tmp_18_3 = charAt_aux_2(x2,i2_3);
-                            if (tmp_18_3 == 2) goto _LOR_0_label_24;
-                            else {
-                              int tmp_19_3;
-                              tmp_19_3 = charAt_aux_2(x2,i2_3);
-                              if (tmp_19_3 == 3) {
-                                _LOR_0_label_24:
-                                __retres_3 = 0;
+          {
+            if (tripleCount2_3 > 1) goto _LOR_4_label_22;
+            else 
+              if (tripleCount2_3 == 1) {
+                int tmp_26_3;
+                tmp_26_3 = indexOf_aux_2(x2,2);
+                if (tmp_26_3 != -1) {
+                  _LOR_4_label_22:
+                  {
+                    int tmp_24_3;
+                    int tmp_25_3;
+                    int higherTriple_3 = lastIndexOf(x1,3);
+                    tmp_24_3 = lastIndexOf_aux_2(x2,3);
+                    ;
+                    if (higherTriple_3 == tmp_24_3) {
+                      int i2_3 = 0;
+                      /*@ loop invariant 0 ≤ i2_3 ≤ 13;
+                          loop invariant
+                            ∀ ℤ k;
+                              0 ≤ k < i2_3 ⇒
+                              k ≡ higherTriple_3 ∨
+                              (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
+                               x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3);
+                          loop assigns i2_3;
+                      */
+                      while (i2_3 <= 12) {
+                        if (i2_3 != higherTriple_3) {
+                          int tmp_16_3;
+                          tmp_16_3 = charAt_aux_2(x1,i2_3);
+                          if (tmp_16_3 == 2) goto _LOR_1_label_23;
+                          else {
+                            int tmp_17_3;
+                            tmp_17_3 = charAt_aux_2(x1,i2_3);
+                            if (tmp_17_3 == 3) {
+                              int tmp_18_3;
+                              _LOR_1_label_23:
+                              tmp_18_3 = charAt_aux_2(x2,i2_3);
+                              if (tmp_18_3 == 2) goto _LOR_0_label_24;
+                              else {
+                                int tmp_19_3;
+                                tmp_19_3 = charAt_aux_2(x2,i2_3);
+                                if (tmp_19_3 == 3) {
+                                  _LOR_0_label_24:
+                                  {
+                                    __retres_3 = 0;
+                                    goto return_label_label_20;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        if (i2_3 != higherTriple_3) {
+                          int tmp_20_3;
+                          tmp_20_3 = charAt_aux_2(x1,i2_3);
+                          if (tmp_20_3 == 2) goto _LOR_2_label_25;
+                          else {
+                            int tmp_21_3;
+                            tmp_21_3 = charAt_aux_2(x1,i2_3);
+                            if (tmp_21_3 == 3) {
+                              _LOR_2_label_25:
+                              {
+                                __retres_3 = -1;
                                 goto return_label_label_20;
                               }
                             }
                           }
                         }
-                      }
-                      if (i2_3 != higherTriple_3) {
-                        int tmp_20_3;
-                        tmp_20_3 = charAt_aux_2(x1,i2_3);
-                        if (tmp_20_3 == 2) goto _LOR_2_label_25;
-                        else {
-                          int tmp_21_3;
-                          tmp_21_3 = charAt_aux_2(x1,i2_3);
-                          if (tmp_21_3 == 3) {
-                            _LOR_2_label_25:
-                            __retres_3 = -1;
-                            goto return_label_label_20;
+                        if (i2_3 != higherTriple_3) {
+                          int tmp_22_3;
+                          tmp_22_3 = charAt_aux_2(x2,i2_3);
+                          if (tmp_22_3 == 2) goto _LOR_3_label_26;
+                          else {
+                            int tmp_23_3;
+                            tmp_23_3 = charAt_aux_2(x2,i2_3);
+                            if (tmp_23_3 == 3) {
+                              _LOR_3_label_26:
+                              {
+                                __retres_3 = 1;
+                                goto return_label_label_20;
+                              }
+                            }
                           }
                         }
+                        i2_3 ++;
                       }
-                      if (i2_3 != higherTriple_3) {
-                        int tmp_22_3;
-                        tmp_22_3 = charAt_aux_2(x2,i2_3);
-                        if (tmp_22_3 == 2) goto _LOR_3_label_26;
-                        else {
-                          int tmp_23_3;
-                          tmp_23_3 = charAt_aux_2(x2,i2_3);
-                          if (tmp_23_3 == 3) {
-                            _LOR_3_label_26:
-                            __retres_3 = 1;
-                            goto return_label_label_20;
-                          }
-                        }
-                      }
-                      i2_3 ++;
                     }
+                    tmp_25_3 = lastIndexOf_aux_2(x2,3);
+                    ;
+                    __retres_3 = higherTriple_3 - tmp_25_3;
+                    goto return_label_label_20;
                   }
-                  tmp_25_3 = lastIndexOf_aux_2(x2,3);
-                  ;
-                  __retres_3 = higherTriple_3 - tmp_25_3;
-                  goto return_label_label_20;
                 }
               }
-            }
-          __retres_3 = 1;
-          goto return_label_label_20;
+            __retres_3 = 1;
+            goto return_label_label_20;
+          }
         }
       }
     if (tripleCount2_3 > 1) goto _LOR_6_label_27;
@@ -899,8 +1076,10 @@ void relational_wrapper_2(struct PokerHand x1, struct PokerHand x2,
         int tmp_28_3;
         tmp_28_3 = indexOf_aux_2(x2,2);
         if (tmp_28_3 != -1) {
-          _LOR_6_label_27: __retres_3 = -1;
-                           goto return_label_label_20;
+          _LOR_6_label_27: {
+                             __retres_3 = -1;
+                             goto return_label_label_20;
+                           }
         }
       }
     __retres_3 = 0;
@@ -991,95 +1170,103 @@ void relational_wrapper_2(struct PokerHand x1, struct PokerHand x2,
         tmp_27_4 = indexOf_aux_2(x2,2);
         if (tmp_27_4 != -1) {
           _LOR_5_label_30:
-          if (tripleCount2_4 > 1) goto _LOR_4_label_31;
-          else 
-            if (tripleCount2_4 == 1) {
-              int tmp_26_4;
-              tmp_26_4 = indexOf_aux_2(x3,2);
-              if (tmp_26_4 != -1) {
-                _LOR_4_label_31:
-                {
-                  int tmp_24_4;
-                  int tmp_25_4;
-                  int higherTriple_4 = lastIndexOf(x2,3);
-                  tmp_24_4 = lastIndexOf_aux_2(x3,3);
-                  ;
-                  if (higherTriple_4 == tmp_24_4) {
-                    int i2_4 = 0;
-                    /*@ loop invariant 0 ≤ i2_4 ≤ 13;
-                        loop invariant
-                          ∀ ℤ k;
-                            0 ≤ k < i2_4 ⇒
-                            k ≡ higherTriple_4 ∨
-                            (x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3 ∧
-                             x3.hand[k] ≢ 2 ∧ x3.hand[k] ≢ 3);
-                        loop assigns i2_4;
-                    */
-                    while (i2_4 <= 12) {
-                      if (i2_4 != higherTriple_4) {
-                        int tmp_16_4;
-                        tmp_16_4 = charAt_aux_2(x2,i2_4);
-                        if (tmp_16_4 == 2) goto _LOR_1_label_32;
-                        else {
-                          int tmp_17_4;
-                          tmp_17_4 = charAt_aux_2(x2,i2_4);
-                          if (tmp_17_4 == 3) {
-                            int tmp_18_4;
-                            _LOR_1_label_32:
-                            tmp_18_4 = charAt_aux_2(x3,i2_4);
-                            if (tmp_18_4 == 2) goto _LOR_0_label_33;
-                            else {
-                              int tmp_19_4;
-                              tmp_19_4 = charAt_aux_2(x3,i2_4);
-                              if (tmp_19_4 == 3) {
-                                _LOR_0_label_33:
-                                __retres_4 = 0;
+          {
+            if (tripleCount2_4 > 1) goto _LOR_4_label_31;
+            else 
+              if (tripleCount2_4 == 1) {
+                int tmp_26_4;
+                tmp_26_4 = indexOf_aux_2(x3,2);
+                if (tmp_26_4 != -1) {
+                  _LOR_4_label_31:
+                  {
+                    int tmp_24_4;
+                    int tmp_25_4;
+                    int higherTriple_4 = lastIndexOf(x2,3);
+                    tmp_24_4 = lastIndexOf_aux_2(x3,3);
+                    ;
+                    if (higherTriple_4 == tmp_24_4) {
+                      int i2_4 = 0;
+                      /*@ loop invariant 0 ≤ i2_4 ≤ 13;
+                          loop invariant
+                            ∀ ℤ k;
+                              0 ≤ k < i2_4 ⇒
+                              k ≡ higherTriple_4 ∨
+                              (x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3 ∧
+                               x3.hand[k] ≢ 2 ∧ x3.hand[k] ≢ 3);
+                          loop assigns i2_4;
+                      */
+                      while (i2_4 <= 12) {
+                        if (i2_4 != higherTriple_4) {
+                          int tmp_16_4;
+                          tmp_16_4 = charAt_aux_2(x2,i2_4);
+                          if (tmp_16_4 == 2) goto _LOR_1_label_32;
+                          else {
+                            int tmp_17_4;
+                            tmp_17_4 = charAt_aux_2(x2,i2_4);
+                            if (tmp_17_4 == 3) {
+                              int tmp_18_4;
+                              _LOR_1_label_32:
+                              tmp_18_4 = charAt_aux_2(x3,i2_4);
+                              if (tmp_18_4 == 2) goto _LOR_0_label_33;
+                              else {
+                                int tmp_19_4;
+                                tmp_19_4 = charAt_aux_2(x3,i2_4);
+                                if (tmp_19_4 == 3) {
+                                  _LOR_0_label_33:
+                                  {
+                                    __retres_4 = 0;
+                                    goto return_label_label_29;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        if (i2_4 != higherTriple_4) {
+                          int tmp_20_4;
+                          tmp_20_4 = charAt_aux_2(x2,i2_4);
+                          if (tmp_20_4 == 2) goto _LOR_2_label_34;
+                          else {
+                            int tmp_21_4;
+                            tmp_21_4 = charAt_aux_2(x2,i2_4);
+                            if (tmp_21_4 == 3) {
+                              _LOR_2_label_34:
+                              {
+                                __retres_4 = -1;
                                 goto return_label_label_29;
                               }
                             }
                           }
                         }
-                      }
-                      if (i2_4 != higherTriple_4) {
-                        int tmp_20_4;
-                        tmp_20_4 = charAt_aux_2(x2,i2_4);
-                        if (tmp_20_4 == 2) goto _LOR_2_label_34;
-                        else {
-                          int tmp_21_4;
-                          tmp_21_4 = charAt_aux_2(x2,i2_4);
-                          if (tmp_21_4 == 3) {
-                            _LOR_2_label_34:
-                            __retres_4 = -1;
-                            goto return_label_label_29;
+                        if (i2_4 != higherTriple_4) {
+                          int tmp_22_4;
+                          tmp_22_4 = charAt_aux_2(x3,i2_4);
+                          if (tmp_22_4 == 2) goto _LOR_3_label_35;
+                          else {
+                            int tmp_23_4;
+                            tmp_23_4 = charAt_aux_2(x3,i2_4);
+                            if (tmp_23_4 == 3) {
+                              _LOR_3_label_35:
+                              {
+                                __retres_4 = 1;
+                                goto return_label_label_29;
+                              }
+                            }
                           }
                         }
+                        i2_4 ++;
                       }
-                      if (i2_4 != higherTriple_4) {
-                        int tmp_22_4;
-                        tmp_22_4 = charAt_aux_2(x3,i2_4);
-                        if (tmp_22_4 == 2) goto _LOR_3_label_35;
-                        else {
-                          int tmp_23_4;
-                          tmp_23_4 = charAt_aux_2(x3,i2_4);
-                          if (tmp_23_4 == 3) {
-                            _LOR_3_label_35:
-                            __retres_4 = 1;
-                            goto return_label_label_29;
-                          }
-                        }
-                      }
-                      i2_4 ++;
                     }
+                    tmp_25_4 = lastIndexOf_aux_2(x3,3);
+                    ;
+                    __retres_4 = higherTriple_4 - tmp_25_4;
+                    goto return_label_label_29;
                   }
-                  tmp_25_4 = lastIndexOf_aux_2(x3,3);
-                  ;
-                  __retres_4 = higherTriple_4 - tmp_25_4;
-                  goto return_label_label_29;
                 }
               }
-            }
-          __retres_4 = 1;
-          goto return_label_label_29;
+            __retres_4 = 1;
+            goto return_label_label_29;
+          }
         }
       }
     if (tripleCount2_4 > 1) goto _LOR_6_label_36;
@@ -1088,8 +1275,10 @@ void relational_wrapper_2(struct PokerHand x1, struct PokerHand x2,
         int tmp_28_4;
         tmp_28_4 = indexOf_aux_2(x3,2);
         if (tmp_28_4 != -1) {
-          _LOR_6_label_36: __retres_4 = -1;
-                           goto return_label_label_29;
+          _LOR_6_label_36: {
+                             __retres_4 = -1;
+                             goto return_label_label_29;
+                           }
         }
       }
     __retres_4 = 0;
@@ -1180,95 +1369,103 @@ void relational_wrapper_2(struct PokerHand x1, struct PokerHand x2,
         tmp_27_5 = indexOf_aux_2(x1,2);
         if (tmp_27_5 != -1) {
           _LOR_5_label_39:
-          if (tripleCount2_5 > 1) goto _LOR_4_label_40;
-          else 
-            if (tripleCount2_5 == 1) {
-              int tmp_26_5;
-              tmp_26_5 = indexOf_aux_2(x3,2);
-              if (tmp_26_5 != -1) {
-                _LOR_4_label_40:
-                {
-                  int tmp_24_5;
-                  int tmp_25_5;
-                  int higherTriple_5 = lastIndexOf(x1,3);
-                  tmp_24_5 = lastIndexOf_aux_2(x3,3);
-                  ;
-                  if (higherTriple_5 == tmp_24_5) {
-                    int i2_5 = 0;
-                    /*@ loop invariant 0 ≤ i2_5 ≤ 13;
-                        loop invariant
-                          ∀ ℤ k;
-                            0 ≤ k < i2_5 ⇒
-                            k ≡ higherTriple_5 ∨
-                            (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
-                             x3.hand[k] ≢ 2 ∧ x3.hand[k] ≢ 3);
-                        loop assigns i2_5;
-                    */
-                    while (i2_5 <= 12) {
-                      if (i2_5 != higherTriple_5) {
-                        int tmp_16_5;
-                        tmp_16_5 = charAt_aux_2(x1,i2_5);
-                        if (tmp_16_5 == 2) goto _LOR_1_label_41;
-                        else {
-                          int tmp_17_5;
-                          tmp_17_5 = charAt_aux_2(x1,i2_5);
-                          if (tmp_17_5 == 3) {
-                            int tmp_18_5;
-                            _LOR_1_label_41:
-                            tmp_18_5 = charAt_aux_2(x3,i2_5);
-                            if (tmp_18_5 == 2) goto _LOR_0_label_42;
-                            else {
-                              int tmp_19_5;
-                              tmp_19_5 = charAt_aux_2(x3,i2_5);
-                              if (tmp_19_5 == 3) {
-                                _LOR_0_label_42:
-                                __retres_5 = 0;
+          {
+            if (tripleCount2_5 > 1) goto _LOR_4_label_40;
+            else 
+              if (tripleCount2_5 == 1) {
+                int tmp_26_5;
+                tmp_26_5 = indexOf_aux_2(x3,2);
+                if (tmp_26_5 != -1) {
+                  _LOR_4_label_40:
+                  {
+                    int tmp_24_5;
+                    int tmp_25_5;
+                    int higherTriple_5 = lastIndexOf(x1,3);
+                    tmp_24_5 = lastIndexOf_aux_2(x3,3);
+                    ;
+                    if (higherTriple_5 == tmp_24_5) {
+                      int i2_5 = 0;
+                      /*@ loop invariant 0 ≤ i2_5 ≤ 13;
+                          loop invariant
+                            ∀ ℤ k;
+                              0 ≤ k < i2_5 ⇒
+                              k ≡ higherTriple_5 ∨
+                              (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
+                               x3.hand[k] ≢ 2 ∧ x3.hand[k] ≢ 3);
+                          loop assigns i2_5;
+                      */
+                      while (i2_5 <= 12) {
+                        if (i2_5 != higherTriple_5) {
+                          int tmp_16_5;
+                          tmp_16_5 = charAt_aux_2(x1,i2_5);
+                          if (tmp_16_5 == 2) goto _LOR_1_label_41;
+                          else {
+                            int tmp_17_5;
+                            tmp_17_5 = charAt_aux_2(x1,i2_5);
+                            if (tmp_17_5 == 3) {
+                              int tmp_18_5;
+                              _LOR_1_label_41:
+                              tmp_18_5 = charAt_aux_2(x3,i2_5);
+                              if (tmp_18_5 == 2) goto _LOR_0_label_42;
+                              else {
+                                int tmp_19_5;
+                                tmp_19_5 = charAt_aux_2(x3,i2_5);
+                                if (tmp_19_5 == 3) {
+                                  _LOR_0_label_42:
+                                  {
+                                    __retres_5 = 0;
+                                    goto return_label_label_38;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        if (i2_5 != higherTriple_5) {
+                          int tmp_20_5;
+                          tmp_20_5 = charAt_aux_2(x1,i2_5);
+                          if (tmp_20_5 == 2) goto _LOR_2_label_43;
+                          else {
+                            int tmp_21_5;
+                            tmp_21_5 = charAt_aux_2(x1,i2_5);
+                            if (tmp_21_5 == 3) {
+                              _LOR_2_label_43:
+                              {
+                                __retres_5 = -1;
                                 goto return_label_label_38;
                               }
                             }
                           }
                         }
-                      }
-                      if (i2_5 != higherTriple_5) {
-                        int tmp_20_5;
-                        tmp_20_5 = charAt_aux_2(x1,i2_5);
-                        if (tmp_20_5 == 2) goto _LOR_2_label_43;
-                        else {
-                          int tmp_21_5;
-                          tmp_21_5 = charAt_aux_2(x1,i2_5);
-                          if (tmp_21_5 == 3) {
-                            _LOR_2_label_43:
-                            __retres_5 = -1;
-                            goto return_label_label_38;
+                        if (i2_5 != higherTriple_5) {
+                          int tmp_22_5;
+                          tmp_22_5 = charAt_aux_2(x3,i2_5);
+                          if (tmp_22_5 == 2) goto _LOR_3_label_44;
+                          else {
+                            int tmp_23_5;
+                            tmp_23_5 = charAt_aux_2(x3,i2_5);
+                            if (tmp_23_5 == 3) {
+                              _LOR_3_label_44:
+                              {
+                                __retres_5 = 1;
+                                goto return_label_label_38;
+                              }
+                            }
                           }
                         }
+                        i2_5 ++;
                       }
-                      if (i2_5 != higherTriple_5) {
-                        int tmp_22_5;
-                        tmp_22_5 = charAt_aux_2(x3,i2_5);
-                        if (tmp_22_5 == 2) goto _LOR_3_label_44;
-                        else {
-                          int tmp_23_5;
-                          tmp_23_5 = charAt_aux_2(x3,i2_5);
-                          if (tmp_23_5 == 3) {
-                            _LOR_3_label_44:
-                            __retres_5 = 1;
-                            goto return_label_label_38;
-                          }
-                        }
-                      }
-                      i2_5 ++;
                     }
+                    tmp_25_5 = lastIndexOf_aux_2(x3,3);
+                    ;
+                    __retres_5 = higherTriple_5 - tmp_25_5;
+                    goto return_label_label_38;
                   }
-                  tmp_25_5 = lastIndexOf_aux_2(x3,3);
-                  ;
-                  __retres_5 = higherTriple_5 - tmp_25_5;
-                  goto return_label_label_38;
                 }
               }
-            }
-          __retres_5 = 1;
-          goto return_label_label_38;
+            __retres_5 = 1;
+            goto return_label_label_38;
+          }
         }
       }
     if (tripleCount2_5 > 1) goto _LOR_6_label_45;
@@ -1277,26 +1474,22 @@ void relational_wrapper_2(struct PokerHand x1, struct PokerHand x2,
         int tmp_28_5;
         tmp_28_5 = indexOf_aux_2(x3,2);
         if (tmp_28_5 != -1) {
-          _LOR_6_label_45: __retres_5 = -1;
-                           goto return_label_label_38;
+          _LOR_6_label_45: {
+                             __retres_5 = -1;
+                             goto return_label_label_38;
+                           }
         }
       }
     __retres_5 = 0;
     return_label_label_38: return_variable_relational_5 = __retres_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
   */
   return;
 }
-
-int indexOf_aux_3(struct PokerHand o1, int val);
-
-int charAt_aux_3(struct PokerHand o1, int i);
-
-int lastIndexOf_aux_3(struct PokerHand o1, int val);
 
 void relational_wrapper_3(struct PokerHand x1, struct PokerHand x2,
                           struct PokerHand x3)
@@ -1389,95 +1582,103 @@ void relational_wrapper_3(struct PokerHand x1, struct PokerHand x2,
         tmp_27_6 = indexOf_aux_3(x1,2);
         if (tmp_27_6 != -1) {
           _LOR_5_label_48:
-          if (tripleCount2_6 > 1) goto _LOR_4_label_49;
-          else 
-            if (tripleCount2_6 == 1) {
-              int tmp_26_6;
-              tmp_26_6 = indexOf_aux_3(x2,2);
-              if (tmp_26_6 != -1) {
-                _LOR_4_label_49:
-                {
-                  int tmp_24_6;
-                  int tmp_25_6;
-                  int higherTriple_6 = lastIndexOf(x1,3);
-                  tmp_24_6 = lastIndexOf_aux_3(x2,3);
-                  ;
-                  if (higherTriple_6 == tmp_24_6) {
-                    int i2_6 = 0;
-                    /*@ loop invariant 0 ≤ i2_6 ≤ 13;
-                        loop invariant
-                          ∀ ℤ k;
-                            0 ≤ k < i2_6 ⇒
-                            k ≡ higherTriple_6 ∨
-                            (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
-                             x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3);
-                        loop assigns i2_6;
-                    */
-                    while (i2_6 <= 12) {
-                      if (i2_6 != higherTriple_6) {
-                        int tmp_16_6;
-                        tmp_16_6 = charAt_aux_3(x1,i2_6);
-                        if (tmp_16_6 == 2) goto _LOR_1_label_50;
-                        else {
-                          int tmp_17_6;
-                          tmp_17_6 = charAt_aux_3(x1,i2_6);
-                          if (tmp_17_6 == 3) {
-                            int tmp_18_6;
-                            _LOR_1_label_50:
-                            tmp_18_6 = charAt_aux_3(x2,i2_6);
-                            if (tmp_18_6 == 2) goto _LOR_0_label_51;
-                            else {
-                              int tmp_19_6;
-                              tmp_19_6 = charAt_aux_3(x2,i2_6);
-                              if (tmp_19_6 == 3) {
-                                _LOR_0_label_51:
-                                __retres_6 = 0;
+          {
+            if (tripleCount2_6 > 1) goto _LOR_4_label_49;
+            else 
+              if (tripleCount2_6 == 1) {
+                int tmp_26_6;
+                tmp_26_6 = indexOf_aux_3(x2,2);
+                if (tmp_26_6 != -1) {
+                  _LOR_4_label_49:
+                  {
+                    int tmp_24_6;
+                    int tmp_25_6;
+                    int higherTriple_6 = lastIndexOf(x1,3);
+                    tmp_24_6 = lastIndexOf_aux_3(x2,3);
+                    ;
+                    if (higherTriple_6 == tmp_24_6) {
+                      int i2_6 = 0;
+                      /*@ loop invariant 0 ≤ i2_6 ≤ 13;
+                          loop invariant
+                            ∀ ℤ k;
+                              0 ≤ k < i2_6 ⇒
+                              k ≡ higherTriple_6 ∨
+                              (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
+                               x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3);
+                          loop assigns i2_6;
+                      */
+                      while (i2_6 <= 12) {
+                        if (i2_6 != higherTriple_6) {
+                          int tmp_16_6;
+                          tmp_16_6 = charAt_aux_3(x1,i2_6);
+                          if (tmp_16_6 == 2) goto _LOR_1_label_50;
+                          else {
+                            int tmp_17_6;
+                            tmp_17_6 = charAt_aux_3(x1,i2_6);
+                            if (tmp_17_6 == 3) {
+                              int tmp_18_6;
+                              _LOR_1_label_50:
+                              tmp_18_6 = charAt_aux_3(x2,i2_6);
+                              if (tmp_18_6 == 2) goto _LOR_0_label_51;
+                              else {
+                                int tmp_19_6;
+                                tmp_19_6 = charAt_aux_3(x2,i2_6);
+                                if (tmp_19_6 == 3) {
+                                  _LOR_0_label_51:
+                                  {
+                                    __retres_6 = 0;
+                                    goto return_label_label_47;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        if (i2_6 != higherTriple_6) {
+                          int tmp_20_6;
+                          tmp_20_6 = charAt_aux_3(x1,i2_6);
+                          if (tmp_20_6 == 2) goto _LOR_2_label_52;
+                          else {
+                            int tmp_21_6;
+                            tmp_21_6 = charAt_aux_3(x1,i2_6);
+                            if (tmp_21_6 == 3) {
+                              _LOR_2_label_52:
+                              {
+                                __retres_6 = -1;
                                 goto return_label_label_47;
                               }
                             }
                           }
                         }
-                      }
-                      if (i2_6 != higherTriple_6) {
-                        int tmp_20_6;
-                        tmp_20_6 = charAt_aux_3(x1,i2_6);
-                        if (tmp_20_6 == 2) goto _LOR_2_label_52;
-                        else {
-                          int tmp_21_6;
-                          tmp_21_6 = charAt_aux_3(x1,i2_6);
-                          if (tmp_21_6 == 3) {
-                            _LOR_2_label_52:
-                            __retres_6 = -1;
-                            goto return_label_label_47;
+                        if (i2_6 != higherTriple_6) {
+                          int tmp_22_6;
+                          tmp_22_6 = charAt_aux_3(x2,i2_6);
+                          if (tmp_22_6 == 2) goto _LOR_3_label_53;
+                          else {
+                            int tmp_23_6;
+                            tmp_23_6 = charAt_aux_3(x2,i2_6);
+                            if (tmp_23_6 == 3) {
+                              _LOR_3_label_53:
+                              {
+                                __retres_6 = 1;
+                                goto return_label_label_47;
+                              }
+                            }
                           }
                         }
+                        i2_6 ++;
                       }
-                      if (i2_6 != higherTriple_6) {
-                        int tmp_22_6;
-                        tmp_22_6 = charAt_aux_3(x2,i2_6);
-                        if (tmp_22_6 == 2) goto _LOR_3_label_53;
-                        else {
-                          int tmp_23_6;
-                          tmp_23_6 = charAt_aux_3(x2,i2_6);
-                          if (tmp_23_6 == 3) {
-                            _LOR_3_label_53:
-                            __retres_6 = 1;
-                            goto return_label_label_47;
-                          }
-                        }
-                      }
-                      i2_6 ++;
                     }
+                    tmp_25_6 = lastIndexOf_aux_3(x2,3);
+                    ;
+                    __retres_6 = higherTriple_6 - tmp_25_6;
+                    goto return_label_label_47;
                   }
-                  tmp_25_6 = lastIndexOf_aux_3(x2,3);
-                  ;
-                  __retres_6 = higherTriple_6 - tmp_25_6;
-                  goto return_label_label_47;
                 }
               }
-            }
-          __retres_6 = 1;
-          goto return_label_label_47;
+            __retres_6 = 1;
+            goto return_label_label_47;
+          }
         }
       }
     if (tripleCount2_6 > 1) goto _LOR_6_label_54;
@@ -1486,8 +1687,10 @@ void relational_wrapper_3(struct PokerHand x1, struct PokerHand x2,
         int tmp_28_6;
         tmp_28_6 = indexOf_aux_3(x2,2);
         if (tmp_28_6 != -1) {
-          _LOR_6_label_54: __retres_6 = -1;
-                           goto return_label_label_47;
+          _LOR_6_label_54: {
+                             __retres_6 = -1;
+                             goto return_label_label_47;
+                           }
         }
       }
     __retres_6 = 0;
@@ -1578,95 +1781,103 @@ void relational_wrapper_3(struct PokerHand x1, struct PokerHand x2,
         tmp_27_7 = indexOf_aux_3(x1,2);
         if (tmp_27_7 != -1) {
           _LOR_5_label_57:
-          if (tripleCount2_7 > 1) goto _LOR_4_label_58;
-          else 
-            if (tripleCount2_7 == 1) {
-              int tmp_26_7;
-              tmp_26_7 = indexOf_aux_3(x3,2);
-              if (tmp_26_7 != -1) {
-                _LOR_4_label_58:
-                {
-                  int tmp_24_7;
-                  int tmp_25_7;
-                  int higherTriple_7 = lastIndexOf(x1,3);
-                  tmp_24_7 = lastIndexOf_aux_3(x3,3);
-                  ;
-                  if (higherTriple_7 == tmp_24_7) {
-                    int i2_7 = 0;
-                    /*@ loop invariant 0 ≤ i2_7 ≤ 13;
-                        loop invariant
-                          ∀ ℤ k;
-                            0 ≤ k < i2_7 ⇒
-                            k ≡ higherTriple_7 ∨
-                            (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
-                             x3.hand[k] ≢ 2 ∧ x3.hand[k] ≢ 3);
-                        loop assigns i2_7;
-                    */
-                    while (i2_7 <= 12) {
-                      if (i2_7 != higherTriple_7) {
-                        int tmp_16_7;
-                        tmp_16_7 = charAt_aux_3(x1,i2_7);
-                        if (tmp_16_7 == 2) goto _LOR_1_label_59;
-                        else {
-                          int tmp_17_7;
-                          tmp_17_7 = charAt_aux_3(x1,i2_7);
-                          if (tmp_17_7 == 3) {
-                            int tmp_18_7;
-                            _LOR_1_label_59:
-                            tmp_18_7 = charAt_aux_3(x3,i2_7);
-                            if (tmp_18_7 == 2) goto _LOR_0_label_60;
-                            else {
-                              int tmp_19_7;
-                              tmp_19_7 = charAt_aux_3(x3,i2_7);
-                              if (tmp_19_7 == 3) {
-                                _LOR_0_label_60:
-                                __retres_7 = 0;
+          {
+            if (tripleCount2_7 > 1) goto _LOR_4_label_58;
+            else 
+              if (tripleCount2_7 == 1) {
+                int tmp_26_7;
+                tmp_26_7 = indexOf_aux_3(x3,2);
+                if (tmp_26_7 != -1) {
+                  _LOR_4_label_58:
+                  {
+                    int tmp_24_7;
+                    int tmp_25_7;
+                    int higherTriple_7 = lastIndexOf(x1,3);
+                    tmp_24_7 = lastIndexOf_aux_3(x3,3);
+                    ;
+                    if (higherTriple_7 == tmp_24_7) {
+                      int i2_7 = 0;
+                      /*@ loop invariant 0 ≤ i2_7 ≤ 13;
+                          loop invariant
+                            ∀ ℤ k;
+                              0 ≤ k < i2_7 ⇒
+                              k ≡ higherTriple_7 ∨
+                              (x1.hand[k] ≢ 2 ∧ x1.hand[k] ≢ 3 ∧
+                               x3.hand[k] ≢ 2 ∧ x3.hand[k] ≢ 3);
+                          loop assigns i2_7;
+                      */
+                      while (i2_7 <= 12) {
+                        if (i2_7 != higherTriple_7) {
+                          int tmp_16_7;
+                          tmp_16_7 = charAt_aux_3(x1,i2_7);
+                          if (tmp_16_7 == 2) goto _LOR_1_label_59;
+                          else {
+                            int tmp_17_7;
+                            tmp_17_7 = charAt_aux_3(x1,i2_7);
+                            if (tmp_17_7 == 3) {
+                              int tmp_18_7;
+                              _LOR_1_label_59:
+                              tmp_18_7 = charAt_aux_3(x3,i2_7);
+                              if (tmp_18_7 == 2) goto _LOR_0_label_60;
+                              else {
+                                int tmp_19_7;
+                                tmp_19_7 = charAt_aux_3(x3,i2_7);
+                                if (tmp_19_7 == 3) {
+                                  _LOR_0_label_60:
+                                  {
+                                    __retres_7 = 0;
+                                    goto return_label_label_56;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        if (i2_7 != higherTriple_7) {
+                          int tmp_20_7;
+                          tmp_20_7 = charAt_aux_3(x1,i2_7);
+                          if (tmp_20_7 == 2) goto _LOR_2_label_61;
+                          else {
+                            int tmp_21_7;
+                            tmp_21_7 = charAt_aux_3(x1,i2_7);
+                            if (tmp_21_7 == 3) {
+                              _LOR_2_label_61:
+                              {
+                                __retres_7 = -1;
                                 goto return_label_label_56;
                               }
                             }
                           }
                         }
-                      }
-                      if (i2_7 != higherTriple_7) {
-                        int tmp_20_7;
-                        tmp_20_7 = charAt_aux_3(x1,i2_7);
-                        if (tmp_20_7 == 2) goto _LOR_2_label_61;
-                        else {
-                          int tmp_21_7;
-                          tmp_21_7 = charAt_aux_3(x1,i2_7);
-                          if (tmp_21_7 == 3) {
-                            _LOR_2_label_61:
-                            __retres_7 = -1;
-                            goto return_label_label_56;
+                        if (i2_7 != higherTriple_7) {
+                          int tmp_22_7;
+                          tmp_22_7 = charAt_aux_3(x3,i2_7);
+                          if (tmp_22_7 == 2) goto _LOR_3_label_62;
+                          else {
+                            int tmp_23_7;
+                            tmp_23_7 = charAt_aux_3(x3,i2_7);
+                            if (tmp_23_7 == 3) {
+                              _LOR_3_label_62:
+                              {
+                                __retres_7 = 1;
+                                goto return_label_label_56;
+                              }
+                            }
                           }
                         }
+                        i2_7 ++;
                       }
-                      if (i2_7 != higherTriple_7) {
-                        int tmp_22_7;
-                        tmp_22_7 = charAt_aux_3(x3,i2_7);
-                        if (tmp_22_7 == 2) goto _LOR_3_label_62;
-                        else {
-                          int tmp_23_7;
-                          tmp_23_7 = charAt_aux_3(x3,i2_7);
-                          if (tmp_23_7 == 3) {
-                            _LOR_3_label_62:
-                            __retres_7 = 1;
-                            goto return_label_label_56;
-                          }
-                        }
-                      }
-                      i2_7 ++;
                     }
+                    tmp_25_7 = lastIndexOf_aux_3(x3,3);
+                    ;
+                    __retres_7 = higherTriple_7 - tmp_25_7;
+                    goto return_label_label_56;
                   }
-                  tmp_25_7 = lastIndexOf_aux_3(x3,3);
-                  ;
-                  __retres_7 = higherTriple_7 - tmp_25_7;
-                  goto return_label_label_56;
                 }
               }
-            }
-          __retres_7 = 1;
-          goto return_label_label_56;
+            __retres_7 = 1;
+            goto return_label_label_56;
+          }
         }
       }
     if (tripleCount2_7 > 1) goto _LOR_6_label_63;
@@ -1675,8 +1886,10 @@ void relational_wrapper_3(struct PokerHand x1, struct PokerHand x2,
         int tmp_28_7;
         tmp_28_7 = indexOf_aux_3(x3,2);
         if (tmp_28_7 != -1) {
-          _LOR_6_label_63: __retres_7 = -1;
-                           goto return_label_label_56;
+          _LOR_6_label_63: {
+                             __retres_7 = -1;
+                             goto return_label_label_56;
+                           }
         }
       }
     __retres_7 = 0;
@@ -1767,95 +1980,103 @@ void relational_wrapper_3(struct PokerHand x1, struct PokerHand x2,
         tmp_27_8 = indexOf_aux_3(x2,2);
         if (tmp_27_8 != -1) {
           _LOR_5_label_66:
-          if (tripleCount2_8 > 1) goto _LOR_4_label_67;
-          else 
-            if (tripleCount2_8 == 1) {
-              int tmp_26_8;
-              tmp_26_8 = indexOf_aux_3(x3,2);
-              if (tmp_26_8 != -1) {
-                _LOR_4_label_67:
-                {
-                  int tmp_24_8;
-                  int tmp_25_8;
-                  int higherTriple_8 = lastIndexOf(x2,3);
-                  tmp_24_8 = lastIndexOf_aux_3(x3,3);
-                  ;
-                  if (higherTriple_8 == tmp_24_8) {
-                    int i2_8 = 0;
-                    /*@ loop invariant 0 ≤ i2_8 ≤ 13;
-                        loop invariant
-                          ∀ ℤ k;
-                            0 ≤ k < i2_8 ⇒
-                            k ≡ higherTriple_8 ∨
-                            (x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3 ∧
-                             x3.hand[k] ≢ 2 ∧ x3.hand[k] ≢ 3);
-                        loop assigns i2_8;
-                    */
-                    while (i2_8 <= 12) {
-                      if (i2_8 != higherTriple_8) {
-                        int tmp_16_8;
-                        tmp_16_8 = charAt_aux_3(x2,i2_8);
-                        if (tmp_16_8 == 2) goto _LOR_1_label_68;
-                        else {
-                          int tmp_17_8;
-                          tmp_17_8 = charAt_aux_3(x2,i2_8);
-                          if (tmp_17_8 == 3) {
-                            int tmp_18_8;
-                            _LOR_1_label_68:
-                            tmp_18_8 = charAt_aux_3(x3,i2_8);
-                            if (tmp_18_8 == 2) goto _LOR_0_label_69;
-                            else {
-                              int tmp_19_8;
-                              tmp_19_8 = charAt_aux_3(x3,i2_8);
-                              if (tmp_19_8 == 3) {
-                                _LOR_0_label_69:
-                                __retres_8 = 0;
+          {
+            if (tripleCount2_8 > 1) goto _LOR_4_label_67;
+            else 
+              if (tripleCount2_8 == 1) {
+                int tmp_26_8;
+                tmp_26_8 = indexOf_aux_3(x3,2);
+                if (tmp_26_8 != -1) {
+                  _LOR_4_label_67:
+                  {
+                    int tmp_24_8;
+                    int tmp_25_8;
+                    int higherTriple_8 = lastIndexOf(x2,3);
+                    tmp_24_8 = lastIndexOf_aux_3(x3,3);
+                    ;
+                    if (higherTriple_8 == tmp_24_8) {
+                      int i2_8 = 0;
+                      /*@ loop invariant 0 ≤ i2_8 ≤ 13;
+                          loop invariant
+                            ∀ ℤ k;
+                              0 ≤ k < i2_8 ⇒
+                              k ≡ higherTriple_8 ∨
+                              (x2.hand[k] ≢ 2 ∧ x2.hand[k] ≢ 3 ∧
+                               x3.hand[k] ≢ 2 ∧ x3.hand[k] ≢ 3);
+                          loop assigns i2_8;
+                      */
+                      while (i2_8 <= 12) {
+                        if (i2_8 != higherTriple_8) {
+                          int tmp_16_8;
+                          tmp_16_8 = charAt_aux_3(x2,i2_8);
+                          if (tmp_16_8 == 2) goto _LOR_1_label_68;
+                          else {
+                            int tmp_17_8;
+                            tmp_17_8 = charAt_aux_3(x2,i2_8);
+                            if (tmp_17_8 == 3) {
+                              int tmp_18_8;
+                              _LOR_1_label_68:
+                              tmp_18_8 = charAt_aux_3(x3,i2_8);
+                              if (tmp_18_8 == 2) goto _LOR_0_label_69;
+                              else {
+                                int tmp_19_8;
+                                tmp_19_8 = charAt_aux_3(x3,i2_8);
+                                if (tmp_19_8 == 3) {
+                                  _LOR_0_label_69:
+                                  {
+                                    __retres_8 = 0;
+                                    goto return_label_label_65;
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                        if (i2_8 != higherTriple_8) {
+                          int tmp_20_8;
+                          tmp_20_8 = charAt_aux_3(x2,i2_8);
+                          if (tmp_20_8 == 2) goto _LOR_2_label_70;
+                          else {
+                            int tmp_21_8;
+                            tmp_21_8 = charAt_aux_3(x2,i2_8);
+                            if (tmp_21_8 == 3) {
+                              _LOR_2_label_70:
+                              {
+                                __retres_8 = -1;
                                 goto return_label_label_65;
                               }
                             }
                           }
                         }
-                      }
-                      if (i2_8 != higherTriple_8) {
-                        int tmp_20_8;
-                        tmp_20_8 = charAt_aux_3(x2,i2_8);
-                        if (tmp_20_8 == 2) goto _LOR_2_label_70;
-                        else {
-                          int tmp_21_8;
-                          tmp_21_8 = charAt_aux_3(x2,i2_8);
-                          if (tmp_21_8 == 3) {
-                            _LOR_2_label_70:
-                            __retres_8 = -1;
-                            goto return_label_label_65;
+                        if (i2_8 != higherTriple_8) {
+                          int tmp_22_8;
+                          tmp_22_8 = charAt_aux_3(x3,i2_8);
+                          if (tmp_22_8 == 2) goto _LOR_3_label_71;
+                          else {
+                            int tmp_23_8;
+                            tmp_23_8 = charAt_aux_3(x3,i2_8);
+                            if (tmp_23_8 == 3) {
+                              _LOR_3_label_71:
+                              {
+                                __retres_8 = 1;
+                                goto return_label_label_65;
+                              }
+                            }
                           }
                         }
+                        i2_8 ++;
                       }
-                      if (i2_8 != higherTriple_8) {
-                        int tmp_22_8;
-                        tmp_22_8 = charAt_aux_3(x3,i2_8);
-                        if (tmp_22_8 == 2) goto _LOR_3_label_71;
-                        else {
-                          int tmp_23_8;
-                          tmp_23_8 = charAt_aux_3(x3,i2_8);
-                          if (tmp_23_8 == 3) {
-                            _LOR_3_label_71:
-                            __retres_8 = 1;
-                            goto return_label_label_65;
-                          }
-                        }
-                      }
-                      i2_8 ++;
                     }
+                    tmp_25_8 = lastIndexOf_aux_3(x3,3);
+                    ;
+                    __retres_8 = higherTriple_8 - tmp_25_8;
+                    goto return_label_label_65;
                   }
-                  tmp_25_8 = lastIndexOf_aux_3(x3,3);
-                  ;
-                  __retres_8 = higherTriple_8 - tmp_25_8;
-                  goto return_label_label_65;
                 }
               }
-            }
-          __retres_8 = 1;
-          goto return_label_label_65;
+            __retres_8 = 1;
+            goto return_label_label_65;
+          }
         }
       }
     if (tripleCount2_8 > 1) goto _LOR_6_label_72;
@@ -1864,170 +2085,22 @@ void relational_wrapper_3(struct PokerHand x1, struct PokerHand x2,
         int tmp_28_8;
         tmp_28_8 = indexOf_aux_3(x3,2);
         if (tmp_28_8 != -1) {
-          _LOR_6_label_72: __retres_8 = -1;
-                           goto return_label_label_65;
+          _LOR_6_label_72: {
+                             __retres_8 = -1;
+                             goto return_label_label_65;
+                           }
         }
       }
     __retres_8 = 0;
     return_label_label_65: return_variable_relational_8 = __retres_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;
   */
   return;
 }
-
-/*@ assigns \result;
-    assigns \result \from o1, val;
-    
-    behavior some:
-      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
-      ensures 0 ≤ \result < 13;
-      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
-      ensures
-        ∀ ℤ i;
-          \result < i < 13 ⇒
-          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
-      assigns \result;
-      assigns \result \from o1, val;
-    
-    behavior none:
-      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
-      ensures \result ≡ -1;
-      assigns \result;
-      assigns \result \from o1, val;
- */
-int lastIndexOf_aux_3(struct PokerHand o1, int val);
-
-/*@ ensures \result ≡ (\let tmp = \old(o1.hand); tmp[\old(i)]);
-    assigns \result;
-    assigns \result \from o1, i;
- */
-int charAt_aux_3(struct PokerHand o1, int i);
-
-/*@ assigns \result;
-    assigns \result \from o1, val;
-    
-    behavior some:
-      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
-      ensures 0 ≤ \result < 13;
-      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
-      ensures
-        ∀ ℤ i;
-          0 ≤ i < \result ⇒
-          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
-      assigns \result;
-      assigns \result \from o1, val;
-    
-    behavior none:
-      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
-      ensures \result ≡ -1;
-      assigns \result;
-      assigns \result \from o1, val;
- */
-int indexOf_aux_3(struct PokerHand o1, int val);
-
-/*@ assigns \result;
-    assigns \result \from o1, val;
-    
-    behavior some:
-      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
-      ensures 0 ≤ \result < 13;
-      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
-      ensures
-        ∀ ℤ i;
-          \result < i < 13 ⇒
-          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
-      assigns \result;
-      assigns \result \from o1, val;
-    
-    behavior none:
-      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
-      ensures \result ≡ -1;
-      assigns \result;
-      assigns \result \from o1, val;
- */
-int lastIndexOf_aux_2(struct PokerHand o1, int val);
-
-/*@ ensures \result ≡ (\let tmp = \old(o1.hand); tmp[\old(i)]);
-    assigns \result;
-    assigns \result \from o1, i;
- */
-int charAt_aux_2(struct PokerHand o1, int i);
-
-/*@ assigns \result;
-    assigns \result \from o1, val;
-    
-    behavior some:
-      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
-      ensures 0 ≤ \result < 13;
-      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
-      ensures
-        ∀ ℤ i;
-          0 ≤ i < \result ⇒
-          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
-      assigns \result;
-      assigns \result \from o1, val;
-    
-    behavior none:
-      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
-      ensures \result ≡ -1;
-      assigns \result;
-      assigns \result \from o1, val;
- */
-int indexOf_aux_2(struct PokerHand o1, int val);
-
-/*@ assigns \result;
-    assigns \result \from o1, val;
-    
-    behavior some:
-      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
-      ensures 0 ≤ \result < 13;
-      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
-      ensures
-        ∀ ℤ i;
-          \result < i < 13 ⇒
-          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
-      assigns \result;
-      assigns \result \from o1, val;
-    
-    behavior none:
-      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
-      ensures \result ≡ -1;
-      assigns \result;
-      assigns \result \from o1, val;
- */
-int lastIndexOf_aux_1(struct PokerHand o1, int val);
-
-/*@ ensures \result ≡ (\let tmp = \old(o1.hand); tmp[\old(i)]);
-    assigns \result;
-    assigns \result \from o1, i;
- */
-int charAt_aux_1(struct PokerHand o1, int i);
-
-/*@ assigns \result;
-    assigns \result \from o1, val;
-    
-    behavior some:
-      assumes ∃ ℤ i; 0 ≤ i < 13 ∧ o1.hand[i] ≡ val;
-      ensures 0 ≤ \result < 13;
-      ensures (\let tmp = \old(o1.hand); tmp[\result]) ≡ \old(val);
-      ensures
-        ∀ ℤ i;
-          0 ≤ i < \result ⇒
-          (\let tmp = \old(o1.hand); tmp[i]) ≢ \old(val);
-      assigns \result;
-      assigns \result \from o1, val;
-    
-    behavior none:
-      assumes ∀ ℤ i; 0 ≤ i < 13 ⇒ o1.hand[i] ≢ val;
-      ensures \result ≡ -1;
-      assigns \result;
-      assigns \result \from o1, val;
- */
-int indexOf_aux_1(struct PokerHand o1, int val);
 
 
 [rpp] ***************************************

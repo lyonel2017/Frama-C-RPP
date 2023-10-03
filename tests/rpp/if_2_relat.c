@@ -2,9 +2,7 @@
    OPT: -rpp
 */
 
-/*@ relational \forall int a,b,c; \callpure(trityp,a,b,c) == \callpure(trityp,a,c,b);
-  @ assigns \result \from i,j,k;
-*/
+/*@ assigns \result \from i,j,k; */
 int trityp(i,j,k){
 	int trityp = 0;
 
@@ -44,3 +42,7 @@ int trityp(i,j,k){
 		return trityp;
 	}
 }
+
+/*@ relational
+     \forall int a,b,c; \callpure(trityp,a,b,c) == \callpure(trityp,a,c,b);
+ */

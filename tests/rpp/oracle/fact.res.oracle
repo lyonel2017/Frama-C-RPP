@@ -15,6 +15,15 @@ axiomatic Relational_axiome_2 {
   }
  */
 /*@
+axiomatic Relational_axiome_4 {
+  logic int fact_acsl_pure_4(int x) ;
+  
+  lemma Relational_lemma_4{L}:
+    ∀ int x1; fact_acsl_pure_4((int)(x1 + 1)) ≡ 1;
+  
+  }
+ */
+/*@
 axiomatic Relational_axiome_5 {
   logic int fact_acsl_pure_5(int x) ;
   
@@ -33,15 +42,6 @@ axiomatic Relational_axiome_3 {
     ∀ int x1;
       x1 > 1 ⇒
       fact_acsl_pure_3(x1) ≡ fact_acsl_pure_3((int)(x1 - 1)) * x1;
-  
-  }
- */
-/*@
-axiomatic Relational_axiome_4 {
-  logic int fact_acsl_pure_4(int x) ;
-  
-  lemma Relational_lemma_4{L}:
-    ∀ int x1; fact_acsl_pure_4((int)(x1 + 1)) ≡ 1;
   
   }
  */
@@ -90,207 +90,15 @@ int fact(int x)
   return_label: return __retres;
 }
 
-int fact_aux_1(int x);
-
-/*@ requires x1 ≥ 0; */
-void relational_wrapper_1(int x1)
-{
-  int return_variable_relational_1;
-  {
-    int __retres_1;
-    /*@ assert Rpp: x1 ≥ 0; */
-    if (x1 <= 1) {
-      __retres_1 = 1;
-      goto return_label_label_1;
-    }
-    else {
-      int tmp_1;
-      tmp_1 = fact_aux_1(x1 - 1);
-      ;
-      __retres_1 = x1 * tmp_1;
-      goto return_label_label_1;
-    }
-    return_label_label_1: return_variable_relational_1 = __retres_1;
-  }
-  /*@ assert Rpp: x1 ≤ 1 ⇒ return_variable_relational_1 ≡ 1; */
-  return;
-}
-
-int fact_aux_2(int x);
-
-/*@ requires x1 - 1 ≥ 0;
-    requires x1 ≥ 0; */
-void relational_wrapper_2(int x1)
-{
-  int return_variable_relational_2;
-  int aux_local_variable_1;
-  int return_variable_relational_3;
-  {
-    int __retres_2;
-    /*@ assert Rpp: x1 ≥ 0; */
-    if (x1 <= 1) {
-      __retres_2 = 1;
-      goto return_label_label_2;
-    }
-    else {
-      int tmp_2;
-      tmp_2 = fact_aux_2(x1 - 1);
-      ;
-      __retres_2 = x1 * tmp_2;
-      goto return_label_label_2;
-    }
-    return_label_label_2: return_variable_relational_2 = __retres_2;
-  }
-  aux_local_variable_1 = x1 - 1;
-  /*@ assert Rpp: aux_local_variable_1 ≥ 0; */
-  return_variable_relational_3 = fact_aux_2(aux_local_variable_1);
-  /*@ assert
-      Rpp:
-        x1 > 1 ⇒
-        return_variable_relational_2 ≡ return_variable_relational_3 * x1;
-  */
-  return;
-}
-
-int fact_aux_3(int x);
-
-/*@ requires x1 - 1 ≥ 0;
-    requires x1 ≥ 0; */
-void relational_wrapper_3(int x1)
-{
-  int return_variable_relational_4;
-  int aux_local_variable_2;
-  int return_variable_relational_5;
-  {
-    int __retres_4;
-    /*@ assert Rpp: x1 ≥ 0; */
-    if (x1 <= 1) {
-      __retres_4 = 1;
-      goto return_label_label_3;
-    }
-    else {
-      int tmp_4;
-      tmp_4 = fact_aux_3(x1 - 1);
-      ;
-      __retres_4 = x1 * tmp_4;
-      goto return_label_label_3;
-    }
-    return_label_label_3: return_variable_relational_4 = __retres_4;
-  }
-  aux_local_variable_2 = x1 - 1;
-  {
-    int __retres_5;
-    /*@ assert Rpp: aux_local_variable_2 ≥ 0; */
-    if (aux_local_variable_2 <= 1) {
-      __retres_5 = 1;
-      goto return_label_label_4;
-    }
-    else {
-      int tmp_5;
-      tmp_5 = fact_aux_3(aux_local_variable_2 - 1);
-      ;
-      __retres_5 = aux_local_variable_2 * tmp_5;
-      goto return_label_label_4;
-    }
-    return_label_label_4: return_variable_relational_5 = __retres_5;
-  }
-  /*@ assert
-      Rpp:
-        x1 > 1 ⇒
-        return_variable_relational_4 ≡ return_variable_relational_5 * x1;
-  */
-  return;
-}
-
-int fact_aux_4(int x);
-
-/*@ requires x1 + 1 ≥ 0; */
-void relational_wrapper_4(int x1)
-{
-  int aux_local_variable_3;
-  int return_variable_relational_6;
-  aux_local_variable_3 = x1 + 1;
-  {
-    int __retres_6;
-    /*@ assert Rpp: aux_local_variable_3 ≥ 0; */
-    if (aux_local_variable_3 <= 1) {
-      __retres_6 = 1;
-      goto return_label_label_5;
-    }
-    else {
-      int tmp_6;
-      {
-        int aux_local_variable_1;
-        aux_local_variable_1 = aux_local_variable_3 - 1;
-        /*@ assert Rpp: aux_local_variable_1 ≥ 0; */
-        {
-          int __retres_1;
-          if (aux_local_variable_1 <= 1) {
-            __retres_1 = 1;
-            goto return_label_label_6;
-          }
-          else {
-            int tmp_1;
-            tmp_1 = fact_aux_4(aux_local_variable_1 - 1);
-            ;
-            __retres_1 = aux_local_variable_1 * tmp_1;
-            goto return_label_label_6;
-          }
-          return_label_label_6: tmp_6 = __retres_1;
-        }
-      }
-      ;
-      __retres_6 = aux_local_variable_3 * tmp_6;
-      goto return_label_label_5;
-    }
-    return_label_label_5: return_variable_relational_6 = __retres_6;
-  }
-  /*@ assert Rpp: return_variable_relational_6 ≡ 1; */
-  return;
-}
-
-int fact_aux_5(int x);
-
-/*@ requires x1 ≥ 0;
-    requires x1 - 1 ≥ 0; */
-void relational_wrapper_5(int x1)
-{
-  int aux_local_variable_4;
-  int return_variable_relational_7;
-  int return_variable_relational_8;
-  aux_local_variable_4 = x1 - 1;
-  /*@ assert Rpp: aux_local_variable_4 ≥ 0; */
-  return_variable_relational_7 = fact_aux_5(aux_local_variable_4);
-  {
-    int __retres_8;
-    /*@ assert Rpp: x1 ≥ 0; */
-    if (x1 <= 1) {
-      __retres_8 = 1;
-      goto return_label_label_7;
-    }
-    else {
-      int tmp_8;
-      tmp_8 = fact_aux_5(x1 - 1);
-      ;
-      __retres_8 = x1 * tmp_8;
-      goto return_label_label_7;
-    }
-    return_label_label_7: return_variable_relational_8 = __retres_8;
-  }
-  /*@ assert
-      Rpp:
-        x1 > 1 ⇒
-        return_variable_relational_7 * x1 ≡ return_variable_relational_8;
-  */
-  return;
-}
-
 /*@
-axiomatic Relational_axiome_6 {
-  logic int fact_exact_acsl_pure_6(int x) ;
+axiomatic Relational_axiome_8 {
+  logic int fact_exact_acsl_pure_8(int x) ;
   
-  lemma Relational_lemma_6{L}:
-    ∀ int x1; x1 ≤ 1 ⇒ fact_exact_acsl_pure_6(x1) ≡ 1;
+  lemma Relational_lemma_8{L}:
+    ∀ int x1;
+      x1 > 3 ⇒
+      fact_exact_acsl_pure_8(x1) ≡
+      fact_exact_acsl_pure_8((int)(x1 - 1)) * x1;
   
   }
  */
@@ -307,14 +115,11 @@ axiomatic Relational_axiome_7 {
   }
  */
 /*@
-axiomatic Relational_axiome_8 {
-  logic int fact_exact_acsl_pure_8(int x) ;
+axiomatic Relational_axiome_6 {
+  logic int fact_exact_acsl_pure_6(int x) ;
   
-  lemma Relational_lemma_8{L}:
-    ∀ int x1;
-      x1 > 3 ⇒
-      fact_exact_acsl_pure_8(x1) ≡
-      fact_exact_acsl_pure_8((int)(x1 - 1)) * x1;
+  lemma Relational_lemma_6{L}:
+    ∀ int x1; x1 ≤ 1 ⇒ fact_exact_acsl_pure_6(x1) ≡ 1;
   
   }
 
@@ -347,132 +152,6 @@ int fact_exact(int x)
     goto return_label;
   }
   return_label: return __retres;
-}
-
-int fact_exact_aux_6(int x);
-
-/*@ requires x1 ≥ 0; */
-void relational_wrapper_6(int x1)
-{
-  int return_variable_relational_9;
-  {
-    int __retres_9;
-    /*@ assert Rpp: x1 ≥ 0; */
-    if (x1 <= 1) {
-      __retres_9 = 1;
-      goto return_label_label_8;
-    }
-    else {
-      int tmp_9;
-      tmp_9 = fact_exact_aux_6(x1 - 1);
-      ;
-      __retres_9 = x1 * tmp_9;
-      goto return_label_label_8;
-    }
-    return_label_label_8: return_variable_relational_9 = __retres_9;
-  }
-  /*@ assert Rpp: x1 ≤ 1 ⇒ return_variable_relational_9 ≡ 1; */
-  return;
-}
-
-int fact_exact_aux_7(int x);
-
-/*@ requires x1 - 1 ≥ 0;
-    requires x1 ≥ 0; */
-void relational_wrapper_7(int x1)
-{
-  int return_variable_relational_10;
-  int aux_local_variable_5;
-  int return_variable_relational_11;
-  {
-    int __retres_10;
-    /*@ assert Rpp: x1 ≥ 0; */
-    if (x1 <= 1) {
-      __retres_10 = 1;
-      goto return_label_label_9;
-    }
-    else {
-      int tmp_10;
-      tmp_10 = fact_exact_aux_7(x1 - 1);
-      ;
-      __retres_10 = x1 * tmp_10;
-      goto return_label_label_9;
-    }
-    return_label_label_9: return_variable_relational_10 = __retres_10;
-  }
-  aux_local_variable_5 = x1 - 1;
-  {
-    int __retres_11;
-    /*@ assert Rpp: aux_local_variable_5 ≥ 0; */
-    if (aux_local_variable_5 <= 1) {
-      __retres_11 = 1;
-      goto return_label_label_10;
-    }
-    else {
-      int tmp_11;
-      tmp_11 = fact_exact_aux_7(aux_local_variable_5 - 1);
-      ;
-      __retres_11 = aux_local_variable_5 * tmp_11;
-      goto return_label_label_10;
-    }
-    return_label_label_10: return_variable_relational_11 = __retres_11;
-  }
-  /*@ assert
-      Rpp:
-        x1 ≡ 2 ⇒
-        return_variable_relational_10 ≡ return_variable_relational_11 * x1;
-  */
-  return;
-}
-
-int fact_exact_aux_8(int x);
-
-/*@ requires x1 - 1 ≥ 0;
-    requires x1 ≥ 0; */
-void relational_wrapper_8(int x1)
-{
-  int return_variable_relational_12;
-  int aux_local_variable_6;
-  int return_variable_relational_13;
-  {
-    int __retres_12;
-    /*@ assert Rpp: x1 ≥ 0; */
-    if (x1 <= 1) {
-      __retres_12 = 1;
-      goto return_label_label_11;
-    }
-    else {
-      int tmp_12;
-      tmp_12 = fact_exact_aux_8(x1 - 1);
-      ;
-      __retres_12 = x1 * tmp_12;
-      goto return_label_label_11;
-    }
-    return_label_label_11: return_variable_relational_12 = __retres_12;
-  }
-  aux_local_variable_6 = x1 - 1;
-  {
-    int __retres_13;
-    /*@ assert Rpp: aux_local_variable_6 ≥ 0; */
-    if (aux_local_variable_6 <= 1) {
-      __retres_13 = 1;
-      goto return_label_label_12;
-    }
-    else {
-      int tmp_13;
-      tmp_13 = fact_exact_aux_8(aux_local_variable_6 - 1);
-      ;
-      __retres_13 = aux_local_variable_6 * tmp_13;
-      goto return_label_label_12;
-    }
-    return_label_label_12: return_variable_relational_13 = __retres_13;
-  }
-  /*@ assert
-      Rpp:
-        x1 > 3 ⇒
-        return_variable_relational_12 ≡ return_variable_relational_13 * x1;
-  */
-  return;
 }
 
 /*@ requires x ≥ 0;
@@ -577,6 +256,311 @@ int fact_aux_2(int x);
       ensures \result ≡ fact_acsl_pure_1(\old(x));
  */
 int fact_aux_1(int x);
+
+/*@ requires x1 ≥ 0; */
+void relational_wrapper_1(int x1)
+{
+  int return_variable_relational_1;
+  {
+    int __retres_1;
+    /*@ assert Rpp: x1 ≥ 0; */
+    if (x1 <= 1) {
+      __retres_1 = 1;
+      goto return_label_label_1;
+    }
+    else {
+      int tmp_1;
+      tmp_1 = fact_aux_1(x1 - 1);
+      ;
+      __retres_1 = x1 * tmp_1;
+      goto return_label_label_1;
+    }
+    return_label_label_1: return_variable_relational_1 = __retres_1;
+  }
+  /*@ check Rpp: x1 ≤ 1 ⇒ return_variable_relational_1 ≡ 1; */
+  return;
+}
+
+/*@ requires x1 - 1 ≥ 0;
+    requires x1 ≥ 0; */
+void relational_wrapper_2(int x1)
+{
+  int return_variable_relational_2;
+  int aux_local_variable_1;
+  int return_variable_relational_3;
+  {
+    int __retres_2;
+    /*@ assert Rpp: x1 ≥ 0; */
+    if (x1 <= 1) {
+      __retres_2 = 1;
+      goto return_label_label_2;
+    }
+    else {
+      int tmp_2;
+      tmp_2 = fact_aux_2(x1 - 1);
+      ;
+      __retres_2 = x1 * tmp_2;
+      goto return_label_label_2;
+    }
+    return_label_label_2: return_variable_relational_2 = __retres_2;
+  }
+  aux_local_variable_1 = x1 - 1;
+  /*@ assert Rpp: aux_local_variable_1 ≥ 0; */
+  return_variable_relational_3 = fact_aux_2(aux_local_variable_1);
+  /*@ check
+      Rpp:
+        x1 > 1 ⇒
+        return_variable_relational_2 ≡ return_variable_relational_3 * x1;
+  */
+  return;
+}
+
+/*@ requires x1 - 1 ≥ 0;
+    requires x1 ≥ 0; */
+void relational_wrapper_3(int x1)
+{
+  int return_variable_relational_4;
+  int aux_local_variable_2;
+  int return_variable_relational_5;
+  {
+    int __retres_4;
+    /*@ assert Rpp: x1 ≥ 0; */
+    if (x1 <= 1) {
+      __retres_4 = 1;
+      goto return_label_label_3;
+    }
+    else {
+      int tmp_4;
+      tmp_4 = fact_aux_3(x1 - 1);
+      ;
+      __retres_4 = x1 * tmp_4;
+      goto return_label_label_3;
+    }
+    return_label_label_3: return_variable_relational_4 = __retres_4;
+  }
+  aux_local_variable_2 = x1 - 1;
+  {
+    int __retres_5;
+    /*@ assert Rpp: aux_local_variable_2 ≥ 0; */
+    if (aux_local_variable_2 <= 1) {
+      __retres_5 = 1;
+      goto return_label_label_4;
+    }
+    else {
+      int tmp_5;
+      tmp_5 = fact_aux_3(aux_local_variable_2 - 1);
+      ;
+      __retres_5 = aux_local_variable_2 * tmp_5;
+      goto return_label_label_4;
+    }
+    return_label_label_4: return_variable_relational_5 = __retres_5;
+  }
+  /*@ check
+      Rpp:
+        x1 > 1 ⇒
+        return_variable_relational_4 ≡ return_variable_relational_5 * x1;
+  */
+  return;
+}
+
+/*@ requires x1 + 1 ≥ 0; */
+void relational_wrapper_4(int x1)
+{
+  int aux_local_variable_3;
+  int return_variable_relational_6;
+  aux_local_variable_3 = x1 + 1;
+  {
+    int __retres_6;
+    /*@ assert Rpp: aux_local_variable_3 ≥ 0; */
+    if (aux_local_variable_3 <= 1) {
+      __retres_6 = 1;
+      goto return_label_label_5;
+    }
+    else {
+      int tmp_6;
+      {
+        int aux_local_variable_1;
+        aux_local_variable_1 = aux_local_variable_3 - 1;
+        /*@ assert Rpp: aux_local_variable_1 ≥ 0; */
+        {
+          int __retres_1;
+          if (aux_local_variable_1 <= 1) {
+            __retres_1 = 1;
+            goto return_label_label_6;
+          }
+          else {
+            int tmp_1;
+            tmp_1 = fact_aux_4(aux_local_variable_1 - 1);
+            ;
+            __retres_1 = aux_local_variable_1 * tmp_1;
+            goto return_label_label_6;
+          }
+          return_label_label_6: tmp_6 = __retres_1;
+        }
+      }
+      ;
+      __retres_6 = aux_local_variable_3 * tmp_6;
+      goto return_label_label_5;
+    }
+    return_label_label_5: return_variable_relational_6 = __retres_6;
+  }
+  /*@ check Rpp: return_variable_relational_6 ≡ 1; */
+  return;
+}
+
+/*@ requires x1 ≥ 0;
+    requires x1 - 1 ≥ 0; */
+void relational_wrapper_5(int x1)
+{
+  int aux_local_variable_4;
+  int return_variable_relational_7;
+  int return_variable_relational_8;
+  aux_local_variable_4 = x1 - 1;
+  /*@ assert Rpp: aux_local_variable_4 ≥ 0; */
+  return_variable_relational_7 = fact_aux_5(aux_local_variable_4);
+  {
+    int __retres_8;
+    /*@ assert Rpp: x1 ≥ 0; */
+    if (x1 <= 1) {
+      __retres_8 = 1;
+      goto return_label_label_7;
+    }
+    else {
+      int tmp_8;
+      tmp_8 = fact_aux_5(x1 - 1);
+      ;
+      __retres_8 = x1 * tmp_8;
+      goto return_label_label_7;
+    }
+    return_label_label_7: return_variable_relational_8 = __retres_8;
+  }
+  /*@ check
+      Rpp:
+        x1 > 1 ⇒
+        return_variable_relational_7 * x1 ≡ return_variable_relational_8;
+  */
+  return;
+}
+
+/*@ requires x1 ≥ 0; */
+void relational_wrapper_6(int x1)
+{
+  int return_variable_relational_9;
+  {
+    int __retres_9;
+    /*@ assert Rpp: x1 ≥ 0; */
+    if (x1 <= 1) {
+      __retres_9 = 1;
+      goto return_label_label_8;
+    }
+    else {
+      int tmp_9;
+      tmp_9 = fact_exact_aux_6(x1 - 1);
+      ;
+      __retres_9 = x1 * tmp_9;
+      goto return_label_label_8;
+    }
+    return_label_label_8: return_variable_relational_9 = __retres_9;
+  }
+  /*@ check Rpp: x1 ≤ 1 ⇒ return_variable_relational_9 ≡ 1; */
+  return;
+}
+
+/*@ requires x1 - 1 ≥ 0;
+    requires x1 ≥ 0; */
+void relational_wrapper_7(int x1)
+{
+  int return_variable_relational_10;
+  int aux_local_variable_5;
+  int return_variable_relational_11;
+  {
+    int __retres_10;
+    /*@ assert Rpp: x1 ≥ 0; */
+    if (x1 <= 1) {
+      __retres_10 = 1;
+      goto return_label_label_9;
+    }
+    else {
+      int tmp_10;
+      tmp_10 = fact_exact_aux_7(x1 - 1);
+      ;
+      __retres_10 = x1 * tmp_10;
+      goto return_label_label_9;
+    }
+    return_label_label_9: return_variable_relational_10 = __retres_10;
+  }
+  aux_local_variable_5 = x1 - 1;
+  {
+    int __retres_11;
+    /*@ assert Rpp: aux_local_variable_5 ≥ 0; */
+    if (aux_local_variable_5 <= 1) {
+      __retres_11 = 1;
+      goto return_label_label_10;
+    }
+    else {
+      int tmp_11;
+      tmp_11 = fact_exact_aux_7(aux_local_variable_5 - 1);
+      ;
+      __retres_11 = aux_local_variable_5 * tmp_11;
+      goto return_label_label_10;
+    }
+    return_label_label_10: return_variable_relational_11 = __retres_11;
+  }
+  /*@ check
+      Rpp:
+        x1 ≡ 2 ⇒
+        return_variable_relational_10 ≡ return_variable_relational_11 * x1;
+  */
+  return;
+}
+
+/*@ requires x1 - 1 ≥ 0;
+    requires x1 ≥ 0; */
+void relational_wrapper_8(int x1)
+{
+  int return_variable_relational_12;
+  int aux_local_variable_6;
+  int return_variable_relational_13;
+  {
+    int __retres_12;
+    /*@ assert Rpp: x1 ≥ 0; */
+    if (x1 <= 1) {
+      __retres_12 = 1;
+      goto return_label_label_11;
+    }
+    else {
+      int tmp_12;
+      tmp_12 = fact_exact_aux_8(x1 - 1);
+      ;
+      __retres_12 = x1 * tmp_12;
+      goto return_label_label_11;
+    }
+    return_label_label_11: return_variable_relational_12 = __retres_12;
+  }
+  aux_local_variable_6 = x1 - 1;
+  {
+    int __retres_13;
+    /*@ assert Rpp: aux_local_variable_6 ≥ 0; */
+    if (aux_local_variable_6 <= 1) {
+      __retres_13 = 1;
+      goto return_label_label_12;
+    }
+    else {
+      int tmp_13;
+      tmp_13 = fact_exact_aux_8(aux_local_variable_6 - 1);
+      ;
+      __retres_13 = aux_local_variable_6 * tmp_13;
+      goto return_label_label_12;
+    }
+    return_label_label_12: return_variable_relational_13 = __retres_13;
+  }
+  /*@ check
+      Rpp:
+        x1 > 3 ⇒
+        return_variable_relational_12 ≡ return_variable_relational_13 * x1;
+  */
+  return;
+}
 
 
 [rpp] ***************************************

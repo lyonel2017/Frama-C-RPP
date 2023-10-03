@@ -31,7 +31,7 @@ void relational_wrapper_1(int x)
 {
   y_id1_1 = x;
   ;
-  /*@ assert Rpp: \at(y_id1_1,Here) ≡ x; */
+  /*@ check Rpp: \at(y_id1_1,Here) ≡ x; */
   return;
 }
 

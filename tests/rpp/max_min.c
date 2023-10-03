@@ -13,11 +13,15 @@ int max(int x,int y){
   return (x >= y) ? x : y;
 }
 
-/*@ assigns \result \from x,y;
-  @ relational R1: \forall int x,y;
-     \callpure(max,x,y) == (x+y+\callpure(abs,x - y))/2;
-  @ relational R2: \forall int x,y;
-     \callpure(min,x,y) == (x+y-\callpure(abs,x - y))/2;*/
+/*@ assigns \result \from x,y; */
 int min(int x,int y){
   return (x >= y) ? y : x;
 }
+
+/*@ relational R1: \forall int x,y;
+     \callpure(max,x,y) == (x+y+\callpure(abs,x - y))/2;
+*/
+
+/*@ relational R2: \forall int x,y;
+     \callpure(min,x,y) == (x+y-\callpure(abs,x - y))/2;
+*/

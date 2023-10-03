@@ -16,9 +16,6 @@ struct AInt{
 /*@ requires 0 <= o1.length && o1.length < 1000;
   @ requires 0 <= o2.length && o2.length < 1000;
   @ assigns \result \from o1,o2;
-  @ relational \forall struct AInt x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct AInt x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct AInt x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
 */
 int compare(struct AInt o1, struct AInt o2){
     int index, aentry, bentry;
@@ -39,3 +36,18 @@ int compare(struct AInt o1, struct AInt o2){
     }
     return 0;
   }
+
+/*@ relational
+      \forall struct AInt x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+/*@ relational
+      \forall struct AInt x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+/*@ relational
+      \forall struct AInt x1,x2,x3;
+      \callpure(compare,x1,x2) == 0 ==>
+      (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

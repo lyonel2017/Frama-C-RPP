@@ -61,7 +61,7 @@ void relational_wrapper_1(int x)
   j_id4_1 += x;
   g_id4_1 -= x;
   ;
-  /*@ assert
+  /*@ check
       Rpp:
         \at(j_id3_1,Pre) < \at(j_id4_1,Pre) ∧
         \at(g_id3_1,Pre) > \at(g_id4_1,Pre) ∧ x > 0 ⇒

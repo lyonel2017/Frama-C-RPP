@@ -50,7 +50,7 @@ void relational_wrapper_1(int x1, int x2)
     end_label_2: ;
     return_variable_relational_2 = buff_2;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         x1 < x2 ∧ x1 > 0 ∧ x2 < 10 ⇒
         return_variable_relational_1 < return_variable_relational_2;

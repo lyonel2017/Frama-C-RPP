@@ -12,11 +12,7 @@ struct Contact{
   int getEmails;
 };
 
-/*@ assigns \result \from x,y;
-  @ relational \forall int x1,x2; \callpure(IntCompare,x1,x2) == -(\callpure(IntCompare,x2,x1));
-  @ relational \forall int x1,x2,x3; (\callpure(IntCompare,x1,x2) > 0 && \callpure(IntCompare,x2,x3) > 0) ==> \callpure(IntCompare,x1,x3) > 0;
-  @ relational \forall int x1,x2,x3; \callpure(IntCompare,x1,x2) == 0 ==> (\callpure(IntCompare,x1,x3) == \callpure(IntCompare,x2,x3));
-*/
+/*@ assigns \result \from x,y; */
 int IntCompare(int x, int y){
   if (x < y){
     return -1;
@@ -28,11 +24,24 @@ int IntCompare(int x, int y){
   return 0;
 }
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct Contact x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct Contact x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct Contact x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+/*@ relational
+      \forall int x1,x2;
+      \callpure(IntCompare,x1,x2) == -(\callpure(IntCompare,x2,x1));
 */
+
+/*@ relational
+      \forall int x1,x2,x3;
+      (\callpure(IntCompare,x1,x2) > 0 && \callpure(IntCompare,x2,x3) > 0)
+       ==> \callpure(IntCompare,x1,x3) > 0;
+*/
+
+/*@ relational \forall int x1,x2,x3;
+      \callpure(IntCompare,x1,x2) == 0 ==>
+      (\callpure(IntCompare,x1,x3) == \callpure(IntCompare,x2,x3));
+*/
+
+
+/*@ assigns \result \from o1,o2; */
 int compare(struct Contact o1, struct Contact o2) {
   int compareFirstName = 0;
   if ((o1.getFirstName != 0) && (o2.getFirstName != 0)) {
@@ -93,3 +102,20 @@ int compare(struct Contact o1, struct Contact o2) {
     }
   }
 }
+
+/*@ relational
+      \forall struct Contact x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+
+/*@ relational
+      \forall struct Contact x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+       ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct Contact x1,x2,x3;
+      \callpure(compare,x1,x2) == 0 ==>
+      (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

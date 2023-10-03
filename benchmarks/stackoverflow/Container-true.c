@@ -30,11 +30,7 @@ int IntCompare(int x, int y){
   return 0;
 }
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct Container x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct Container x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct Container x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
-*/
+/*@ assigns \result \from o1,o2; */
 int compare(struct Container o1, struct Container o2) {
       int rv;
 
@@ -59,3 +55,21 @@ int compare(struct Container o1, struct Container o2) {
       }
       return rv;
   }
+
+
+/*@ relational
+      \forall struct Container x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+
+/*@ relational
+      \forall struct Container x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct Container x1,x2,x3;
+      \callpure(compare,x1,x2) == 0
+      ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

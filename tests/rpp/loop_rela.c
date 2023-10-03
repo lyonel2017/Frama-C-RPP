@@ -24,7 +24,6 @@ int f(int n){
 /*@ requires n >= 0;
   @ assigns \result \from n;
   @ ensures  \result == (n*(n+1))/2;
-  @ relational \forall int n; \callpure(f,n) == \callpure(g,n);
 */
 int g(int n){
   int j = 1;
@@ -40,3 +39,6 @@ int g(int n){
   }
   return y;
 }
+
+
+/*@ relational \forall int n; \callpure(f,n) == \callpure(g,n); */

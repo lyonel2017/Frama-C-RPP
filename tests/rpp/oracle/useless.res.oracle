@@ -10,7 +10,7 @@ void f(void)
 
 void relational_wrapper_1(void)
 {
-  /*@ assert Rpp: 1 < 2; */
+  /*@ check Rpp: 1 < 2; */
   return;
 }
 

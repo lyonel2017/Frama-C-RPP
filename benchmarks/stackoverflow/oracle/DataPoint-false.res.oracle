@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/DataPoint-false.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/DataPoint-false.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -248,7 +248,7 @@ void relational_wrapper_1(struct DataPoint x1, struct DataPoint x2)
           }
     return_label_label_2: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
@@ -428,7 +428,7 @@ void relational_wrapper_2(struct DataPoint x1, struct DataPoint x2,
           }
     return_label_label_5: return_variable_relational_5 = __retres_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
@@ -610,7 +610,7 @@ void relational_wrapper_3(struct DataPoint x1, struct DataPoint x2,
           }
     return_label_label_8: return_variable_relational_8 = __retres_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;

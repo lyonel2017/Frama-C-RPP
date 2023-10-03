@@ -10,8 +10,6 @@ int Cryptage(int t,int key){
 }
 
 /*@ requires key >= 0 && t > 0;
-  @ relational \forall int t,key; \callpure(DeCryptage,\callpure(Cryptage,t,key),key) == t;
-  @ relational \forall int t,key; \callpure(Cryptage,t,key) > 0;
   @ assigns \result \from t, key;
  */
 int DeCryptage(int t, int key){
@@ -28,3 +26,10 @@ int main(int x){
   inter = DeCryptage(inter,k);
   return inter;
 }
+
+/*@ relational
+      \forall int t,key;
+        \callpure(DeCryptage,\callpure(Cryptage,t,key),key) == t;
+*/
+
+/*@ relational \forall int t,key; \callpure(Cryptage,t,key) > 0; */

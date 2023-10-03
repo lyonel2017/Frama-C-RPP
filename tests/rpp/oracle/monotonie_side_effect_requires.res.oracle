@@ -29,28 +29,6 @@ void k(void)
   return;
 }
 
-int y_id1_1;
-
-int y_id2_1;
-
-/*@ requires y_id2_1 > 0;
-    requires y_id1_1 > 0; */
-void relational_wrapper_1(void)
-{
-  /*@ assert Rpp: y_id1_1 > 0; */
-  y_id1_1 += 5;
-  ;
-  /*@ assert Rpp: y_id2_1 > 0; */
-  y_id2_1 += 5;
-  ;
-  /*@ assert
-      Rpp:
-        \at(y_id1_1,Pre) < \at(y_id2_1,Pre) ⇒
-        \at(y_id1_1,Here) < \at(y_id2_1,Here);
-  */
-  return;
-}
-
 int g;
 int j;
 /*@
@@ -82,6 +60,28 @@ void f(void)
   return;
 }
 
+int y_id1_1;
+
+int y_id2_1;
+
+/*@ requires y_id2_1 > 0;
+    requires y_id1_1 > 0; */
+void relational_wrapper_1(void)
+{
+  /*@ assert Rpp: y_id1_1 > 0; */
+  y_id1_1 += 5;
+  ;
+  /*@ assert Rpp: y_id2_1 > 0; */
+  y_id2_1 += 5;
+  ;
+  /*@ check
+      Rpp:
+        \at(y_id1_1,Pre) < \at(y_id2_1,Pre) ⇒
+        \at(y_id1_1,Here) < \at(y_id2_1,Here);
+  */
+  return;
+}
+
 int j_id3_2;
 
 int g_id3_2;
@@ -105,7 +105,7 @@ void relational_wrapper_2(void)
   /*@ assert Rpp: g_id4_2 > 0; */
   j_id4_2 = (j_id4_2 + g_id4_2) + 5;
   ;
-  /*@ assert
+  /*@ check
       Rpp:
         \at(j_id3_2,Pre) < \at(j_id4_2,Pre) ∧
         \at(g_id3_2,Pre) ≡ \at(g_id4_2,Pre) ⇒

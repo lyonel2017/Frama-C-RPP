@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -44,22 +44,26 @@ let make_separate env separated call_data =
     Some pred
   | [] ->  None
 
-let id_convert_axiom identifier loc call_side_effect_data=
+let id_convert_axiom identifier loc call_side_effect_data =
+  let source = fst loc in
   match Str.bounded_split (Str.regexp "_") identifier 2 with
   | "Pre":: id :: []  ->
-    (match List.find (fun data -> String.equal id data.id )
-             call_side_effect_data  with
-    | exception Not_found ->
-      Rpp_options.Self.abort ~source:loc "The id %s is unknown in this clause" id
-    | _ -> String.concat "_" ["pre";id])
+    (match
+       List.find (fun data -> String.equal id data.id ) call_side_effect_data
+     with
+     | exception Not_found ->
+       Rpp_options.Self.abort ~source "The id %s is unknown in this clause" id
+     | _ -> String.concat "_" ["pre";id])
   |  "Post" :: id :: [] ->
-    (match List.find (fun data -> String.equal id data.id)
-             call_side_effect_data  with
-    | exception Not_found ->
-      Rpp_options.Self.abort ~source:loc "The id %s is unknown in this clause" id
-    | _ -> String.concat "_" ["post";id])
-  | _ -> Rpp_options.Self.abort ~source:loc "Expect label of the forme Pre_id or Post_id:@ @[%s@] @."
-           identifier
+    (match
+       List.find (fun data -> String.equal id data.id) call_side_effect_data
+     with
+     | exception Not_found ->
+       Rpp_options.Self.abort ~source "The id %s is unknown in this clause" id
+     | _ -> String.concat "_" ["post";id])
+  | _ ->
+    Rpp_options.Self.abort ~source
+      "Expect label of the forme Pre_id or Post_id:@ @[%s@] @." identifier
 
 exception Found_equals
 
@@ -78,24 +82,24 @@ let typer self loc l env func =
     | TFun (_,l,_,_) ->  Cil.argsToList l
     | _ -> assert false
   in
-  List.map2(fun th (_,t,_) ->
+  List.map2(
+    fun th (_,t,_) ->
       let new_t =
         Rpp_predicate_visitor.get_typ_in_current_project t self loc
       in
-     match th.term_type,new_t with
+      match th.term_type,new_t with
       | Ctype(t1) ,t2 when Cil_datatype.Typ.equal t1 t2 -> th
       | Ctype(_) ,_  | Linteger , TInt(_)
       | Linteger, TNamed({ttype = TInt _},_)
       | Lreal , TInt(_) | Lreal , TFloat(_) ->
-        Logic_const.term
-          ~loc:(env.pos_axiom)
-          (TCastE(new_t,th))
-          (Ctype new_t)
-      | _ , _->    Rpp_options.Self.fatal ~source:env.loc_axiom
-                     "Something went wrong :\
-                      Logic function %s is called with a parameter with type \
-                      is not supported :@. @[%a@] @."
-                     (func.vname) Printer.pp_term th ) l args
+        Logic_const.term ~loc:env.loc_axiom (TCastE(new_t,th)) (Ctype new_t)
+      | _ , _->
+        Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+          "@[<v 2>Something went wrong :\
+           Logic function %s is called with a parameter with type \
+           is not supported:@;%a@]"
+          (func.vname) Printer.pp_term th)
+    l args
 
 let make_new_global env id l n =
   List.map (fun x ->
@@ -199,7 +203,7 @@ let make_logic_information env name kf type_return data pointers predicate_info 
     Cil_const.make_logic_info name
   in
   let test_kf =
-    Cil.get_kernel_function env.self_axiom#behavior kf
+    Visitor_behavior.Get.kernel_function env.self_axiom#behavior kf
   in
   let return_param_name = "return_variable_relational" in
   let param_return =
@@ -334,21 +338,18 @@ let predicate_visitor predicate self_behavior =
 
       let term_node_axiome = TLval(TMem(new_term),off) in
       let typ = match ty with
-        | Ctype t -> Ctype(Rpp_predicate_visitor.get_typ_in_current_project
-                             t (env.self_axiom#behavior) (env.loc_axiom))
+        | Ctype t ->
+          Ctype(
+            Rpp_predicate_visitor.get_typ_in_current_project
+              t (env.self_axiom#behavior) (env.loc_axiom))
         | Linteger -> Linteger
         | Lreal -> Lreal
-        | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom
-                 "Match bad terme type in term:@. @[%a@] @." Printer.pp_term new_term
-      in
-      let axiome_term =
-        Logic_const.term
-          ~loc:(env.pos_axiom)
-          term_node_axiome
-          typ
+        | _ ->
+          Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+            "Match bad term type in term:@. @[%a@] @." Printer.pp_term new_term
       in
       quant_map := temp;
-      axiome_term
+      Logic_const.term ~loc:env.loc_axiom term_node_axiome typ
 
     method  build_call_binop env bin term1 term2 ty =
       let temp = !quant_map in
@@ -385,6 +386,7 @@ let predicate_visitor predicate self_behavior =
       let new_terms =
         typer env.self_axiom#behavior env.loc_axiom formals env func
       in
+      (*Check absence of memory sharing between traces *)
       let vis = new Rpp_predicate_visitor.separate_checker
         env.loc_axiom !formal_pointer_check id
       in
@@ -452,21 +454,15 @@ let predicate_visitor predicate self_behavior =
           (param_assigns_p@param_from_p) [] Cil_datatype.Logic_var.equal
       in
       let globals_terms =
-        List.map (fun x ->
-            let term_node = TLval(TVar(x),TNoOffset) in
-            {term_node = term_node;
-             term_loc = env.pos_axiom;
-             term_type = x.lv_type;
-             term_name = []}
-          ) (param_from@param_assigns_post@param_pointer)
+        List.map
+          (Logic_const.tvar ~loc:env.loc_axiom)
+          (param_from@param_assigns_post@param_pointer)
       in
       let (term_result_add,logic_result_add) =
         match term_node_result,logic_var_axiome with
         | None,None -> [],[]
-        | Some x,Some y ->  [{term_node = x;
-                              term_loc = env.pos_axiom;
-                              term_type = y.lv_type;
-                              term_name = []}] ,[y]
+        | Some x,Some y ->
+          [Logic_const.term ~loc:env.loc_axiom x y.lv_type] ,[y]
         | _ -> assert false
       in
       let labels = make_labels logic_information id in
@@ -529,6 +525,7 @@ let predicate_visitor predicate self_behavior =
       let new_terms =
         typer env.self_axiom#behavior env.loc_axiom formals env funct
       in
+
       (*Generation of the term node for the axiome predicate*)
       let name = String.concat "_" [funct.vname;"acsl_pure";
                                     string_of_int (Rpp_options.Counting_axiome.get () + 1)]
@@ -538,7 +535,7 @@ let predicate_visitor predicate self_behavior =
           Not_found ->
           (let new_logic_information = Cil_const.make_logic_info name in
            let kf = Globals.Functions.get funct in
-           let current_kf = Cil.get_kernel_function env.self_axiom#behavior kf in
+           let current_kf = Visitor_behavior.Get.kernel_function env.self_axiom#behavior kf in
            new_logic_information.l_profile <-
              List.map (fun x ->
                  let typ = match x.vtype with
@@ -552,10 +549,11 @@ let predicate_visitor predicate self_behavior =
            let return = Kernel_function.get_return_type current_kf in
            let typ = match return  with
              | TVoid _ ->
-               Rpp_options.Self.fatal ~source:env.loc_axiom
+               Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
                  "Function %s have a unsupported return type void"
                  (funct.vname)
-             | t ->   Ctype (
+             | t ->
+               Ctype (
                  Rpp_predicate_visitor.get_typ_in_current_project
                    t env.self_axiom#behavior env.loc_axiom)
            in
@@ -570,13 +568,7 @@ let predicate_visitor predicate self_behavior =
         | Some t -> t
         | None -> assert false
       in
-      let new_term_axiome =
-        Logic_const.term
-          ~loc:(env.pos_axiom)
-          term_node_axiome
-          (return_type)
-      in
-      new_term_axiome
+      Logic_const.term ~loc:env.loc_axiom term_node_axiome return_type
 
     method  build_term_binop_at env binop term1_assert term2_assert ty _ =
       self#build_term_binop env binop term1_assert term2_assert ty
@@ -593,10 +585,10 @@ let predicate_visitor predicate self_behavior =
         | Some(var) -> (Some var,None)
         | None ->
           let new_logic_var =
-            (try (Cil_datatype.Logic_var.Map.find logic_var !quant_map) with
-               Not_found -> Rpp_options.Self.abort ~source:env.loc_axiom
-                              "Unknow logical variable %s in \\at"
-                              logic_var.lv_name)
+            try Cil_datatype.Logic_var.Map.find logic_var !quant_map with
+            | Not_found ->
+              Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+                "Unknow logical variable %s in \\at" logic_var.lv_name
           in (None,Some(new_logic_var))
       in
       match Str.bounded_split (Str.regexp "_") label 2 with
@@ -606,18 +598,22 @@ let predicate_visitor predicate self_behavior =
           | None ,Some x -> x
           | Some v,None ->
             let data =
-              try List.find (fun data -> String.equal id data.id) !call_side_effect_data with
+              try
+                List.find
+                  (fun data -> String.equal id data.id) !call_side_effect_data
+              with
               | Not_found ->
-                Rpp_options.Self.fatal ~source:env.loc_axiom
+                Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
                   "The identifier %s is suppose to existe according to \
                    the parser, but cannot be found" id
             in
             let new_lv_axiom =
               try Cil_datatype.Varinfo.Map.find v (data.from_map_p_logic) with
-              | Not_found -> Rpp_options.Self.abort ~source:env.loc_axiom
-                               "The pointer %a is suppose not \
-                                used in the assignement of an over variable"
-                               Printer.pp_varinfo v
+              | Not_found ->
+                Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+                  "The pointer %a is not supposed to be \
+                   used in the assignement of another variable"
+                  Printer.pp_varinfo v
             in
             new_lv_axiom
           | _ -> assert false
@@ -627,35 +623,35 @@ let predicate_visitor predicate self_behavior =
                                t (env.self_axiom#behavior) (env.loc_axiom))
           | Linteger -> Linteger
           | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom
-                   "Match bad terme type in term variable"
+          | _ ->
+            Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+              "Match bad term type in term variable"
         in
         let term_node_axiom = TLval(TVar(new_lv_axiom),new_off) in
-        let axiom_term =
-          Logic_const.term
-            ~loc:env.pos_axiom
-            term_node_axiom
-            typ
-        in
-        axiom_term
+        Logic_const.term ~loc:env.loc_axiom term_node_axiom typ
 
       | "Post" :: id :: [] ->
         let new_lv_axiom = match origine with
           | None ,Some x -> x
           | Some v, None ->
             let data =
-              try List.find (fun data -> String.equal id data.id) !call_side_effect_data with
+              try
+                List.find
+                  (fun data -> String.equal id data.id) !call_side_effect_data
+              with
               | Not_found ->
-                Rpp_options.Self.fatal ~source:env.loc_axiom
-                  "The identifier %s is suppose to existe according to \
+                Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+                  "The identifier %s is supposed to exist according to \
                    the parser, but cannot be found" id
-
             in
             let new_lv_axiom =
-              try Cil_datatype.Varinfo.Map.find v (data.assigns_map_p_logic) with
-              | Not_found -> Rpp_options.Self.abort ~source:env.loc_axiom
-                               "The pointer %a is suppose not to be assigned"
-                               Printer.pp_varinfo v
+              try
+                Cil_datatype.Varinfo.Map.find v (data.assigns_map_p_logic)
+              with
+              | Not_found ->
+                Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+                  "The pointer %a is not supposed to be assigned"
+                  Printer.pp_varinfo v
             in
             new_lv_axiom
           | _ -> assert false
@@ -665,24 +661,19 @@ let predicate_visitor predicate self_behavior =
                                t (env.self_axiom#behavior) (env.loc_axiom))
           | Linteger -> Linteger
           | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom
-                   "Match bad terme type in term variable"
+          | _ ->
+            Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+              "Match bad term type in term variable"
         in
         let term_node_axiome = TLval(TVar(new_lv_axiom),new_off) in
-        let axiom_term =
-          Logic_const.term
-            ~loc:env.pos_axiom
-            term_node_axiome
-            typ
-        in
-        axiom_term
+        Logic_const.term ~loc:env.loc_axiom term_node_axiome typ
 
-      | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom
-               "Something went wrong during parsing: \\at have an unsupported label %s" label
+      | _ ->
+        Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+          "Something went wrong during parsing: \
+           \\at has an unsupported label %s" label
 
-    method  build_Toffset_at env off _ =
-      self#build_Toffset env off
-
+    method  build_Toffset_at env off _ = self#build_Toffset env off
 
     method build_term_binop env binop term1_axiome term2_axiome ty =
       let new_ty = match ty with
@@ -692,15 +683,11 @@ let predicate_visitor predicate self_behavior =
         | Linteger -> Linteger
         | Lreal -> Lreal
         | _ ->
-          Rpp_options.Self.fatal ~source:env.loc_axiom "Match bad terme type in logic corece"
+          Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+            "Match bad term type in binary operation"
       in
-      let new_term_axiome =
-        Logic_const.term
-          ~loc:(env.pos_axiom)
-          (TBinOp(binop,term1_axiome,term2_axiome))
-          (new_ty)
-      in
-      new_term_axiome
+      Logic_const.term
+        ~loc:env.loc_axiom (TBinOp(binop,term1_axiome,term2_axiome)) new_ty
 
     method  build_term_logic_coerce env ty term_axiome typ =
       let new_ty = match ty with
@@ -710,7 +697,8 @@ let predicate_visitor predicate self_behavior =
         | Linteger -> Linteger
         | Lreal -> Lreal
         | _ ->
-          Rpp_options.Self.fatal ~source:env.loc_axiom "Match bad terme type in logic corece"
+          Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+            "Match bad term type in logic coerce"
       in
       let new_typ = match typ with
         | Ctype t ->
@@ -718,44 +706,38 @@ let predicate_visitor predicate self_behavior =
                   t (env.self_axiom#behavior) (env.loc_axiom))
         | Linteger -> Linteger
         | Lreal -> Lreal
-        | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom "Match bad terme type in logic corece"
+        | _ ->
+          Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+            "Match bad term type in logic coerce"
       in
-      let new_term_axiome =
-        Logic_const.term
-          ~loc:(env.pos_axiom)
-          (TLogic_coerce(new_ty,term_axiome))
-          (new_typ)
-      in
-      new_term_axiome
+      Logic_const.term
+        ~loc:env.loc_axiom (TLogic_coerce(new_ty,term_axiome)) new_typ
 
     method  build_term_const env logic_const _ =
       match logic_const with
       | Integer(int,x) ->
-        let new_term =
-          Logic_const.term ~loc:(env.pos_axiom) (TConst (Integer (int,x))) Linteger
-        in
-        new_term
+        Logic_const.term
+          ~loc:env.loc_axiom (TConst (Integer (int,x))) Linteger
       | LReal(l_r) ->
-        let new_term =
-          Logic_const.term ~loc:(env.pos_axiom) (TConst (LReal l_r)) Lreal
-        in
-        new_term
-      | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom "Match bad term constant"
+        Logic_const.term ~loc:env.loc_axiom (TConst (LReal l_r)) Lreal
+      | _ ->
+        Rpp_options.Self.fatal
+          ~source:(fst env.loc_axiom) "Match bad term constant"
 
     method build_Toffset env offset =
       match offset with
       | TNoOffset -> TNoOffset
       | TField(field_info,field_offset) ->
         let new_field_info =
-          Cil.get_fieldinfo (env.self_axiom#behavior) field_info
+          Visitor_behavior.Get.fieldinfo (env.self_axiom#behavior) field_info
         in
         let new_field_offset =
           self#build_Toffset env field_offset
         in
         TField(new_field_info,new_field_offset)
       | TModel(_,_) -> (** access to a model field. *)
-        Rpp_options.Self.abort ~source:env.loc_axiom
-          "Error in pedicate: access to a model field are not supported"
+        Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+          "Error in predicate: accesses to model fields are not supported"
       (** index. Note that a range is denoted by [TIndex(Trange(i1,i2),ofs)] *)
       | TIndex(term_index,index_offset) ->
         let new_term_index =
@@ -769,22 +751,17 @@ let predicate_visitor predicate self_behavior =
     method  build_term_valvar env logic_var new_off ty =
       let new_logic_var =
         try Cil_datatype.Logic_var.Map.find logic_var !quant_map with
-          Not_found ->  Rpp_options.Self.abort ~source:env.loc_axiom
-                          "Error in predicate: terme %s has no quantifiers"
-                          (logic_var.lv_name)
+        | Not_found ->
+          Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+            "Error in predicate: term %s has no quantifiers" (logic_var.lv_name)
       in
       match new_off with
       | TNoOffset ->
         let term_node_axiome =
           TLval(TVar(new_logic_var),new_off)
         in
-        let axiome_term =
-          Logic_const.term
-            ~loc:(env.pos_axiom)
-            term_node_axiome
-            (new_logic_var.lv_type)
-        in
-        axiome_term
+        Logic_const.term
+            ~loc:(env.loc_axiom) term_node_axiome (new_logic_var.lv_type)
       | _ ->
         let new_ty = match ty with
           | Ctype t ->
@@ -793,43 +770,33 @@ let predicate_visitor predicate self_behavior =
           | Linteger -> Linteger
           | Lreal -> Lreal
           | _ ->
-            Rpp_options.Self.fatal ~source:env.loc_axiom "Match bad terme type in term variable"
+            Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+              "Match bad term type in term variable"
         in
         let term_node_axiome =
           TLval(TVar(new_logic_var),new_off)
         in
-        let axiome_term =
-          Logic_const.term
-            ~loc:(env.pos_axiom)
-            term_node_axiome
-            new_ty
-        in
-        axiome_term
+        Logic_const.term ~loc:(env.loc_axiom) term_node_axiome new_ty
 
     method  build_term_app_result env id _ =
       let data =
-        try List.find (fun data -> String.equal id  data.id) !call_side_effect_data with
+        try
+          List.find
+            (fun data -> String.equal id  data.id) !call_side_effect_data
+        with
         | Not_found ->
-          Rpp_options.Self.fatal ~source:env.loc_axiom
-            "The identifier %s is suppose to existe according to \
+          Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+            "The identifier %s is supposed to exist according to \
              the parser, but cannot be found" id
       in
       let l_v_axiome =
         match data.return_logic with
-        | None -> Rpp_options.Self.abort ~source:env.loc_axiom
-                    "Id %s refer to a function with not return variable" id
+        | None ->
+          Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+            "Id %s refer to a function with not return variable" id
         | Some x -> x
       in
-      let term_node_axiome =
-        TLval(TVar(l_v_axiome),TNoOffset)
-      in
-      let axiome_term =
-        Logic_const.term
-          ~loc:(env.pos_axiom)
-          term_node_axiome
-          (l_v_axiome.lv_type)
-      in
-      axiome_term
+      Logic_const.tvar ~loc:env.loc_axiom l_v_axiome
 
     method  build_term_at_var env l_v new_off s _ =
       let v =
@@ -837,64 +804,66 @@ let predicate_visitor predicate self_behavior =
         | Some(var) -> var
         | None ->
           match Cil_datatype.Logic_var.Map.find l_v !quant_map with
-          | exception Not_found -> Rpp_options.Self.abort ~source:env.loc_axiom
-                                     "Unknow logical vaiable %a in \\at built-in"
-                                     Printer.pp_logic_var l_v
-          | _ -> Rpp_options.Self.abort ~source:env.loc_axiom
-                   "Logical vaiable %a in \\at built-in is a formal variable, \
-                    it can not be modified"
-                   Printer.pp_logic_var l_v
+          | exception Not_found ->
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "Unknow logical variable %a in \\at built-in"
+              Printer.pp_logic_var l_v
+          | _ ->
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "Logical variable %a in \\at built-in is a formal variable, \
+               it cannot be modified"
+              Printer.pp_logic_var l_v
       in
       match Str.bounded_split (Str.regexp "_") s 2 with
       | "Pre":: id :: [] ->
         let data =
-          try List.find (fun data -> String.equal id data.id) !call_side_effect_data with
+          try
+            List.find
+              (fun data -> String.equal id data.id) !call_side_effect_data
+          with
           | Not_found ->
-            Rpp_options.Self.fatal ~source:env.loc_axiom
-              "The identifier %s is suppose to existe according to \
+            Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+              "The identifier %s is supposed to exist according to \
                the parser, but cannot be found" id
         in
         let new_lv_axiom =
           try Cil_datatype.Varinfo.Map.find v (data.from_map_logic) with
-          | Not_found -> Rpp_options.Self.abort ~source:env.loc_axiom
-                           "The variable %a is suppose not \
-                            used in the assignement of an over variable"
-                           Printer.pp_varinfo v
+          | Not_found ->
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "The variable %a is not supposed to be \
+               used in the assignment of another variable"
+              Printer.pp_varinfo v
         in
         let term_node_axiom = TLval(TVar(new_lv_axiom),new_off) in
-        let axiom_term =
-          Logic_const.term
-            ~loc:(env.pos_axiom)
-            term_node_axiom
-            (new_lv_axiom.lv_type)
-        in
-        axiom_term
+        Logic_const.term
+            ~loc:(env.loc_axiom) term_node_axiom (new_lv_axiom.lv_type)
 
       | "Post" :: id :: [] ->
         let data =
-          try List.find (fun data -> String.equal id data.id) !call_side_effect_data with
+          try
+            List.find
+              (fun data -> String.equal id data.id) !call_side_effect_data
+          with
           | Not_found ->
-            Rpp_options.Self.fatal ~source:env.loc_axiom
-              "The identifier %s is suppose to existe according to \
+            Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+              "The identifier %s is supposed to exist according to \
                the parser, but cannot be found" id
         in
         let new_lv_axiom =
           try Cil_datatype.Varinfo.Map.find v (data.assigns_map_logic) with
-          | Not_found -> Rpp_options.Self.abort ~source:env.loc_axiom
-                           "The variable %a is suppose not to be assigned"
-                           Printer.pp_varinfo v
+          | Not_found ->
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "The variable %a is not supposed to be assigned"
+              Printer.pp_varinfo v
         in
         let term_node_axiom = TLval(TVar(new_lv_axiom),new_off) in
-        let axiom_term =
-          Logic_const.term
-            ~loc:(env.pos_axiom)
-            term_node_axiom
-            (new_lv_axiom.lv_type)
-        in
-        axiom_term
+        Logic_const.term
+          ~loc:(env.loc_axiom) term_node_axiom (new_lv_axiom.lv_type)
 
-      | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom
-               "Something went wrong during parsing: \\at have an unsupported label %s" s
+      | _ ->
+        Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+          "Something went wrong during parsing: \
+           \\at has an unsupported label %s" s
 
     method  build_term_at_mem env t s ty =
       match Str.bounded_split (Str.regexp "_") s 2 with
@@ -904,54 +873,42 @@ let predicate_visitor predicate self_behavior =
                                t (env.self_axiom#behavior) (env.loc_axiom))
           | Linteger -> Linteger
           | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom
-                   "Match bad terme type in term variable"
-        in
-        let the_terme_node_axiome = TLval(TMem(t),TNoOffset) in
-        let axiome_term =
-          Logic_const.term
-            ~loc:env.pos_axiom
-            the_terme_node_axiome
-            typ
-        in
-        let name_label = String.concat "_" ["pre";id] in
-        let term_node_axiom = Tat(axiome_term,FormalLabel(name_label)) in
-        let axiome_term =
-          Logic_const.term
-            ~loc:env.pos_axiom
-            term_node_axiom
-            typ
-        in
-        axiome_term
-
-      | "Post" :: id :: [] ->
-        let typ = match ty with
-          | Ctype t -> Ctype(Rpp_predicate_visitor.get_typ_in_current_project
-                               t (env.self_axiom#behavior) (env.loc_axiom))
-          | Linteger -> Linteger
-          | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom
-                   "Match bad terme type in term variable"
+          | _ ->
+            Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+              "Match bad term type in term variable"
         in
         let the_terme_node_axiome = TLval(TMem(t),TNoOffset) in
         let axiom_term =
-          Logic_const.term
-            ~loc:env.pos_axiom
-            the_terme_node_axiome
-            typ
+          Logic_const.term ~loc:env.loc_axiom the_terme_node_axiome typ
+        in
+        let name_label = String.concat "_" ["pre";id] in
+        Logic_const.tat ~loc:env.loc_axiom (axiom_term, FormalLabel name_label)
+
+      | "Post" :: id :: [] ->
+        let typ =
+          match ty with
+          | Ctype t ->
+            Ctype(
+              Rpp_predicate_visitor.get_typ_in_current_project
+                t (env.self_axiom#behavior)
+                (env.loc_axiom))
+          | Linteger -> Linteger
+          | Lreal -> Lreal
+          | _ ->
+            Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+              "Match bad term type in term variable"
+        in
+        let the_terme_node_axiome = TLval(TMem(t),TNoOffset) in
+        let axiom_term =
+          Logic_const.term ~loc:env.loc_axiom the_terme_node_axiome typ
         in
         let name_label = String.concat "_" ["post";id] in
-        let term_node_axiom = Tat(axiom_term,FormalLabel(name_label)) in
-        let axiome_term =
-          Logic_const.term
-            ~loc:env.pos_axiom
-            term_node_axiom
-            typ
-        in
-        axiome_term
+        Logic_const.tat ~loc:env.loc_axiom (axiom_term,FormalLabel name_label)
 
-      | _ -> Rpp_options.Self.fatal ~source:env.loc_axiom
-               "Something went wrong during parsing: \\at have an unsupported label %s" s
+      | _ ->
+        Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+          "Something went wrong during parsing: \
+           \\at has an unsupported label %s" s
 
     method  build_term_unop env op  term_axiome ty =
       let new_ty = match ty with
@@ -961,38 +918,20 @@ let predicate_visitor predicate self_behavior =
         | Linteger -> Linteger
         | Lreal -> Lreal
         | _ ->
-          Rpp_options.Self.fatal ~source:env.loc_axiom "Match bad terme type in logic corece"
+          Rpp_options.Self.fatal
+            ~source:(fst env.loc_axiom) "Match bad term type in unary op"
       in
       let term_node_axiome =
         TUnOp(op,term_axiome)
       in
-      let axiome_term =
-        Logic_const.term
-          ~loc:(env.pos_axiom)
-          term_node_axiome
-          (new_ty)
-      in
-      axiome_term
+      Logic_const.term ~loc:env.loc_axiom term_node_axiome new_ty
 
     method  build_term_range env term1 term2 _ =
-      let (term1_axiom,term2_axiom)=
-        match term1,term2 with
-        | None,None -> (None,None)
-        | Some(term1_axiome),None -> (Some term1_axiome,None)
-        | None, Some(term2_axiom) -> (None,Some term2_axiom)
-        | Some(term1_axiom),Some(term2_axiom) ->
-          (Some term1_axiom,Some term2_axiom)
-      in
-      let axiom_term =
-        Logic_const.trange
-          ~loc:(env.pos_axiom)
-          (term1_axiom,term2_axiom)
-      in
-      axiom_term
+      Logic_const.trange ~loc:env.loc_axiom (term1,term2)
 
     method  build_term_app env logic_info t_list ty =
       let new_logicinfo =
-        Cil.get_logic_info env.self_axiom#behavior logic_info
+        Visitor_behavior.Get.logic_info env.self_axiom#behavior logic_info
       in
       let new_ty = match ty with
         | Ctype t ->
@@ -1001,218 +940,127 @@ let predicate_visitor predicate self_behavior =
         | Linteger -> Linteger
         | Lreal -> Lreal
         | _ ->
-          Rpp_options.Self.fatal ~source:env.loc_axiom "Match bad terme type in logic corece"
+          Rpp_options.Self.fatal
+            ~source:(fst env.loc_axiom)
+            "Match bad term type in logic application"
       in
-      let term_node_axiom =
-        Tapp(new_logicinfo,[],t_list)
-      in
-      let axiom_term =
-        Logic_const.term
-          ~loc:(env.pos_axiom)
-          term_node_axiom
-          new_ty
-      in
-      axiom_term
+      let term_node_axiom = Tapp(new_logicinfo,[],t_list) in
+      Logic_const.term ~loc:env.loc_axiom term_node_axiom new_ty
 
     method  build_predicate_rel env rel t1_axiom t2_axiom =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Prel(rel,t1_axiom, t2_axiom);
-      }
-      in
-      new_axiome_predicate
+      Logic_const.prel ~loc:env.loc_axiom (rel,t1_axiom, t2_axiom)
 
     method  build_predicate_false env =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Pfalse;
-      }
-      in
-      new_axiome_predicate
+      Logic_const.unamed ~loc:env.loc_axiom Pfalse
 
     method  build_predicate_true env =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Pfalse;
-      }
-      in
-      new_axiome_predicate
+      Logic_const.unamed ~loc:env.loc_axiom Ptrue
 
     method  build_predicate_and env pred1_axiome pred2_axiome =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Pand(pred1_axiome,pred2_axiome);
-      }
-      in
-      new_axiome_predicate
+      Logic_const.pand ~loc:env.loc_axiom (pred1_axiome,pred2_axiome)
 
     method  build_predicate_or env pred1_axiome pred2_axiome =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Por(pred1_axiome,pred2_axiome);
-      }
-      in
-      new_axiome_predicate
+      Logic_const.por ~loc:env.loc_axiom (pred1_axiome,pred2_axiome)
 
     method  build_predicate_xor env pred1_axiome pred2_axiome =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Pxor(pred1_axiome,pred2_axiome);
-      }
-      in
-      new_axiome_predicate
+      Logic_const.pxor ~loc:env.loc_axiom (pred1_axiome,pred2_axiome)
 
     method  build_predicate_implies env pred1_axiome pred2_axiome =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Pimplies(pred1_axiome,pred2_axiome);
-      }
-      in
-      new_axiome_predicate
+      Logic_const.pimplies ~loc:env.loc_axiom (pred1_axiome,pred2_axiome)
 
     method  build_predicate_iff env pred1_axiome pred2_axiome =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Piff(pred1_axiome,pred2_axiome);
-      }
-      in
-      new_axiome_predicate
+      Logic_const.piff ~loc:env.loc_axiom (pred1_axiome,pred2_axiome)
 
     method  build_predicate_not env pred_axiom =
-      let new_axiom_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Pnot(pred_axiom);
-      }
-      in
-      new_axiom_predicate
+      Logic_const.pnot ~loc:env.loc_axiom pred_axiom
 
     method build_predicate_label env l =
-      let new_labels =
-        begin
-          fun l ->
-            List.map(
-              fun x ->
-                match x with
-                | FormalLabel(id) ->
-                  (FormalLabel(
-                      id_convert_axiom id (env.loc_axiom)
-                        (!call_side_effect_data)))
-                | _ -> assert false) l
-        end
-      in
-      new_labels l
+      List.map
+        (function
+          | FormalLabel(id) ->
+            FormalLabel(
+              id_convert_axiom id env.loc_axiom !call_side_effect_data)
+          | _ -> assert false)
+        l
 
     method  build_predicate_app env logic_info l_axiom t_list =
       let new_logicinfo =
-        Cil.get_logic_info env.self_axiom#behavior logic_info
+        Visitor_behavior.Get.logic_info env.self_axiom#behavior logic_info
       in
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Papp(new_logicinfo,l_axiom,t_list);
-      }
-      in
-      new_axiome_predicate
+      Logic_const.papp ~loc:env.loc_axiom (new_logicinfo,l_axiom,t_list)
 
     method build_predicate_quan env quan =
-      List.iter (fun x ->
-          match x.lv_type with
-          | Ctype(t) ->
-            let new_t =
-              Rpp_predicate_visitor.get_typ_in_current_project
-                t env.self_axiom#behavior env.loc_axiom
-            in
-            let new_logic_var =
-              Cil_const.make_logic_var_quant
-                (x.lv_name) (Ctype(new_t))
-            in
-            begin
-              match Cil_datatype.Logic_var.Map.find x !quant_map with
-              | exception Not_found ->
-                quant_map := Cil_datatype.Logic_var.Map.add x new_logic_var !quant_map
-              | _ -> Rpp_options.Self.abort ~source:env.loc_axiom
-                       "Quantified logic variable %a already exists" Printer.pp_logic_var x
-            end
+      List.iter
+        (fun x ->
+           match x.lv_type with
+           | Ctype(t) ->
+             let new_t =
+               Rpp_predicate_visitor.get_typ_in_current_project
+                 t env.self_axiom#behavior env.loc_axiom
+             in
+             let new_logic_var =
+               Cil_const.make_logic_var_quant (x.lv_name) (Ctype(new_t))
+             in
+             begin
+               match Cil_datatype.Logic_var.Map.find x !quant_map with
+               | exception Not_found ->
+                 quant_map :=
+                   Cil_datatype.Logic_var.Map.add x new_logic_var !quant_map
+               | _ ->
+                 Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+                   "Quantified logic variable %a already exists"
+                   Printer.pp_logic_var x
+             end
 
           | Linteger ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in pedicate: A C function can not have a mathematical integer as parameter:@. @[%a@]@."
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "@[<v 2>Error in predicate: A C function cannot have \
+               a mathematical integer as parameter:@;%a@]"
               Printer.pp_logic_var x
           | Lreal ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in pedicate: A C function can not have a mathematical real as parameter:@. @[%a@]@."
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "@[<v 2>Error in predicate: A C function cannot have \
+               a mathematical real as parameter:@;%a@]"
               Printer.pp_logic_var x
           | Ltype _ ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in pedicate: A C function can not have a logic type as parameter:@. @[%a@]@."
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "@[<v 2>Error in predicate: A C function cannot have \
+               a logic type as parameter:@;%a@]"
               Printer.pp_logic_var x
           | Lvar _ ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in pedicate: A C function can not have a logic type variable as parameter:@. @[%a@]@."
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "@[<v 2>Error in predicate: A C function cannot have \
+               a logic type variable as parameter:@;%a@]"
               Printer.pp_logic_var x
           | Larrow _ ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in predicate: A C function can not have a logic function type as parameter:@. @[%a@]@."
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "@[<v 2>Error in predicate: A C function cannot have \
+               a logic function type as parameter:@;%a@]"
               Printer.pp_logic_var x)
-        quan ;
+        quan;
       quan
 
-    method build_predicate_forall env quan pred =
-      let new_quant = List.map(fun x ->
-          let new_logic_var =
-            (try (Cil_datatype.Logic_var.Map.find x !quant_map) with
-             | Not_found -> Rpp_options.Self.fatal ~source:env.loc_axiom
-                              "Quantified logic variable %a is not in the new \
-                               quantified logic varible" Printer.pp_logic_var x
+    method private build_predicate_quant env quant =
+      List.map
+        (fun x ->
+           let new_logic_var =
+             (try (Cil_datatype.Logic_var.Map.find x !quant_map) with
+              | Not_found ->
+                Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+                  "Quantified logic variable %a is not in the new \
+                   quantified logic varible" Printer.pp_logic_var x)
+           in
+           quant_map := Cil_datatype.Logic_var.Map.remove x !quant_map;
+           new_logic_var)
+        quant
 
-             | _ -> assert false)
-          in
-          quant_map :=Cil_datatype.Logic_var.Map.remove x !quant_map;
-          new_logic_var) quan
-      in
-      let new_axiom_predicate_content =
-        Pforall(new_quant,pred)
-      in
-      let new_axiom_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = new_axiom_predicate_content;
-      }
-      in
-      new_axiom_predicate
+    method build_predicate_forall env quant pred =
+      let new_quant = self#build_predicate_quant env quant in
+      Logic_const.pforall ~loc:env.loc_axiom (new_quant,pred)
 
-    method build_predicate_exists env quan pred =
-      let new_quant = List.map(fun x ->
-          let new_logic_var =
-            (try (Cil_datatype.Logic_var.Map.find x !quant_map) with
-             | Not_found -> Rpp_options.Self.fatal ~source:env.loc_axiom
-                              "Quantified logic variable %a is not in the new \
-                               quantified logic varible" Printer.pp_logic_var x
-
-             | _ -> assert false)
-          in
-          quant_map := Cil_datatype.Logic_var.Map.remove x !quant_map;
-          new_logic_var) quan
-      in
-      let new_axiom_predicate_content =
-        Pexists(new_quant,pred)
-      in
-      let new_axiom_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = new_axiom_predicate_content;
-      }
-      in
-      new_axiom_predicate
+    method build_predicate_exists env quant pred =
+      let new_quant = self#build_predicate_quant env quant in
+      Logic_const.pexists ~loc:env.loc_axiom (new_quant,pred)
 
     method build_rpp_quan env quan =
       List.iter (fun x ->
@@ -1226,71 +1074,61 @@ let predicate_visitor predicate self_behavior =
               Cil_const.make_logic_var_quant
                 (x.lv_name) (Ctype(new_t))
             in
-            quant_map := Cil_datatype.Logic_var.Map.add x new_logic_var !quant_map;
-            fun_quant_map := Cil_datatype.Logic_var.Map.add x new_logic_var !fun_quant_map
+            quant_map :=
+              Cil_datatype.Logic_var.Map.add x new_logic_var !quant_map;
+            fun_quant_map :=
+              Cil_datatype.Logic_var.Map.add x new_logic_var !fun_quant_map
 
           | Linteger ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in pedicate: A C function can not have a mathematical integer as parameter"
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "Error in predicate: A C function cannot have \
+               a mathematical integer as parameter"
           | Lreal ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in pedicate: A C function can not have a mathematical real as parameter"
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "Error in predicate: A C function cannot have \
+               a mathematical real as parameter"
           | Ltype _ ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in pedicate: A C function can not have a logic type as parameter"
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "Error in predicate: A C function cannot have \
+               a logic type as parameter"
           | Lvar _ ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in pedicate: A C function can not have a logic type variable as parameter"
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "Error in predicate: A C function cannot have \
+               a logic type variable as parameter"
           | Larrow _ ->
-            Rpp_options.Self.abort ~source:env.loc_axiom
-              "Error in predicate: A C function can not have a logic function type as parameter")
+            Rpp_options.Self.abort ~source:(fst env.loc_axiom)
+              "Error in predicate: A C function cannot have \
+               a logic function type as parameter")
         quan ;
-      let new_quan_local  = List.map(fun x ->
-          let new_logic_var =
-            (try (Cil_datatype.Logic_var.Map.find x !quant_map) with
-             | Not_found -> Rpp_options.Self.fatal ~source:env.loc_axiom
-                              "Quantified logic variable %a is not in the new \
-                               quantified logic varible" Printer.pp_logic_var x
+      List.map
+        (fun x ->
+           let new_logic_var =
+             try Cil_datatype.Logic_var.Map.find x !quant_map with
+             | Not_found ->
+               Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
+                 "Quantified logic variable %a is not in the new \
+                  quantified logic varible" Printer.pp_logic_var x
+           in
+           new_logic_var)
+        quan
 
-             | _ -> assert false)
-          in
-          new_logic_var) quan
+    method build_rpp_predicate_forall env quan new_axiom_predicate =
+      let new_axiom_predicate =
+        Logic_const.pforall ~loc:env.loc_axiom (quan,new_axiom_predicate)
       in
-      new_quan_local
+      let logic = {predicate_info= predicate_info} in
+      let logic_pure = {predicate_info_pure= predicate_info_pure} in
+      (new_axiom_predicate,[],logic,logic_pure)
 
-    method build_rpp_predicate_forall env quan new_axiome_predicate =
-      let new_axiome_predicate_content =
-        Pforall(quan,new_axiome_predicate)
-      in
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = new_axiome_predicate_content;}
-      in
-      let logic =
-        {predicate_info= predicate_info}
-      in
-      let logic_pure =
-        {predicate_info_pure= predicate_info_pure}
-      in
-      (new_axiome_predicate,[],logic,logic_pure)
-
-    method build_rpp_predicate_forall_callset env quan (new_quant,new_labels,new_pred_axiom) new_axiome_predicate =
+    method build_rpp_predicate_forall_callset
+        env quan (new_quant,new_labels,new_pred_axiom) new_axiome_predicate
+      =
+      let loc = env.loc_axiom in
       let new_pred_axiom =
-        List.fold_left(fun acc predicate_axiom ->
-            let pred_1_named ={
-              pred_name = [];
-              pred_loc= env.pos_axiom;
-              pred_content= predicate_axiom}
-            in
-            let pred_node =
-              Pimplies(pred_1_named,acc)
-            in
-            {pred_name = [];
-             pred_loc= env.pos_axiom;
-             pred_content= pred_node}
-
-          ) new_axiome_predicate new_pred_axiom
+        List.fold_left
+          (fun acc predicate_axiom ->
+             Logic_const.(pimplies ~loc (unamed ~loc predicate_axiom, acc)))
+          new_axiome_predicate new_pred_axiom
       in
       let pred =
         make_separate
@@ -1299,47 +1137,24 @@ let predicate_visitor predicate self_behavior =
       let new_pred_axiom =
         match pred with
         | None -> new_pred_axiom
-        | Some x ->
-          let pred_node =
-            Pimplies(x,new_pred_axiom)
-          in
-          {pred_name = [];
-           pred_loc= env.pos_axiom;
-           pred_content= pred_node}
+        | Some x -> Logic_const.pimplies ~loc (x,new_pred_axiom)
       in
-      let new_axiome_predicate_content =
-        Pforall(quan@(new_quant),new_pred_axiom)
+      let new_axiome_predicate =
+        Logic_const.pforall ~loc (quan@(new_quant),new_pred_axiom)
       in
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = new_axiome_predicate_content;
-      }
-      in
-      let logic =
-        {predicate_info= predicate_info}
-      in
-      let logic_pure =
-        {predicate_info_pure= predicate_info_pure}
-      in
+      let logic = {predicate_info= predicate_info} in
+      let logic_pure = {predicate_info_pure= predicate_info_pure} in
       (new_axiome_predicate,new_labels,logic,logic_pure)
 
-    method build_rpp_predicate_implies_callset env (new_quant,new_labels,new_pred_axiom) new_axiome_predicate =
+    method build_rpp_predicate_implies_callset
+        env (new_quant,new_labels,new_pred_axiom) new_axiome_predicate
+      =
+      let loc = env.loc_axiom in
       let new_pred_axiom =
-        List.fold_left(fun acc predicate_axiom ->
-            let pred_1_named ={
-              pred_name = [];
-              pred_loc= env.pos_axiom;
-              pred_content= predicate_axiom}
-            in
-            let pred_node =
-              Pimplies(pred_1_named,acc)
-            in
-            {pred_name = [];
-             pred_loc= env.pos_axiom;
-             pred_content= pred_node}
-
-          ) new_axiome_predicate new_pred_axiom
+        List.fold_left
+          (fun acc predicate_axiom ->
+             Logic_const.(pimplies ~loc (unamed ~loc predicate_axiom,acc)))
+          new_axiome_predicate new_pred_axiom
       in
       let pred =
         make_separate
@@ -1348,62 +1163,25 @@ let predicate_visitor predicate self_behavior =
       let new_pred_axiom =
         match pred with
         | None -> new_pred_axiom
-        | Some x ->
-          let pred_node =
-            Pimplies(x,new_pred_axiom)
-          in
-          {pred_name = [];
-           pred_loc= env.pos_axiom;
-           pred_content= pred_node}
+        | Some x -> Logic_const.pimplies ~loc (x,new_pred_axiom)
       in
-      let new_axiome_predicate_content =
-        Pforall(new_quant,new_pred_axiom)
-      in
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = new_axiome_predicate_content;
-      }
-      in
-      let logic =
-        {predicate_info= predicate_info}
-      in
-      let logic_pure =
-        {predicate_info_pure= predicate_info_pure}
-      in
-      (new_axiome_predicate,new_labels,logic,logic_pure)
+      let predicate = Logic_const.pforall ~loc (new_quant,new_pred_axiom) in
+      let logic = {predicate_info= predicate_info} in
+      let logic_pure = {predicate_info_pure= predicate_info_pure} in
+      (predicate,new_labels,logic,logic_pure)
 
     method build_rpp_predicate_implies _ new_axiome_predicate =
-      let logic =
-        {predicate_info= predicate_info}
-      in
-      let logic_pure =
-        {predicate_info_pure= predicate_info_pure}
-      in
+      let logic = {predicate_info= predicate_info} in
+      let logic_pure = {predicate_info_pure= predicate_info_pure} in
       (new_axiome_predicate,[],logic,logic_pure)
 
-    method  build_rpp_predicate_rel env rel t1_axiome t2_axiome =
-      let new_axiome_predicate ={
-        pred_name = [];
-        pred_loc = env.pos_axiom;
-        pred_content = Prel(rel,t1_axiome, t2_axiome);
-      }
-      in
-      let logic =
-        {predicate_info= predicate_info}
-      in
-      let logic_pure =
-        {predicate_info_pure= predicate_info_pure}
-      in
-      (new_axiome_predicate,[],logic,logic_pure)
+    method  build_rpp_predicate_rel env rel t1 t2 =
+      let new_predicate = Logic_const.prel ~loc:env.loc_axiom (rel,t1,t2) in
+      let logic = {predicate_info= predicate_info} in
+      let logic_pure = {predicate_info_pure= predicate_info_pure} in
+      (new_predicate,[],logic,logic_pure)
 
   end
   in
-  let (loc,_)=predicate.pred_loc in
-  let env = {
-    loc_axiom = loc;
-    pos_axiom = predicate.pred_loc;
-    self_axiom = self_behavior;
-  }
-  in
+  let env = {loc_axiom = predicate.pred_loc; self_axiom = self_behavior } in
   v#visit_rpp_predicate env predicate

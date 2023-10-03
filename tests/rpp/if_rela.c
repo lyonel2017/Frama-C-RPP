@@ -2,9 +2,7 @@
    OPT: -rpp
 */
 
-/*@ relational \forall int a,b,c; \callpure(Med,a,b,c) == \callpure(Med,a,c,b);
-  @ relational \forall int a,b,c; \callpure(Med,a,b,c) == \callpure(Med,b,a,c);
-  @ assigns \result \from u,v,w;
+/*@ assigns \result \from u,v,w;
   @ behavior id1:
   @  assumes v<w && u<v;
   @  assigns \result \from u,v,w;
@@ -39,3 +37,9 @@ int Med(int u, int v, int w){
 	med=u;}
   return med;
 }
+
+/*@ relational \forall int a,b,c; \callpure(Med,a,b,c) == \callpure(Med,a,c,b);
+ */
+
+/*@ relational \forall int a,b,c; \callpure(Med,a,b,c) == \callpure(Med,b,a,c);
+*/

@@ -175,7 +175,7 @@ void relational_wrapper_1(int a, int b, int c)
         }
     return_label_label_5: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ return_variable_relational_2;
   */
   return;

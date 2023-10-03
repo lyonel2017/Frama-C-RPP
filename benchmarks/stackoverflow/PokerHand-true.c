@@ -54,12 +54,7 @@ int countOccurrencesOf(struct PokerHand o1, int val);
   @ ensures \result == o1.hand[i];*/
 int charAt(struct PokerHand o1, int i);
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct PokerHand x1,x2; \callpure(compare1,x1,x2) == -(\callpure(compare1,x2,x1));
-  @ relational \forall struct PokerHand x1,x2,x3; (\callpure(compare1,x1,x2) > 0 && \callpure(compare1,x2,x3) > 0) ==> \callpure(compare1,x1,x3) > 0;
-  @ relational \forall struct PokerHand x1,x2; \callpure(indexOf,x1,4) != \callpure(indexOf,x2,4) ==> \callpure(1,compare1,x1,x2) == \callpure(indexOf,x1,4) - \callpure(indexOf,x2,4);
-  @ relational \forall struct PokerHand x1,x2,x3; \callpure(compare1,x1,x2) == 0 ==> (\callpure(compare1,x1,x3) == \callpure(compare1,x2,x3));
-*/
+/*@ assigns \result \from o1,o2; */
 int compare1(struct PokerHand o1, struct PokerHand o2){
   if (indexOf(o1,4) == indexOf(o2,4)) {
     int i1 = 0;
@@ -82,11 +77,32 @@ int compare1(struct PokerHand o1, struct PokerHand o2){
   return indexOf(o1,4) - indexOf(o2,4);
 }
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct PokerHand x1,x2; \callpure(compare2,x1,x2) == -(\callpure(compare2,x2,x1));
-  @ relational \forall struct PokerHand x1,x2,x3; (\callpure(compare2,x1,x2) > 0 && \callpure(compare2,x2,x3) > 0) ==> \callpure(compare2,x1,x3) > 0;
-  @ relational \forall struct PokerHand x1,x2,x3; \callpure(compare2,x1,x2) == 0 ==> (\callpure(compare2,x1,x3) == \callpure(compare2,x2,x3));
+/*@ relational
+      \forall struct PokerHand x1,x2;
+      \callpure(compare1,x1,x2) == -(\callpure(compare1,x2,x1));
 */
+
+/*@ relational
+      \forall struct PokerHand x1,x2,x3;
+      (\callpure(compare1,x1,x2) > 0 && \callpure(compare1,x2,x3) > 0)
+      ==> \callpure(compare1,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct PokerHand x1,x2;
+      \callpure(indexOf,x1,4) != \callpure(indexOf,x2,4)
+      ==> \callpure(1,compare1,x1,x2) ==
+          \callpure(indexOf,x1,4) - \callpure(indexOf,x2,4);
+*/
+
+/*@ relational
+      \forall struct PokerHand x1,x2,x3;
+      \callpure(compare1,x1,x2) == 0
+      ==> (\callpure(compare1,x1,x3) == \callpure(compare1,x2,x3));
+*/
+
+
+/*@ assigns \result \from o1,o2; */
 int compare2(struct PokerHand o1, struct PokerHand o2) {
   int higherTriple = lastIndexOf(o1,3);
   if (higherTriple == lastIndexOf(o2,3)) {
@@ -112,11 +128,24 @@ int compare2(struct PokerHand o1, struct PokerHand o2) {
   return higherTriple - lastIndexOf(o2,3);
 }
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct PokerHand x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct PokerHand x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct PokerHand x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+/*@ relational
+      \forall struct PokerHand x1,x2;
+      \callpure(compare2,x1,x2) == -(\callpure(compare2,x2,x1));
 */
+
+/*@ relational
+      \forall struct PokerHand x1,x2,x3;
+      (\callpure(compare2,x1,x2) > 0 && \callpure(compare2,x2,x3) > 0)
+      ==> \callpure(compare2,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct PokerHand x1,x2,x3;
+      \callpure(compare2,x1,x2) == 0
+      ==> (\callpure(compare2,x1,x3) == \callpure(compare2,x2,x3));
+*/
+
+/*@ assigns \result \from o1,o2; */
 int compare(struct PokerHand o1, struct PokerHand o2){
 
   if ((indexOf(o1,4) != -1) || (indexOf(o2,4) != -1)) {  // Four of a kind
@@ -137,3 +166,20 @@ int compare(struct PokerHand o1, struct PokerHand o2){
   }
   return 0;
 }
+
+/*@ relational
+      \forall struct PokerHand x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+
+/*@ relational
+      \forall struct PokerHand x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct PokerHand x1,x2,x3;
+      \callpure(compare,x1,x2) == 0 ==>
+      (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

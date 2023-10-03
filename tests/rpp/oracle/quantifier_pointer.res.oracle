@@ -98,7 +98,7 @@ void relational_wrapper_1(int n, int *t1, int *t2)
     }
     ;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         (∀ int i; 0 ≤ i < n ⇒ \at(*(t1 + i),Pre) ≤ \at(*(t2 + i),Pre)) ⇒
         (∀ int i;

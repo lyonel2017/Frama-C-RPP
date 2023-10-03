@@ -5,8 +5,6 @@
 /*@ requires n > 0;
   @ requires \valid(t+(0..n));
   @ assigns t[0..n] \from t[0..n],n;
-  @ relational \forall int n,*t1,*t2; \callset(\call(f,n,t1,id1),\call(f,n,t2,id2))
-        ==> (\forall int i; 0 <= i < n ==> \at(t1[i],Pre_id1) <= \at(t2[i],Pre_id2)) ==> (\forall int i; 0 <= i < n ==> \at(t1[i],Post_id1) <= \at(t2[i],Post_id2));
 */
 void f (int n,int t[]){
   int i;
@@ -21,3 +19,13 @@ void f (int n,int t[]){
   }
   return;
 }
+
+/*@ relational
+      \forall int n,*t1,*t2;
+        \callset(\call(f,n,t1,id1),\call(f,n,t2,id2))
+        ==> (\forall int i; 0 <= i < n ==>
+               \at(t1[i],Pre_id1) <= \at(t2[i],Pre_id2))
+             ==>
+            (\forall int i; 0 <= i < n ==>
+               \at(t1[i],Post_id1) <= \at(t2[i],Post_id2));
+*/

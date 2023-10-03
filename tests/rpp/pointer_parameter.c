@@ -29,9 +29,6 @@
 /*@ requires n > 0;
   @ requires \valid(t+(0..n));
   @ assigns \result \from n,t[0..n];
-  @ relational \forall int n, int *t1,*t2; \callset(\call(f,n,t1,id1),\call(0,f,n,t2,id2)) ==>
-  (\forall int k; 0 <= k < n ==> \at(t1[k],Pre_id1) == \at(t2[k],Pre_id2)) ==>
-  \callresult(id1) == \callresult(id2) + \at(t2[n-1],Pre_id1);
 */
 int f (int n, int t[]){
 
@@ -48,31 +45,50 @@ int f (int n, int t[]){
   return s;
 }
 
+/*@ relational
+     \forall int n, int *t1,*t2;
+     \callset(\call(f,n,t1,id1),\call(0,f,n,t2,id2)) ==>
+     (\forall int k; 0 <= k < n ==> \at(t1[k],Pre_id1) == \at(t2[k],Pre_id2))
+     ==>
+     \callresult(id1) == \callresult(id2) + \at(t2[n-1],Pre_id1);
+*/
+
 
 /*@ requires n > 0;
   @ requires \valid(t+(0..n));
   @ assigns \result \from n,t[0..n];
-  @ relational \forall int n, int *t1,*t2; \callset(\call(g,n,t1,id3),\call(0,g,n,t2,id4)) ==>
-  (\forall int k; 0 <= k < n ==> \at(t1[k],Pre_id3) == \at(t2[k],Pre_id4)) ==>
-  \callresult(id3) == \callresult(id4) + \at(t2[n-1],Pre_id4);
 */
 int g (int n, int t[]);
 
+/*@ relational
+      \forall int n, int *t1,*t2;
+       \callset(\call(g,n,t1,id3),\call(0,g,n,t2,id4)) ==>
+       (\forall int k; 0 <= k < n ==>
+           \at(t1[k],Pre_id3) == \at(t2[k],Pre_id4))
+       ==>
+       \callresult(id3) == \callresult(id4) + \at(t2[n-1],Pre_id4);
+*/
 
 /*@ requires 10 > n > 0;
   @ requires \valid(t+(0..n));
   @ assigns \result \from n,t[0..n];
-  @ relational \forall int *t1; \callset(\call(k,t1,t1[9],id5)) ==>
-  \callresult(id5) == \at(t1[10],Pre_id5);
 */
 int k (int t[],int n);
 
+/*@ relational
+      \forall int *t1; \callset(\call(k,t1,t1[9],id5)) ==>
+        \callresult(id5) == \at(t1[10],Pre_id5);
+*/
+
+
 /*@ requires 10 > n > 0;
   @ requires \valid(t+(0..n));
   @ assigns \result \from n,t[0..n];
-  @ relational \forall int *t1; \callset(\call(p,t1,t1[9],id6)) ==>
-  \callresult(id6) == \at(t1[10],Pre_id6);
 */
 int p (int t[], int n){
   return t[n];
 }
+
+/*@ relational \forall int *t1; \callset(\call(p,t1,t1[9],id6)) ==>
+  \callresult(id6) == \at(t1[10],Pre_id6);
+*/

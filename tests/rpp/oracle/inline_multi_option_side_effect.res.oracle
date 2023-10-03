@@ -134,7 +134,7 @@ void relational_wrapper_1(void)
     __retres_3 = (tmp_3 + tmp_0_3) + tmp_1_3;
     return_variable_relational_3 = __retres_3;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         \at(x_id1_1,Pre) ≡ \at(x_id3_1,Pre) ∧
         \at(y_id2_1,Pre) ≡ \at(y_id3_1,Pre) ∧

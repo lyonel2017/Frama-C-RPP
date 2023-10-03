@@ -25,32 +25,6 @@ int f(int a)
   return __retres;
 }
 
-void relational_wrapper_1(int n)
-{
-  int return_variable_relational_1;
-  int local_variable_relational_1;
-  int return_variable_relational_2;
-  {
-    int __retres_1;
-    __retres_1 = 2;
-    return_variable_relational_1 = __retres_1;
-  }
-  {
-    int __retres_2;
-    __retres_2 = 2;
-    local_variable_relational_1 = __retres_2;
-  }
-  {
-    int __retres_3;
-    __retres_3 = 2;
-    return_variable_relational_2 = __retres_3;
-  }
-  /*@ assert
-      Rpp: return_variable_relational_1 ≡ return_variable_relational_2;
-  */
-  return;
-}
-
 /*@
 axiomatic Relational_axiome_2 {
   logic int toupper_acsl_pure_2(int c) ;
@@ -85,6 +59,32 @@ int toupper(int c)
     goto return_label;
   }
   return_label: return __retres;
+}
+
+void relational_wrapper_1(int n)
+{
+  int return_variable_relational_1;
+  int local_variable_relational_1;
+  int return_variable_relational_2;
+  {
+    int __retres_1;
+    __retres_1 = 2;
+    return_variable_relational_1 = __retres_1;
+  }
+  {
+    int __retres_2;
+    __retres_2 = 2;
+    local_variable_relational_1 = __retres_2;
+  }
+  {
+    int __retres_3;
+    __retres_3 = 2;
+    return_variable_relational_2 = __retres_3;
+  }
+  /*@ check
+      Rpp: return_variable_relational_1 ≡ return_variable_relational_2;
+  */
+  return;
 }
 
 void relational_wrapper_2(int n)
@@ -143,7 +143,7 @@ void relational_wrapper_2(int n)
     }
     return_label_label_3: return_variable_relational_4 = __retres_6;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_3 ≡ return_variable_relational_4;
   */
   return;

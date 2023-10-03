@@ -59,13 +59,49 @@ int f(int *t, int n)
   return max;
 }
 
-int f_id1(int *t, int n);
+/*@ requires \valid(t + (0 .. n));
+    requires n ≥ 1;
+    requires ∀ ℤ k; 0 ≤ k < n ⇒ 0 ≤ *(t + k);
+    requires \separated(t + (0 .. n));
+    ensures ∀ ℤ k; 0 ≤ k < \old(n) ⇒ \result ≥ *(\old(t) + k);
+    ensures ∃ ℤ k; 0 ≤ k < \old(n) ∧ \result ≡ *(\old(t) + k);
+    assigns \result;
+    assigns \result \from *(t + (0 .. n));
+ */
+int f_id4(int *t, int n);
 
-int f_id2(int *t, int n);
-
+/*@ requires \valid(t + (0 .. n));
+    requires n ≥ 1;
+    requires ∀ ℤ k; 0 ≤ k < n ⇒ 0 ≤ *(t + k);
+    requires \separated(t + (0 .. n));
+    ensures ∀ ℤ k; 0 ≤ k < \old(n) ⇒ \result ≥ *(\old(t) + k);
+    ensures ∃ ℤ k; 0 ≤ k < \old(n) ∧ \result ≡ *(\old(t) + k);
+    assigns \result;
+    assigns \result \from *(t + (0 .. n));
+ */
 int f_id3(int *t, int n);
 
-int f_id4(int *t, int n);
+/*@ requires \valid(t + (0 .. n));
+    requires n ≥ 1;
+    requires ∀ ℤ k; 0 ≤ k < n ⇒ 0 ≤ *(t + k);
+    requires \separated(t + (0 .. n));
+    ensures ∀ ℤ k; 0 ≤ k < \old(n) ⇒ \result ≥ *(\old(t) + k);
+    ensures ∃ ℤ k; 0 ≤ k < \old(n) ∧ \result ≡ *(\old(t) + k);
+    assigns \result;
+    assigns \result \from *(t + (0 .. n));
+ */
+int f_id2(int *t, int n);
+
+/*@ requires \valid(t + (0 .. n));
+    requires n ≥ 1;
+    requires ∀ ℤ k; 0 ≤ k < n ⇒ 0 ≤ *(t + k);
+    requires \separated(t + (0 .. n));
+    ensures ∀ ℤ k; 0 ≤ k < \old(n) ⇒ \result ≥ *(\old(t) + k);
+    ensures ∃ ℤ k; 0 ≤ k < \old(n) ∧ \result ≡ *(\old(t) + k);
+    assigns \result;
+    assigns \result \from *(t + (0 .. n));
+ */
+int f_id1(int *t, int n);
 
 /*@ requires
       \separated(
@@ -131,7 +167,7 @@ void relational_wrapper_1(int *t1, int *t2, int *tn, int *t)
   */
   /*@ assert Rpp: \separated(t + (0 .. aux_local_variable_4)); */
   return_variable_relational_4 = f_id4(t,aux_local_variable_4);
-  /*@ assert
+  /*@ check
       Rpp:
         \at(*(tn + 0),Pre) ≡ return_variable_relational_1 ∧
         \at(*(tn + 1),Pre) ≡ return_variable_relational_2 ∧
@@ -143,50 +179,6 @@ void relational_wrapper_1(int *t1, int *t2, int *tn, int *t)
   */
   return;
 }
-
-/*@ requires \valid(t + (0 .. n));
-    requires n ≥ 1;
-    requires ∀ ℤ k; 0 ≤ k < n ⇒ 0 ≤ *(t + k);
-    requires \separated(t + (0 .. n));
-    ensures ∀ ℤ k; 0 ≤ k < \old(n) ⇒ \result ≥ *(\old(t) + k);
-    ensures ∃ ℤ k; 0 ≤ k < \old(n) ∧ \result ≡ *(\old(t) + k);
-    assigns \result;
-    assigns \result \from *(t + (0 .. n));
- */
-int f_id4(int *t, int n);
-
-/*@ requires \valid(t + (0 .. n));
-    requires n ≥ 1;
-    requires ∀ ℤ k; 0 ≤ k < n ⇒ 0 ≤ *(t + k);
-    requires \separated(t + (0 .. n));
-    ensures ∀ ℤ k; 0 ≤ k < \old(n) ⇒ \result ≥ *(\old(t) + k);
-    ensures ∃ ℤ k; 0 ≤ k < \old(n) ∧ \result ≡ *(\old(t) + k);
-    assigns \result;
-    assigns \result \from *(t + (0 .. n));
- */
-int f_id3(int *t, int n);
-
-/*@ requires \valid(t + (0 .. n));
-    requires n ≥ 1;
-    requires ∀ ℤ k; 0 ≤ k < n ⇒ 0 ≤ *(t + k);
-    requires \separated(t + (0 .. n));
-    ensures ∀ ℤ k; 0 ≤ k < \old(n) ⇒ \result ≥ *(\old(t) + k);
-    ensures ∃ ℤ k; 0 ≤ k < \old(n) ∧ \result ≡ *(\old(t) + k);
-    assigns \result;
-    assigns \result \from *(t + (0 .. n));
- */
-int f_id2(int *t, int n);
-
-/*@ requires \valid(t + (0 .. n));
-    requires n ≥ 1;
-    requires ∀ ℤ k; 0 ≤ k < n ⇒ 0 ≤ *(t + k);
-    requires \separated(t + (0 .. n));
-    ensures ∀ ℤ k; 0 ≤ k < \old(n) ⇒ \result ≥ *(\old(t) + k);
-    ensures ∃ ℤ k; 0 ≤ k < \old(n) ∧ \result ≡ *(\old(t) + k);
-    assigns \result;
-    assigns \result \from *(t + (0 .. n));
- */
-int f_id1(int *t, int n);
 
 
 [rpp] ***************************************

@@ -52,11 +52,7 @@ int countOccurrencesOf(struct PokerHand o1, int val);
   @ ensures \result == o1.hand[i];*/
 int charAt(struct PokerHand o1, int i);
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct PokerHand x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct PokerHand x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct PokerHand x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
-*/
+/*@ assigns \result \from o1,o2; */
 int compare(struct PokerHand o1, struct PokerHand o2){
 
   if ((indexOf(o1,4) != -1) || (indexOf(o2,4) != -1)) {  // Four of a kind
@@ -117,3 +113,20 @@ int compare(struct PokerHand o1, struct PokerHand o2){
   }
   return 0;
 }
+
+/*@ relational
+      \forall struct PokerHand x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+
+/*@ relational
+      \forall struct PokerHand x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct PokerHand x1,x2,x3;
+      \callpure(compare,x1,x2) == 0
+      ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

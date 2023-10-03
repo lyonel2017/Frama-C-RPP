@@ -66,20 +66,6 @@ struct matrix trans2(struct matrix m)
 }
 
 /*@
-axiomatic Relational_axiome_5 {
-  logic struct matrix trans_acsl_pure_5(struct matrix m) ;
-  
-  logic struct matrix sum_acsl_pure_5(struct matrix m_a, struct matrix m_b) ;
-  
-  lemma Relational_lemma_5{L}:
-    ∀ struct matrix m1, struct matrix m2;
-      is_eq_test(trans_acsl_pure_5(sum_acsl_pure_5(m1, m2)),
-                sum_acsl_pure_5(trans_acsl_pure_5(m1), trans_acsl_pure_5(m2)),
-                1);
-  
-  }
- */
-/*@
 axiomatic Relational_axiome_3 {
   logic struct matrix sum_acsl_pure_3(struct matrix m_a, struct matrix m_b) ;
   
@@ -89,20 +75,6 @@ axiomatic Relational_axiome_3 {
     ∀ struct matrix m1, struct matrix m2;
       is_eq(trans_acsl_pure_3(sum_acsl_pure_3(m1, m2)),
            sum_acsl_pure_3(trans_acsl_pure_3(m1), trans_acsl_pure_3(m2)), 4);
-  
-  }
- */
-/*@
-axiomatic Relational_axiome_7 {
-  logic struct matrix sum_acsl_pure_7(struct matrix m_a, struct matrix m_b) ;
-  
-  logic struct matrix trans_acsl_pure_7(struct matrix m) ;
-  
-  lemma Relational_lemma_7{L}:
-    ∀ struct matrix m1, struct matrix m2;
-      is_eq_test(trans_acsl_pure_7(sum_acsl_pure_7(m1, m2)),
-                sum_acsl_pure_7(trans_acsl_pure_7(m1), trans_acsl_pure_7(m2)),
-                3);
   
   }
  */
@@ -117,6 +89,34 @@ axiomatic Relational_axiome_6 {
       is_eq_test(trans_acsl_pure_6(sum_acsl_pure_6(m1, m2)),
                 sum_acsl_pure_6(trans_acsl_pure_6(m1), trans_acsl_pure_6(m2)),
                 2);
+  
+  }
+ */
+/*@
+axiomatic Relational_axiome_5 {
+  logic struct matrix trans_acsl_pure_5(struct matrix m) ;
+  
+  logic struct matrix sum_acsl_pure_5(struct matrix m_a, struct matrix m_b) ;
+  
+  lemma Relational_lemma_5{L}:
+    ∀ struct matrix m1, struct matrix m2;
+      is_eq_test(trans_acsl_pure_5(sum_acsl_pure_5(m1, m2)),
+                sum_acsl_pure_5(trans_acsl_pure_5(m1), trans_acsl_pure_5(m2)),
+                1);
+  
+  }
+ */
+/*@
+axiomatic Relational_axiome_7 {
+  logic struct matrix sum_acsl_pure_7(struct matrix m_a, struct matrix m_b) ;
+  
+  logic struct matrix trans_acsl_pure_7(struct matrix m) ;
+  
+  lemma Relational_lemma_7{L}:
+    ∀ struct matrix m1, struct matrix m2;
+      is_eq_test(trans_acsl_pure_7(sum_acsl_pure_7(m1, m2)),
+                sum_acsl_pure_7(trans_acsl_pure_7(m1), trans_acsl_pure_7(m2)),
+                3);
   
   }
  */
@@ -197,6 +197,44 @@ struct matrix trans(struct matrix m)
   return m_t;
 }
 
+/*@ assigns \result;
+    assigns \result \from m_a, m_b;
+    
+    behavior Relational_behavior_2:
+      ensures \result ≡ sum_acsl_pure_2(\old(m_a), \old(m_b));
+    
+    behavior Relational_behavior_3:
+      ensures \result ≡ sum_acsl_pure_3(\old(m_a), \old(m_b));
+    
+    behavior Relational_behavior_4:
+      ensures \result ≡ sum_acsl_pure_4(\old(m_a), \old(m_b));
+    
+    behavior Relational_behavior_5:
+      ensures \result ≡ sum_acsl_pure_5(\old(m_a), \old(m_b));
+    
+    behavior Relational_behavior_6:
+      ensures \result ≡ sum_acsl_pure_6(\old(m_a), \old(m_b));
+    
+    behavior Relational_behavior_7:
+      ensures \result ≡ sum_acsl_pure_7(\old(m_a), \old(m_b));
+ */
+struct matrix sum(struct matrix m_a, struct matrix m_b)
+{
+  struct matrix m_s;
+  int i = 0;
+  i = 0;
+  /*@ loop invariant 0 ≤ i ≤ 4;
+      loop invariant
+        ∀ int k; 0 ≤ k < i ⇒ m_s.m[k] ≡ m_a.m[k] + m_b.m[k];
+      loop assigns m_s, i;
+  */
+  while (i < 4) {
+    m_s.m[i] = m_a.m[i] + m_b.m[i];
+    i ++;
+  }
+  return m_s;
+}
+
 void relational_wrapper_1(struct matrix m)
 {
   struct matrix return_variable_relational_1;
@@ -251,49 +289,11 @@ void relational_wrapper_1(struct matrix m)
     /*@ assert is_trans(m_t_2, m, 2); */ ;
     return_variable_relational_2 = m_t_2;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         is_eq(return_variable_relational_1, return_variable_relational_2, 4);
   */
   return;
-}
-
-/*@ assigns \result;
-    assigns \result \from m_a, m_b;
-    
-    behavior Relational_behavior_2:
-      ensures \result ≡ sum_acsl_pure_2(\old(m_a), \old(m_b));
-    
-    behavior Relational_behavior_3:
-      ensures \result ≡ sum_acsl_pure_3(\old(m_a), \old(m_b));
-    
-    behavior Relational_behavior_4:
-      ensures \result ≡ sum_acsl_pure_4(\old(m_a), \old(m_b));
-    
-    behavior Relational_behavior_5:
-      ensures \result ≡ sum_acsl_pure_5(\old(m_a), \old(m_b));
-    
-    behavior Relational_behavior_6:
-      ensures \result ≡ sum_acsl_pure_6(\old(m_a), \old(m_b));
-    
-    behavior Relational_behavior_7:
-      ensures \result ≡ sum_acsl_pure_7(\old(m_a), \old(m_b));
- */
-struct matrix sum(struct matrix m_a, struct matrix m_b)
-{
-  struct matrix m_s;
-  int i = 0;
-  i = 0;
-  /*@ loop invariant 0 ≤ i ≤ 4;
-      loop invariant
-        ∀ int k; 0 ≤ k < i ⇒ m_s.m[k] ≡ m_a.m[k] + m_b.m[k];
-      loop assigns m_s, i;
-  */
-  while (i < 4) {
-    m_s.m[i] = m_a.m[i] + m_b.m[i];
-    i ++;
-  }
-  return m_s;
 }
 
 void relational_wrapper_2(struct matrix m1, struct matrix m2)
@@ -364,7 +364,7 @@ void relational_wrapper_2(struct matrix m1, struct matrix m2)
     }
     return_variable_relational_4 = m_s_7;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         is_eq(return_variable_relational_3, return_variable_relational_4, 4);
   */
@@ -540,7 +540,7 @@ void relational_wrapper_3(struct matrix m1, struct matrix m2)
     }
     return_variable_relational_6 = m_s_12;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         is_eq(return_variable_relational_5, return_variable_relational_6, 4);
   */
@@ -717,7 +717,7 @@ void relational_wrapper_4(struct matrix m1, struct matrix m2)
     }
     return_variable_relational_8 = m_s_17;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         is_eq_test(return_variable_relational_7,
                   return_variable_relational_8, 0);
@@ -895,7 +895,7 @@ void relational_wrapper_5(struct matrix m1, struct matrix m2)
     }
     return_variable_relational_10 = m_s_22;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         is_eq_test(return_variable_relational_9,
                   return_variable_relational_10, 1);
@@ -1073,7 +1073,7 @@ void relational_wrapper_6(struct matrix m1, struct matrix m2)
     }
     return_variable_relational_12 = m_s_27;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         is_eq_test(return_variable_relational_11,
                   return_variable_relational_12, 2);
@@ -1251,7 +1251,7 @@ void relational_wrapper_7(struct matrix m1, struct matrix m2)
     }
     return_variable_relational_14 = m_s_32;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         is_eq_test(return_variable_relational_13,
                   return_variable_relational_14, 3);

@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -20,29 +20,29 @@
 
 val generat_axiom:
 Cil_types.location ->
-< behavior : Cil.visitor_behavior;
+< behavior : Visitor_behavior.t;
   get_filling_actions : (unit -> unit) Queue.t; .. > ->
 Cil_types.predicate ->
 Cil_types.logic_label list ->
 Rpp_types.logic_info ->
 Rpp_types.logic_info_pure ->
-Cil_types.global_annotation * string * Cil_types.identified_predicate
+Cil_types.global_annotation * string * Cil_types.toplevel_predicate
 
 val generat_behavior_pure:
 Cil_datatype.Location.t ->
-< behavior : Cil.visitor_behavior;
+< behavior : Visitor_behavior.t;
   get_filling_actions : (unit -> unit) Queue.t; .. > ->
 Rpp_types.logic_info_pure -> unit
 
 val generat_behavior:
 Cil_datatype.Location.t ->
-< behavior : Cil.visitor_behavior;
+< behavior : Visitor_behavior.t;
   get_filling_actions : (unit -> unit) Queue.t; .. > ->
 Rpp_types.logic_info -> unit
 
 val generat_behavior_for_kf:
-Lexing.position * Lexing.position ->
-< behavior : Cil.visitor_behavior;
+Cil_types.location ->
+< behavior : Visitor_behavior.t;
   get_filling_actions : (unit -> unit) Queue.t; .. > ->
 Rpp_types.logic_info ->
 Cil_types.kernel_function * Cil_types.kernel_function ->
@@ -54,7 +54,7 @@ unit
 
 val generat_behavior_pure_for_kf:
 Cil_datatype.Location.t ->
-< behavior : Cil.visitor_behavior;
+< behavior : Visitor_behavior.t;
   get_filling_actions : (unit -> unit) Queue.t; .. > ->
 Rpp_types.logic_info_pure -> Kernel_function.t * Cil_datatype.Kf.t -> unit
 
@@ -64,11 +64,9 @@ Cil_types.location ->
 Cil_types.kernel_function * Cil_datatype.Kf.t -> unit
 
 val relationnel_axiom:
-Lexing.position * Lexing.position ->
-< behavior : Cil.visitor_behavior;
+Cil_types.location ->
+< behavior : Visitor_behavior.t;
   get_filling_actions : (unit -> unit) Queue.t; .. > ->
 Cil_types.predicate -> Cil_types.logic_label list ->
 Rpp_types.logic_info -> Rpp_types.logic_info_pure ->
-Cil_types.global_annotation *
-(string * 'a list * 'b list * Cil_types.predicate *
- (Lexing.position * Lexing.position))
+Cil_types.global_annotation * Property.identified_lemma

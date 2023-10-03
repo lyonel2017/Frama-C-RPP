@@ -98,7 +98,7 @@ void relational_wrapper_1(int n)
     }
     return_variable_relational_2 = y_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ return_variable_relational_2;
   */
   return;

@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -484,7 +484,7 @@ class virtual ['a] rpp_visitor = object (self:'a)
                    | _ ->
                      Rpp_options.Self.fatal ~source:loc
                        "Something went wrong during parsing: \
-                        Expected a function as thrid or first parameter")
+                        Expected a function as third or first parameter")
                 | _ ->
                   Rpp_options.Self.fatal ~source:loc
                     "Something went wrong during parsing: \

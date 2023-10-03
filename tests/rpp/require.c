@@ -9,9 +9,11 @@ int f (int x, int z){
 }
 
 /*@ requires y > 0 && h > 100;
-  @ relational \forall int x,z,y,h; \callpure(g,y,h) + \callpure(f,x,z) > 125;
   @ assigns \result \from y,h;
 */
 int g (int y, int h){
   return y + 5 + h;
 }
+
+/*@ relational \forall int x,z,y,h; \callpure(g,y,h) + \callpure(f,x,z) > 125;
+ */

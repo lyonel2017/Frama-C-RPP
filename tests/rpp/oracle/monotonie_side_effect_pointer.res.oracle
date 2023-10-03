@@ -33,34 +33,6 @@ void k(int x)
   return;
 }
 
-int *y_id1_1;
-
-int *y_id2_1;
-
-/*@ requires \separated(y_id1_1, y_id2_1);
-    requires \valid(y_id2_1);
-    requires *y_id2_1 > 0;
-    requires \valid(y_id1_1);
-    requires *y_id1_1 > 0;
- */
-void relational_wrapper_1(int x)
-{
-  /*@ assert Rpp: \valid(y_id1_1); */
-  /*@ assert Rpp: *y_id1_1 > 0; */
-  *y_id1_1 += x;
-  ;
-  /*@ assert Rpp: \valid(y_id2_1); */
-  /*@ assert Rpp: *y_id2_1 > 0; */
-  *y_id2_1 += x;
-  ;
-  /*@ assert
-      Rpp:
-        \at(*y_id1_1,Pre) < \at(*y_id2_1,Pre) ∧ x > 0 ⇒
-        \at(*y_id1_1,Here) < \at(*y_id2_1,Here);
-  */
-  return;
-}
-
 /*@
 axiomatic Relational_axiome_2 {
   predicate f_acsl_2{pre, post}(int *x) 
@@ -90,6 +62,34 @@ void f(int *x)
   return;
 }
 
+int *y_id1_1;
+
+int *y_id2_1;
+
+/*@ requires \separated(y_id1_1, y_id2_1);
+    requires \valid(y_id2_1);
+    requires *y_id2_1 > 0;
+    requires \valid(y_id1_1);
+    requires *y_id1_1 > 0;
+ */
+void relational_wrapper_1(int x)
+{
+  /*@ assert Rpp: \valid(y_id1_1); */
+  /*@ assert Rpp: *y_id1_1 > 0; */
+  *y_id1_1 += x;
+  ;
+  /*@ assert Rpp: \valid(y_id2_1); */
+  /*@ assert Rpp: *y_id2_1 > 0; */
+  *y_id2_1 += x;
+  ;
+  /*@ check
+      Rpp:
+        \at(*y_id1_1,Pre) < \at(*y_id2_1,Pre) ∧ x > 0 ⇒
+        \at(*y_id1_1,Here) < \at(*y_id2_1,Here);
+  */
+  return;
+}
+
 /*@ requires \separated(x1, x2);
     requires \valid(x2);
     requires \valid(x1); */
@@ -101,7 +101,7 @@ void relational_wrapper_2(int *x1, int *x2)
   /*@ assert Rpp: \valid(x2); */
   *x2 += 5;
   ;
-  /*@ assert
+  /*@ check
       Rpp: \at(*x1,Pre) < \at(*x2,Pre) ⇒ \at(*x1,Here) < \at(*x2,Here);
   */
   return;

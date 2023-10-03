@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/ColItem-false.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/ColItem-false.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -10,6 +10,17 @@ struct CollectionItem {
    int cardType ;
 };
 /*@
+axiomatic Relational_axiome_1 {
+  logic int compare_acsl_pure_1
+  (struct CollectionItem o1, struct CollectionItem o2) ;
+  
+  lemma Relational_lemma_1{L}:
+    ∀ struct CollectionItem x1, struct CollectionItem x2;
+      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
+  
+  }
+ */
+/*@
 axiomatic Relational_axiome_2 {
   logic int compare_acsl_pure_2
   (struct CollectionItem o1, struct CollectionItem o2) ;
@@ -19,17 +30,6 @@ axiomatic Relational_axiome_2 {
         struct CollectionItem x3;
       compare_acsl_pure_2(x1, x2) > 0 ∧ compare_acsl_pure_2(x2, x3) > 0 ⇒
       compare_acsl_pure_2(x1, x3) > 0;
-  
-  }
- */
-/*@
-axiomatic Relational_axiome_1 {
-  logic int compare_acsl_pure_1
-  (struct CollectionItem o1, struct CollectionItem o2) ;
-  
-  lemma Relational_lemma_1{L}:
-    ∀ struct CollectionItem x1, struct CollectionItem x2;
-      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
   
   }
  */
@@ -166,7 +166,7 @@ void relational_wrapper_1(struct CollectionItem x1, struct CollectionItem x2)
     }
     return_label_label_2: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
@@ -280,7 +280,7 @@ void relational_wrapper_2(struct CollectionItem x1, struct CollectionItem x2,
     }
     return_label_label_5: return_variable_relational_5 = __retres_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
@@ -396,7 +396,7 @@ void relational_wrapper_3(struct CollectionItem x1, struct CollectionItem x2,
     }
     return_label_label_8: return_variable_relational_8 = __retres_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;

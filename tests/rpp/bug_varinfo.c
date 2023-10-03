@@ -19,9 +19,7 @@
   @ requires \valid(c+(0..n*n-1));
   @ requires n >= 0;
   @ assigns c[0..n*n-1] \from a[0..n*n-1],b[0..n*n-1];
-  @ relational \forall int *a1, *a2, *b1, *b2, *c1,*c2, int n; \callset(\call(0,matrix_mult,a1, b1, c1, n,id1),\call(matrix_mult,a2, b2, c2, n,id2)) ==> \at(*c1,Post_id1) < \at(*c2,Post_id2);
   @ ensures \forall integer i, j; 0 <= i < n && 0 <= j < n ==> c[i*n+j] == sum(a, b, i, j, n, n);
-  @ relational \forall int *a1, *c1, *b1, int n; \callset(\call(0,matrix_mult,a1, b1, c1, n,id3)) ==> \at(*c1,Post_id3) < 0;
  */
 void matrix_mult(int a[], int b[], int c[], int n) {
   /*@ loop assigns c[0..n*n-1], i;
@@ -48,3 +46,17 @@ void matrix_mult(int a[], int b[], int c[], int n) {
     }
   }
 }
+
+/*@ relational
+      \forall int *a1, *a2, *b1, *b2, *c1,*c2, int n;
+      \callset(
+        \call(0,matrix_mult,a1, b1, c1, n,id1),
+        \call(matrix_mult,a2, b2, c2, n,id2))
+       ==> \at(*c1,Post_id1) < \at(*c2,Post_id2);
+*/
+
+/*@ relational
+      \forall int *a1, *c1, *b1, int n;
+        \callset(\call(0,matrix_mult,a1, b1, c1, n,id3))
+         ==> \at(*c1,Post_id3) < 0;
+*/

@@ -1,7 +1,7 @@
 ##########################################################################
 #  This file is part of RPP plug-in of Frama-C.                          #
 #                                                                        #
-#  Copyright (C) 2016-2018                                               #
+#  Copyright (C) 2016-2023                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #    alternatives)                                                       #
 #                                                                        #
@@ -17,6 +17,9 @@
 #  See the GNU Lesser General Public License version 2.1                 #
 #  for more details (enclosed in the file LICENSE).                      #
 ##########################################################################
+
+VERSION = 0.0.2
+EXTRAVERSION ?=
 
 ifndef FRAMAC_SHARE
 FRAMAC_SHARE  :=$(shell frama-c-config -print-share-path)
@@ -48,6 +51,15 @@ PLUGIN_TESTS_DIRS := rpp \
 
 include $(FRAMAC_SHARE)/Makefile.dynamic
 
+
+ifeq ("$(OPENSOURCE)","no")
+LICENSE=PROPRIETARY
+HEADERS=HEADERS_PROPRIETARY
+else
+LICENSE=LGPL
+HEADERS=HEADERS_LGPL
+endif
+
 RPP_DISTRIBUTED_FILES=rpp_options.ml rpp_options.mli \
 	rpp_extend_checker.ml rpp_extend_checker.mli \
 	rpp_parser.ml rpp_parser.mli \
@@ -58,12 +70,33 @@ RPP_DISTRIBUTED_FILES=rpp_options.ml rpp_options.mli \
 	rpp_predicate_visitor_axiom.ml rpp_predicate_visitor_axiom.mli \
 	rpp_core.ml rpp_core.mli \
 	rpp_register.ml rpp_register.mli \
-	rpp_gui.ml rpp_gui.mli \
-	Makefile
+	rpp_gui.ml rpp_gui.mli rpp_types.mli Rpp.mli \
+	Makefile rpp-manual.pdf README.md LICENSE opam
 
+NO_HEADERS=rpp-manual.pdf README.md LICENSE opam
 
-headers::
+license:
+	cp $(LICENSE) LICENSE
+
+rpp-manual.pdf:
+	make -C doc/Grammar
+	cp doc/Grammar/grammar.pdf $@
+
+headers:: license
 	$(PRINT_MAKING) $@
 	headache -c .headache_config.txt \
-                 -h .LICENSE \
-                 $(RPP_DISTRIBUTED_FILES)
+                 -h $(HEADERS) \
+                 $(filter-out $(NO_HEADERS), $(RPP_DISTRIBUTED_FILES))
+
+ifeq ("$(EXTRAVERSION)","")
+DISTRIBDIR=frama-c-rpp-$(VERSION)
+else
+DISTRIBDIR=frama-c-rpp-$(VERSION)-$(EXTRAVERSION)
+endif
+
+distrib: headers rpp-manual.pdf
+	$(RM) -r $(DISTRIBDIR)
+	$(RM) $(DISTRIBDIR).tar.gz
+	$(MKDIR) $(DISTRIBDIR)
+	tar -cf - $(RPP_DISTRIBUTED_FILES) | tar -C $(DISTRIBDIR) -xf -
+	tar zcf $(DISTRIBDIR).tar.gz $(DISTRIBDIR)

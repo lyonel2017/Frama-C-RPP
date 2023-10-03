@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -45,41 +45,9 @@ let () =
   Logic_builtin.add call;
   Logic_builtin.add callresult
 
-let id_hash = Hashtbl.create 3;;
+let id_hash = Hashtbl.create 3
 
-exception Unknow_label of string
-
-let type_relational ~typing_context ~loc:loc l =
-
-  let id_checker ctxt identifier  =
-    match Str.bounded_split (Str.regexp "_") identifier 2 with
-    | "Pre":: id :: [] | "Post" :: id :: []->
-      let _ = try (Hashtbl.find id_hash id) with
-        | Not_found -> raise (Unknow_label identifier)
-        | _ -> assert false
-      in
-      FormalLabel(identifier)
-    | _ -> ctxt.error loc "Expect label of the forme Pre_id or Post_id, but have:@ @[%s@] @."
-             identifier
-  in
-
-  let id_update ctxt identifier  =
-    match Str.bounded_split (Str.regexp "_") identifier 2 with
-    | "Pre":: id :: [] ->
-      let _ = try (Hashtbl.find id_hash id) with
-        | Not_found -> ctxt.error loc "Unknown label: @ @[%s@]  @." identifier
-        | _ -> assert false
-      in
-      "Pre"
-    | "Post" :: id :: []->
-      let _ = try (Hashtbl.find id_hash id) with
-        | Not_found -> ctxt.error loc "Unknown label: @ @[%s@] @." identifier
-        | _ -> assert false
-      in
-      "Here"
-    | _ -> ctxt.error loc "Expect label of the forme Pre_id or Post_id but have: @ @[%s@]  @."
-             identifier
-  in
+let type_relational typing_context loc l =
 
   let function_parameter_check ctxt x t pred =
     match x.term_type with
@@ -206,16 +174,6 @@ let type_relational ~typing_context ~loc:loc l =
         Logic_const.term ~loc:p.lexpr_loc (Tapp(li,[],(inline :: [funct]) @ predn))
           (Cil_types.Ctype(fun_type_return pred)))
 
-    | PLat(v,l)->
-      let label =
-        try id_checker ctxt l with
-        | Unknow_label s -> ctxt.error loc
-                              "Unknow label: @[%s@] in @[%a@]@."
-                              s Logic_print.print_lexpr p
-      in
-      let v_t = typing_context.type_term ctxt env v in
-      Logic_const.term ~loc:p.lexpr_loc (Tat (v_t, label)) (v_t.term_type)
-
     | PLapp ("\\callresult", [], param) ->
       if List.length param <> 1 then
         ctxt.error loc "Expected one parameter for \\callresult built-in (identifier):@. @[%a@] @."
@@ -296,7 +254,7 @@ let type_relational ~typing_context ~loc:loc l =
 
           let li = List.hd (ctxt.find_all_logic_functions "\\call") in
           let inline = Logic_const.tinteger ~loc:pred.vdecl inline in
-          let id = Logic_const.tstring ~loc:pred.vdecl id in
+          let tid = Logic_const.tstring ~loc:pred.vdecl id in
           li.l_type <- Some(Cil_types.Ctype(fun_type_return pred));
           let lv_funct = Cil.cvar_to_lvar pred in
           let funct = {term_node = TLval(TVar(lv_funct),TNoOffset);
@@ -304,9 +262,22 @@ let type_relational ~typing_context ~loc:loc l =
                        term_type=Cil_types.Ctype(pred.vtype);
                        term_name = []}
           in
-          Logic_const.term ~loc:p.lexpr_loc (Tapp(li,[],id::inline::[funct]@predn))
-            (Cil_types.Ctype(fun_type_return pred))
-
+          let res =
+            Logic_const.term
+              ~loc:p.lexpr_loc (Tapp(li,[],tid::inline::[funct]@predn))
+              (Cil_types.Ctype(fun_type_return pred))
+          in
+          let label_pre = "Pre_" ^ id in
+          let label_post = "Post_" ^ id in
+          let new_env =
+            Logic_typing.Lenv.add_logic_label
+              label_pre (FormalLabel label_pre) env
+          in
+          let new_env =
+            Logic_typing.Lenv.add_logic_label
+              label_post (FormalLabel label_post) new_env
+          in
+          new_env, res
         | _ -> ctxt.error loc "Multiple use of identifier %s @." id)
 
     | PLapp ("\\call", _, _) -> ctxt.error loc "Expect no label for built-in \\call: @. @[%a@] @."
@@ -319,7 +290,13 @@ let type_relational ~typing_context ~loc:loc l =
   let check_call_set ctxt env p  =
     match p.lexpr_node with
     | PLapp ("\\callset",[], param) ->
-      let calls = (List.map (fun p -> check_callset_param ctxt env p) param) in
+      let env, calls =
+        List.fold_right
+          (fun p (env,calls) ->
+             let (env, call) = check_callset_param ctxt env p in
+             (env, call :: calls))
+          param (env, [])
+      in
       let li = List.hd (ctxt.find_all_logic_functions "\\callset") in
       let named_pred =
         {
@@ -328,11 +305,11 @@ let type_relational ~typing_context ~loc:loc l =
           pred_content = (Papp(li,[],calls))
         }
       in
-      Logic_const.pred_of_id_pred (Logic_const.new_predicate named_pred)
+      env, Logic_const.pred_of_id_pred (Logic_const.new_predicate named_pred)
 
     | PLapp ("\\callset", _, _) -> ctxt.error loc "Expect no label for built-in \\callset @."
 
-    | _ -> ctxt.error loc "Unsupported terme type in \\rela built-in @."
+    | _ -> ctxt.error loc "Unsupported term type in \\rela built-in @."
   in
 
   let type_predicate  ctxt env p =
@@ -343,19 +320,21 @@ let type_relational ~typing_context ~loc:loc l =
        pred_loc = pred.pred_loc;
        pred_content = pred.pred_content}
 
-    | PLapp ("\\callpure", _, _) -> ctxt.error loc "A \\callpure is equivalent to a terme @."
+    | PLapp ("\\callpure", _, _) ->
+      ctxt.error loc "A \\callpure is equivalent to a term"
 
     | PLapp("\\rela",[], param) ->
       if not(Rpp_options.Is_buildin_rela_first.get()) then
         ctxt.error loc
-          "Expected \\rela built-in to be the first element in predicat or in \\forall: @. @[%a@] @."
+          "@[<v 2>Expected \\rela built-in to be the first element \
+           in predicate or in \\forall:@;%a@]"
           Logic_print.print_lexpr p
       else(
         (if List.length param != 2 then(
             ctxt.error loc "Expected 2 parameter for the \\rela built-in: @. @[%a@] @."
               Logic_print.print_lexpr p)
          else(
-           let callset = check_call_set ctxt env (List.hd param) in
+           let env, callset = check_call_set ctxt env (List.hd param) in
            let pred = typing_context.type_predicate ctxt env (List.hd(List.tl param)) in
            Logic_const.pimplies ~loc:p.lexpr_loc (callset, pred)
          )))
@@ -367,7 +346,7 @@ let type_relational ~typing_context ~loc:loc l =
            or in \\forall:@. @[%a@] @."
           Logic_print.print_lexpr p
       else(
-        let callset = check_call_set ctxt env set in
+        let env, callset = check_call_set ctxt env set in
         let pred = typing_context.type_predicate ctxt env pred in
         Logic_const.pimplies ~loc:p.lexpr_loc (callset, pred)
       )
@@ -380,23 +359,6 @@ let type_relational ~typing_context ~loc:loc l =
 
     | PLapp ("\\rela", _, _) -> ctxt.error loc "Expect no label for built-in \\rela: @. @[%a@] @."
                                   Logic_print.print_lexpr p
-
-    | PLapp (a,labels,param) ->
-      let new_labels =
-        List.map (fun x -> (id_update ctxt x)) labels
-      in
-      let new_pred =
-        typing_context.type_predicate ctxt env ({p with lexpr_node = PLapp(a,new_labels,param)})
-      in
-      begin
-        match new_pred.pred_content with
-        |Papp(l_v,_,params) ->
-          let new_labels_list =
-            List.map (fun x  -> FormalLabel(x)) labels
-          in
-          {new_pred with pred_content = Papp(l_v,new_labels_list,params)}
-        | _ -> assert false
-      end
     | _ -> Rpp_options.Is_buildin_rela_first.set(false); typing_context.type_predicate ctxt env p
   in
 
@@ -408,4 +370,6 @@ let type_relational ~typing_context ~loc:loc l =
     acsl_pred
   | _ -> typing_context.error loc "expecting one predicate in relational clause @."
 
-let ()  = Logic_typing.register_behavior_extension "relational"  type_relational
+let () =
+  Acsl_extension.register_global "relational" type_relational true
+  (* Acsl_extension.register_behavior "relational" type_relational true *)

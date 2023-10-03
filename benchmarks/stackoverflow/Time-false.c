@@ -28,11 +28,7 @@ int IntCompare(int x, int y){
   return 0;
 }
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct Time x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct Time x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct Time x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
-*/
+/*@ assigns \result \from o1,o2; */
 int compare (struct Time o1, struct Time o2) {
   int time1 = o1.ora;
   int time2 = o2.ora;
@@ -50,3 +46,20 @@ int compare (struct Time o1, struct Time o2) {
     return IntCompare(time1, time2);
   }
 }
+
+/*@ relational
+      \forall struct Time x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+
+/*@ relational
+      \forall struct Time x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct Time x1,x2,x3;
+      \callpure(compare,x1,x2) == 0
+      ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

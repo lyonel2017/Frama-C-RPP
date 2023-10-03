@@ -6,7 +6,6 @@
 
 /*@ requires \valid(x+(0..1));
   @ assigns x[0..1] \from x[0..1];
-  @ relational \forall int *x1,*x2; \callset(\call(f,x1,id1),\call(f,x2,id2)) ==> is_eq{Post_id1,Pre_id2}(x1,x2,2) ==> is_eq{Pre_id1,Post_id2}(x1,x2,2);
 */
 void f(int *x){
   int temp = 0;
@@ -14,3 +13,9 @@ void f(int *x){
   *x = *(x+1);
   *(x+1) = temp;
 }
+
+/*@ relational
+      \forall int *x1,*x2;
+      \callset(\call(f,x1,id1),\call(f,x2,id2)) ==>
+      is_eq{Post_id1,Pre_id2}(x1,x2,2) ==> is_eq{Pre_id1,Post_id2}(x1,x2,2);
+*/

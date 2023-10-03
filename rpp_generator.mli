@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -68,11 +68,13 @@ Cil_types.logic_var Cil_datatype.Varinfo.Map.t *
 Cil_types.logic_var Cil_datatype.Varinfo.Map.t *
 Cil_types.logic_var Cil_datatype.Varinfo.Map.t *
 Cil_types.logic_var Cil_datatype.Varinfo.Map.t ->
-< behavior : Cil.visitor_behavior; .. > -> Cil_types.term -> Cil_types.term
+< behavior : Visitor_behavior.t; .. > -> Cil_types.term -> Cil_types.term
 
-class aux_visitor_3:
-Cil.visitor_behavior ->
+val do_one_require_vis:
+< behavior : Visitor_behavior.t; .. > ->
+Cil_types.fundec ->
 Cil_types.varinfo list ->
-?quan: Cil_types.logic_var list ->
 ('a * Cil_types.varinfo * Cil_types.term) option list ->
-Visitor.frama_c_visitor
+Cil_types.kernel_function ->
+Cil_types.identified_predicate list ->
+Cil_types.identified_predicate list

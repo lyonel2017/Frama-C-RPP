@@ -38,7 +38,7 @@ void relational_wrapper_1(struct s var)
   return_variable_relational_1 = aux_local_variable_1;
   aux_local_variable_2 = var.s1;
   return_variable_relational_2 = aux_local_variable_2;
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ return_variable_relational_2;
   */
   return;

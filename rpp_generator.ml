@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ class aux_visitor vis_beh var_ret = object(self)
     (*Set the statement to origine status to avoid the visitor to lose
       the binding with the statement annotation: it is not the best
       solution but it work => find beter solution for the futur*)
-    let s =  Cil.get_original_stmt self#behavior s in
+    let s =  Visitor_behavior.Get_orig.stmt self#behavior s in
     match (s.skind, s.labels) with
     | Return (Some e,l),[] ->
       let var_ret = match var_ret with
@@ -277,46 +277,52 @@ class aux_visitor_2 vis_beh = object(_)
       ChangeDoChildrenPost(new_funbehavior, fun x -> x)
 end
 
+exception Unknow_term of Cil_types.logic_var
+exception Local_return
+
 (**
    Visitor for transforming require predicate into predicate juste with the formals of the function
 *)
-class aux_visitor_3 vis_beh l_v_list ?(quan=[]) formal_map = object(_)
+class aux_visitor_3 vis_beh l_v_list ?(quan=[]) ?(pre=[]) formal_map = object(_)
   inherit Visitor.generic_frama_c_visitor(vis_beh)
 
-  val test = ref false
-
   val quant = ref quan
-
-  method! vpredicate _ =
-    DoChildrenPost(fun x -> if not(!test) then (test := true;Logic_const.ptrue) else x)
+  val pred = ref pre
 
   method! vpredicate_node p =
     match p with
     | Pforall(q,_) ->
       let inter = !quant in
       quant := q @ !quant;
-      DoChildrenPost(fun x -> quant := inter; if not(!test) then (test := true;Ptrue) else x)
+      DoChildrenPost(fun x -> quant := inter; x)
+
+    | Papp(l,_,_) ->
+      let inter = !pred in
+      pred := l.l_var_info :: !pred;
+      DoChildrenPost(fun x -> pred := inter; x)
 
     | Pand(a,b) ->
       let vis =
         new aux_visitor_3 vis_beh l_v_list formal_map ~quan:!quant
       in
       let new_a =
-        Visitor.visitFramacPredicate vis a
+        try Visitor.visitFramacPredicate vis a with
+          Local_return -> {a with pred_content = Ptrue}
       in
       let new_b =
-        Visitor.visitFramacPredicate vis b
+        try Visitor.visitFramacPredicate vis b with
+          Local_return -> {a with pred_content = Ptrue}
       in
       begin
         match new_a.pred_content,new_b.pred_content with
-        | Ptrue,Ptrue -> test := true;Cil.ChangeTo Ptrue
-        | _,Ptrue -> test := true;Cil.ChangeTo new_a.pred_content
-        | Ptrue,_ -> test := true;Cil.ChangeTo new_b.pred_content
-        | _, _ -> test := true;Cil.ChangeTo (Pand(new_a,new_b))
+        | Ptrue,Ptrue -> Cil.ChangeTo Ptrue
+        | _,Ptrue -> Cil.ChangeTo new_a.pred_content
+        | Ptrue,_ -> Cil.ChangeTo new_b.pred_content
+        | _, _ -> Cil.ChangeTo (Pand(new_a,new_b))
       end
 
-    | Prel _ | Pseparated _ | Pvalid _ | Pimplies _ | Pvalid_read _ |Pnot _
-      -> DoChildrenPost(fun x -> if not(!test) then (test := true;Ptrue) else x)
+    | Prel _ | Pseparated _ | Pvalid _
+    | Pvalid_read _ |Pnot _ | Pimplies _ -> DoChildren
 
     | _ -> Rpp_options.Self.abort
              "Unsupported predicate in requires clause:@. @[%a@] @."
@@ -326,7 +332,7 @@ class aux_visitor_3 vis_beh l_v_list ?(quan=[]) formal_map = object(_)
     let rec aux lv data =
       match data with
       | Some(_,v,new_t)::_ when (Cil.cvar_to_lvar v).lv_id == lv.lv_id  ->
-        ChangeDoChildrenPost(new_t,fun x->x)
+        ChangeDoChildrenPost(new_t,fun x -> x)
       | _::q  -> aux lv q
       | [] -> DoChildren
     in
@@ -335,22 +341,49 @@ class aux_visitor_3 vis_beh l_v_list ?(quan=[]) formal_map = object(_)
     | _ -> DoChildren
 
   method! vlogic_var_use l =
+    let rec aux3 lv data =
+      match data with
+      | h::_ when h.lv_id ==  lv.lv_id -> DoChildren
+      | _::q  -> aux3 lv q
+      | [] -> raise (Unknow_term lv)
+    in
     let rec aux2 lv data =
       match data with
-      | h::_ when h.lv_id == (Cil.get_original_logic_var vis_beh lv).lv_id  ->
-        DoChildrenPost(fun x -> test:=true; x)
+      | h::_ when h.lv_id == (Visitor_behavior.Get_orig.logic_var vis_beh lv).lv_id ->
+        DoChildren
       | _::q  -> aux2 lv q
-      | [] -> test:= false; DoChildrenPost(fun x -> x)
+      | [] -> aux3 lv !pred
     in
     let rec aux lv data =
       match data with
       | h::_ when (Cil.cvar_to_lvar h).lv_id == lv.lv_id  ->
-        DoChildrenPost(fun x -> test:=true; x)
+        DoChildren
       | _::q  -> aux lv q
       | [] -> aux2 lv !quant
-    in aux l l_v_list
-
+    in
+    match Str.bounded_split (Str.regexp "_") (l.lv_name) 4 with
+    | "local" :: "variable" :: "relational" :: _ -> raise Local_return
+    | _ ->  aux l l_v_list
 end
+
+let do_one_require_vis self new_funct globals formal_map kf requires =
+  let formals =
+      (Kernel_function.get_formals (Globals.Functions.get new_funct.svar))
+       @ globals
+  in
+  let vis =
+    new aux_visitor_3 self#behavior formals formal_map
+  in
+  List.fold_right (fun x acc ->
+      match  Visitor.visitFramacIdPredicate vis x with
+      | exception Unknow_term lv ->
+        Rpp_options.Self.abort ~source:(fst x.ip_content.tp_statement.pred_loc)
+          "Function %s is supposed no to depend on %a"
+          (Kernel_function.get_name kf)
+          Printer.pp_logic_var lv
+      | exception Local_return -> acc
+      | pred -> pred :: acc
+    ) requires []
 
 class aux_visitor_5 vis_behavior = object
   inherit Visitor.generic_frama_c_visitor(vis_behavior)
@@ -359,7 +392,7 @@ class aux_visitor_5 vis_behavior = object
     let rec aux g  =
       match g with
       | [] -> []
-      | (_,"relational",Ext_preds(_)) :: q -> aux q
+      | { ext_name = "relational"; ext_kind = Ext_preds(_)} :: q -> aux q
       | h :: q -> h :: aux q
     in
     let b_extended = aux g.b_extended
@@ -433,11 +466,11 @@ let global_binder_aux map self log_map log_map_orig =
          | exception Not_found ->
            log_map := Cil_datatype.Logic_var.Map.add
                (Cil.cvar_to_lvar vo)
-               (Cil.cvar_to_lvar (Cil.get_varinfo self#behavior vo)) !log_map;
+               (Cil.cvar_to_lvar (Visitor_behavior.Get.varinfo self#behavior vo)) !log_map;
          | _ -> ()
        end;
-       Cil.unset_logic_var self#behavior (Cil.cvar_to_lvar vo);
-       Cil.set_logic_var self#behavior
+       Visitor_behavior.Unset.logic_var self#behavior (Cil.cvar_to_lvar vo);
+       Visitor_behavior.Set.logic_var self#behavior
          (Cil.cvar_to_lvar vo) data;
 
        begin
@@ -445,12 +478,12 @@ let global_binder_aux map self log_map log_map_orig =
          | exception Not_found ->
            log_map_orig := Cil_datatype.Logic_var.Map.add
                (Cil.cvar_to_lvar vo)
-               (Cil.cvar_to_lvar (Cil.get_original_varinfo self#behavior vo))
+               (Cil.cvar_to_lvar (Visitor_behavior.Get_orig.varinfo self#behavior vo))
                !log_map_orig;
          | _ -> ()
        end;
-       Cil.unset_orig_logic_var self#behavior (Cil.cvar_to_lvar vo);
-       Cil.set_orig_logic_var self#behavior
+       Visitor_behavior.Unset_orig.logic_var self#behavior (Cil.cvar_to_lvar vo);
+       Visitor_behavior.Set_orig.logic_var self#behavior
          data (Cil.cvar_to_lvar vo)) map
 
 let binder_aux f apply id self global_map =
@@ -476,13 +509,13 @@ let binder_aux f apply id self global_map =
   let data = f apply in
 
   Cil_datatype.Logic_var.Map.iter (fun a b ->
-      Cil.unset_logic_var self#behavior a;
-      Cil.set_logic_var self#behavior
+      Visitor_behavior.Unset.logic_var self#behavior a;
+      Visitor_behavior.Set.logic_var self#behavior
         a b) !log_map;
 
   Cil_datatype.Logic_var.Map.iter (fun a b ->
-      Cil.unset_orig_logic_var self#behavior a;
-      Cil.set_orig_logic_var self#behavior
+      Visitor_behavior.Unset_orig.logic_var self#behavior a;
+      Visitor_behavior.Set_orig.logic_var self#behavior
         a b) !log_map_orig;
 
   data
@@ -496,34 +529,34 @@ let global_binder map self var_map var_map_orig log_map log_map_orig =
            match Cil_datatype.Varinfo.Map.find vo !var_map with
            | exception Not_found ->
              var_map := Cil_datatype.Varinfo.Map.add vo
-                 (Cil.get_varinfo self#behavior vo)
+                 (Visitor_behavior.Get.varinfo self#behavior vo)
                  !var_map;
            | _ -> ()
          end;
-         Cil.unset_varinfo self#behavior vo;
-         Cil.set_varinfo self#behavior vo var;
+         Visitor_behavior.Unset.varinfo self#behavior vo;
+         Visitor_behavior.Set.varinfo self#behavior vo var;
 
          begin
            match Cil_datatype.Varinfo.Map.find vo !var_map_orig with
            | exception Not_found ->
              var_map_orig := Cil_datatype.Varinfo.Map.add vo
-                 (Cil.get_original_varinfo self#behavior vo)
+                 (Visitor_behavior.Get_orig.varinfo self#behavior vo)
                  !var_map_orig;
            | _ -> ()
          end;
-         Cil.unset_orig_varinfo self#behavior vo;
-         Cil.set_orig_varinfo self#behavior var vo;
+         Visitor_behavior.Unset_orig.varinfo self#behavior vo;
+         Visitor_behavior.Set_orig.varinfo self#behavior var vo;
 
          begin
            match Cil_datatype.Logic_var.Map.find (Cil.cvar_to_lvar vo) !log_map with
            | exception Not_found ->
              log_map := Cil_datatype.Logic_var.Map.add
                  (Cil.cvar_to_lvar vo)
-                 (Cil.cvar_to_lvar (Cil.get_varinfo self#behavior vo)) !log_map;
+                 (Cil.cvar_to_lvar (Visitor_behavior.Get.varinfo self#behavior vo)) !log_map;
            | _ -> ()
          end;
-         Cil.unset_logic_var self#behavior (Cil.cvar_to_lvar vo);
-         Cil.set_logic_var self#behavior
+         Visitor_behavior.Unset.logic_var self#behavior (Cil.cvar_to_lvar vo);
+         Visitor_behavior.Set.logic_var self#behavior
            (Cil.cvar_to_lvar vo) (Cil.cvar_to_lvar var);
 
          begin
@@ -531,12 +564,12 @@ let global_binder map self var_map var_map_orig log_map log_map_orig =
            | exception Not_found ->
              log_map_orig := Cil_datatype.Logic_var.Map.add
                  (Cil.cvar_to_lvar vo)
-                 (Cil.cvar_to_lvar (Cil.get_original_varinfo self#behavior vo))
+                 (Cil.cvar_to_lvar (Visitor_behavior.Get_orig.varinfo self#behavior vo))
                  !log_map_orig;
            | _ -> ()
          end;
-         Cil.unset_orig_logic_var self#behavior (Cil.cvar_to_lvar vo);
-         Cil.set_orig_logic_var self#behavior
+         Visitor_behavior.Unset_orig.logic_var self#behavior (Cil.cvar_to_lvar vo);
+         Visitor_behavior.Set_orig.logic_var self#behavior
            (Cil.cvar_to_lvar var) (Cil.cvar_to_lvar vo);
 
        | _ -> assert false) map
@@ -551,9 +584,9 @@ let binder_no_local_logic f apply id self formalsinit formalsi global_map =
     (fun a b ->
        log_map := Cil_datatype.Logic_var.Map.add
            (Cil.cvar_to_lvar a)
-           (Cil.cvar_to_lvar (Cil.get_varinfo self#behavior a)) !log_map;
-       Cil.unset_logic_var self#behavior (Cil.cvar_to_lvar a);
-       Cil.set_logic_var self#behavior
+           (Cil.cvar_to_lvar (Visitor_behavior.Get.varinfo self#behavior a)) !log_map;
+       Visitor_behavior.Unset.logic_var self#behavior (Cil.cvar_to_lvar a);
+       Visitor_behavior.Set.logic_var self#behavior
          (Cil.cvar_to_lvar a) b)
     formalsinit formalsi;
 
@@ -561,10 +594,10 @@ let binder_no_local_logic f apply id self formalsinit formalsi global_map =
     (fun a b ->
        log_map_orig := Cil_datatype.Logic_var.Map.add
            (Cil.cvar_to_lvar b)
-           (Cil.cvar_to_lvar (Cil.get_original_varinfo self#behavior b))
+           (Cil.cvar_to_lvar (Visitor_behavior.Get_orig.varinfo self#behavior b))
            !log_map_orig;
-       Cil.unset_orig_logic_var self#behavior a;
-       Cil.set_orig_logic_var self#behavior
+       Visitor_behavior.Unset_orig.logic_var self#behavior a;
+       Visitor_behavior.Set_orig.logic_var self#behavior
          a (Cil.cvar_to_lvar b))
     formalsi formalsinit;
 
@@ -587,13 +620,13 @@ let binder_no_local_logic f apply id self formalsinit formalsi global_map =
   let data = f apply in
 
   Cil_datatype.Logic_var.Map.iter (fun a b ->
-      Cil.unset_logic_var self#behavior a;
-      Cil.set_logic_var self#behavior
+      Visitor_behavior.Unset.logic_var self#behavior a;
+      Visitor_behavior.Set.logic_var self#behavior
         a b) !log_map;
 
   Cil_datatype.Logic_var.Map.iter (fun a b ->
-      Cil.unset_orig_logic_var self#behavior a;
-      Cil.set_orig_logic_var self#behavior
+      Visitor_behavior.Unset_orig.logic_var self#behavior a;
+      Visitor_behavior.Set_orig.logic_var self#behavior
         a b) !log_map_orig;
   data
 
@@ -607,24 +640,24 @@ let binder_sub f apply id self formalsinit formalsi global_map =
   assert (List.length formalsinit = List.length formalsi);
   List.iter2 (fun x y ->
       var_map := Cil_datatype.Varinfo.Map.add x
-          (Cil.get_varinfo self#behavior x) !var_map;
-      Cil.unset_varinfo self#behavior x;
-      Cil.set_varinfo self#behavior x y ) formalsinit formalsi;
+          (Visitor_behavior.Get.varinfo self#behavior x) !var_map;
+      Visitor_behavior.Unset.varinfo self#behavior x;
+      Visitor_behavior.Set.varinfo self#behavior x y ) formalsinit formalsi;
 
   List.iter2 (fun x y ->
       var_map_orig := Cil_datatype.Varinfo.Map.add y
-          (Cil.get_original_varinfo self#behavior y)
+          (Visitor_behavior.Get_orig.varinfo self#behavior y)
           !var_map_orig;
-      Cil.unset_orig_varinfo self#behavior x;
-      Cil.set_orig_varinfo self#behavior x y) formalsi formalsinit;
+      Visitor_behavior.Unset_orig.varinfo self#behavior x;
+      Visitor_behavior.Set_orig.varinfo self#behavior x y) formalsi formalsinit;
 
   List.iter2
     (fun a b ->
        log_map := Cil_datatype.Logic_var.Map.add
            (Cil.cvar_to_lvar a)
-           (Cil.cvar_to_lvar (Cil.get_varinfo self#behavior a)) !log_map;
-       Cil.unset_logic_var self#behavior (Cil.cvar_to_lvar a);
-       Cil.set_logic_var self#behavior
+           (Cil.cvar_to_lvar (Visitor_behavior.Get.varinfo self#behavior a)) !log_map;
+       Visitor_behavior.Unset.logic_var self#behavior (Cil.cvar_to_lvar a);
+       Visitor_behavior.Set.logic_var self#behavior
          (Cil.cvar_to_lvar a) (Cil.cvar_to_lvar b))
     formalsinit formalsi;
 
@@ -632,10 +665,10 @@ let binder_sub f apply id self formalsinit formalsi global_map =
     (fun a b ->
        log_map_orig := Cil_datatype.Logic_var.Map.add
            (Cil.cvar_to_lvar b)
-           (Cil.cvar_to_lvar (Cil.get_original_varinfo self#behavior b))
+           (Cil.cvar_to_lvar (Visitor_behavior.Get_orig.varinfo self#behavior b))
            !log_map_orig;
-       Cil.unset_orig_logic_var self#behavior (Cil.cvar_to_lvar a);
-       Cil.set_orig_logic_var self#behavior
+       Visitor_behavior.Unset_orig.logic_var self#behavior (Cil.cvar_to_lvar a);
+       Visitor_behavior.Set_orig.logic_var self#behavior
          (Cil.cvar_to_lvar a) (Cil.cvar_to_lvar b))
     formalsi formalsinit;
 
@@ -658,23 +691,23 @@ let binder_sub f apply id self formalsinit formalsi global_map =
   let data = f apply in
 
   Cil_datatype.Varinfo.Map.iter ( fun x y ->
-      Cil.unset_varinfo self#behavior x;
-      Cil.set_varinfo self#behavior
+      Visitor_behavior.Unset.varinfo self#behavior x;
+      Visitor_behavior.Set.varinfo self#behavior
         x y) !var_map;
 
   Cil_datatype.Logic_var.Map.iter (fun a b ->
-      Cil.unset_logic_var self#behavior a;
-      Cil.set_logic_var self#behavior
+      Visitor_behavior.Unset.logic_var self#behavior a;
+      Visitor_behavior.Set.logic_var self#behavior
         a b) !log_map;
 
   Cil_datatype.Varinfo.Map.iter ( fun x y ->
-      Cil.unset_orig_varinfo self#behavior x;
-      Cil.set_orig_varinfo self#behavior
+      Visitor_behavior.Unset_orig.varinfo self#behavior x;
+      Visitor_behavior.Set_orig.varinfo self#behavior
         x y) !var_map_orig;
 
   Cil_datatype.Logic_var.Map.iter (fun a b ->
-      Cil.unset_orig_logic_var self#behavior a;
-      Cil.set_orig_logic_var self#behavior
+      Visitor_behavior.Unset_orig.logic_var self#behavior a;
+      Visitor_behavior.Set_orig.logic_var self#behavior
         a b) !log_map_orig;
   data
 
@@ -690,24 +723,24 @@ let binder f apply funct id self locals formalsi global_map =
   assert (List.length funct.sformals = List.length formalsi);
   List.iter2 (fun x y ->
       var_map := Cil_datatype.Varinfo.Map.add x
-          (Cil.get_varinfo self#behavior x) !var_map;
-      Cil.unset_varinfo self#behavior x;
-      Cil.set_varinfo self#behavior x y ) funct.sformals formalsi;
+          (Visitor_behavior.Get.varinfo self#behavior x) !var_map;
+      Visitor_behavior.Unset.varinfo self#behavior x;
+      Visitor_behavior.Set.varinfo self#behavior x y ) funct.sformals formalsi;
 
   List.iter2 (fun x y ->
       var_map_orig := Cil_datatype.Varinfo.Map.add y
-          (Cil.get_original_varinfo self#behavior y)
+          (Visitor_behavior.Get_orig.varinfo self#behavior y)
           !var_map_orig;
-      Cil.unset_orig_varinfo self#behavior x;
-      Cil.set_orig_varinfo self#behavior x y) formalsi funct.sformals;
+      Visitor_behavior.Unset_orig.varinfo self#behavior x;
+      Visitor_behavior.Set_orig.varinfo self#behavior x y) formalsi funct.sformals;
 
   List.iter2
     (fun a b ->
        log_map := Cil_datatype.Logic_var.Map.add
            (Cil.cvar_to_lvar a)
-           (Cil.cvar_to_lvar (Cil.get_varinfo self#behavior a)) !log_map;
-       Cil.unset_logic_var self#behavior (Cil.cvar_to_lvar a);
-       Cil.set_logic_var self#behavior
+           (Cil.cvar_to_lvar (Visitor_behavior.Get.varinfo self#behavior a)) !log_map;
+       Visitor_behavior.Unset.logic_var self#behavior (Cil.cvar_to_lvar a);
+       Visitor_behavior.Set.logic_var self#behavior
          (Cil.cvar_to_lvar a) (Cil.cvar_to_lvar b))
     funct.sformals formalsi;
 
@@ -715,10 +748,10 @@ let binder f apply funct id self locals formalsi global_map =
     (fun a b ->
        log_map_orig := Cil_datatype.Logic_var.Map.add
            (Cil.cvar_to_lvar b)
-           (Cil.cvar_to_lvar (Cil.get_original_varinfo self#behavior b))
+           (Cil.cvar_to_lvar (Visitor_behavior.Get_orig.varinfo self#behavior b))
            !log_map_orig;
-       Cil.unset_orig_logic_var self#behavior (Cil.cvar_to_lvar a);
-       Cil.set_orig_logic_var self#behavior
+       Visitor_behavior.Unset_orig.logic_var self#behavior (Cil.cvar_to_lvar a);
+       Visitor_behavior.Set_orig.logic_var self#behavior
          (Cil.cvar_to_lvar a) (Cil.cvar_to_lvar b))
     formalsi funct.sformals;
 
@@ -726,25 +759,25 @@ let binder f apply funct id self locals formalsi global_map =
   assert (List.length funct.slocals = List.length locals);
   List.iter2 (fun x y ->
       var_map := Cil_datatype.Varinfo.Map.add x
-          (Cil.get_varinfo self#behavior x) !var_map;
-      Cil.unset_varinfo self#behavior x;
-      Cil.set_varinfo self#behavior x y ) funct.slocals locals;
+          (Visitor_behavior.Get.varinfo self#behavior x) !var_map;
+      Visitor_behavior.Unset.varinfo self#behavior x;
+      Visitor_behavior.Set.varinfo self#behavior x y ) funct.slocals locals;
 
   List.iter2 (
     fun x y ->
       var_map_orig := Cil_datatype.Varinfo.Map.add y
-          (Cil.get_original_varinfo self#behavior y)
+          (Visitor_behavior.Get_orig.varinfo self#behavior y)
           !var_map_orig;
-      Cil.unset_orig_varinfo self#behavior x;
-      Cil.set_orig_varinfo self#behavior x y) locals funct.slocals;
+      Visitor_behavior.Unset_orig.varinfo self#behavior x;
+      Visitor_behavior.Set_orig.varinfo self#behavior x y) locals funct.slocals;
 
   List.iter2
     (fun a b ->
        log_map := Cil_datatype.Logic_var.Map.add
            (Cil.cvar_to_lvar a)
-           (Cil.cvar_to_lvar (Cil.get_varinfo self#behavior a)) !log_map;
-       Cil.unset_logic_var self#behavior (Cil.cvar_to_lvar a);
-       Cil.set_logic_var self#behavior
+           (Cil.cvar_to_lvar (Visitor_behavior.Get.varinfo self#behavior a)) !log_map;
+       Visitor_behavior.Unset.logic_var self#behavior (Cil.cvar_to_lvar a);
+       Visitor_behavior.Set.logic_var self#behavior
          (Cil.cvar_to_lvar a) (Cil.cvar_to_lvar b))
     funct.slocals locals;
 
@@ -752,10 +785,10 @@ let binder f apply funct id self locals formalsi global_map =
     (fun a b ->
        log_map_orig := Cil_datatype.Logic_var.Map.add
            (Cil.cvar_to_lvar b)
-           (Cil.cvar_to_lvar (Cil.get_original_varinfo self#behavior b))
+           (Cil.cvar_to_lvar (Visitor_behavior.Get_orig.varinfo self#behavior b))
            !log_map_orig;
-       Cil.unset_orig_logic_var self#behavior (Cil.cvar_to_lvar a);
-       Cil.set_orig_logic_var self#behavior
+       Visitor_behavior.Unset_orig.logic_var self#behavior (Cil.cvar_to_lvar a);
+       Visitor_behavior.Set_orig.logic_var self#behavior
          (Cil.cvar_to_lvar a) (Cil.cvar_to_lvar b))
     locals funct.slocals;
 
@@ -778,23 +811,23 @@ let binder f apply funct id self locals formalsi global_map =
   let data = f apply in
 
   Cil_datatype.Varinfo.Map.iter ( fun x y ->
-      Cil.unset_varinfo self#behavior x;
-      Cil.set_varinfo self#behavior
+      Visitor_behavior.Unset.varinfo self#behavior x;
+      Visitor_behavior.Set.varinfo self#behavior
         x y) !var_map;
 
   Cil_datatype.Logic_var.Map.iter (fun a b ->
-      Cil.unset_logic_var self#behavior a;
-      Cil.set_logic_var self#behavior
+      Visitor_behavior.Unset.logic_var self#behavior a;
+      Visitor_behavior.Set.logic_var self#behavior
         a b) !log_map;
 
   Cil_datatype.Varinfo.Map.iter ( fun x y ->
-      Cil.unset_orig_varinfo self#behavior x;
-      Cil.set_orig_varinfo self#behavior
+      Visitor_behavior.Unset_orig.varinfo self#behavior x;
+      Visitor_behavior.Set_orig.varinfo self#behavior
         x y) !var_map_orig;
 
   Cil_datatype.Logic_var.Map.iter (fun a b ->
-      Cil.unset_orig_logic_var self#behavior a;
-      Cil.set_orig_logic_var self#behavior
+      Visitor_behavior.Unset_orig.logic_var self#behavior a;
+      Visitor_behavior.Set_orig.logic_var self#behavior
         a b) !log_map_orig;
   data
 
@@ -826,10 +859,10 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
           if not(num = pred) || rename then
             begin
               Rpp_axiomatic_generator.generat_behavior_for_kf
-                loc self log (new_kf,Cil.get_kernel_function vis#behavior current_kf)
+                loc self log (new_kf,Visitor_behavior.Get.kernel_function vis#behavior current_kf)
                 global_map;
               Rpp_axiomatic_generator.generat_behavior_pure_for_kf
-                loc self log_pure (new_kf,Cil.get_kernel_function vis#behavior current_kf)
+                loc self log_pure (new_kf,Visitor_behavior.Get.kernel_function vis#behavior current_kf)
             end
           else ();
         ) annot_data;
@@ -839,9 +872,9 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
           if not(num = pred) || rename then
             begin
               Rpp_axiomatic_generator.generat_behavior_pure_for_kf
-                loc self log_pure (new_kf,Cil.get_kernel_function vis#behavior current_kf);
+                loc self log_pure (new_kf,Visitor_behavior.Get.kernel_function vis#behavior current_kf);
               Rpp_axiomatic_generator.generat_behavior_for_kf
-                loc self log (new_kf,Cil.get_kernel_function vis#behavior current_kf)
+                loc self log (new_kf,Visitor_behavior.Get.kernel_function vis#behavior current_kf)
                 global_map;
             end
           else ();
@@ -865,7 +898,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
       begin
         match exists with
         | true -> Rpp_axiomatic_generator.generat_help_behavior_pure_for_kf
-                    loc log_pure (new_kf,Cil.get_kernel_function vis#behavior current_kf);
+                    loc log_pure (new_kf,Visitor_behavior.Get.kernel_function vis#behavior current_kf);
         | _ -> ()
       end;
 
@@ -896,7 +929,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
               let x = aux x in
               let beha = Annotations.behaviors ~populate:false x in
               (beha,x)
-          ) (Cil.get_original_varinfo vis#behavior v)
+          ) (Visitor_behavior.Get_orig.varinfo vis#behavior v)
         in
         let formalsi = Kernel_function.get_formals new_kf in
         let annot =
@@ -920,7 +953,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
           Project.on proj (
             fun x ->
               aux x
-          ) (Cil.get_original_varinfo vis#behavior v)
+          ) (Visitor_behavior.Get_orig.varinfo vis#behavior v)
         in
         begin
           match id with
@@ -943,7 +976,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
           let funct =
             Kernel_function.get_definition fonct
           in
-          let vo = Cil.get_varinfo self#behavior funct.svar in
+          let vo = Visitor_behavior.Get.varinfo self#behavior funct.svar in
           Cil_datatype.Varinfo.equal v vo
         end
 
@@ -1026,8 +1059,6 @@ let do_one_simpl_term_vis kf formalsi id global_map self term =
    Function for making substitution in term
 *)
 let do_one_terms_vis kf formalsi locals id global_map self terms=
-
-  let funct = Kernel_function.get_definition  kf in
   let global_map =
     match id with
     | None ->
@@ -1042,16 +1073,29 @@ let do_one_terms_vis kf formalsi locals id global_map self terms=
       in
       (data.froms_map,data.assigns_map,data.froms_map_p,data.assigns_map_p)
   in
+  match kf.fundec with
+  | Declaration (_,_,param,_) ->
+    begin
+      let f p =
+        let vis = new aux_visitor_6 self#behavior in
+        vis#set_current_kf kf;
+      Visitor.visitFramacTerm vis p
+      in
+      let formalsinit = match param with
+      | None | Some [] -> []
+      | Some formalsinit -> formalsinit
+      in
+      binder_sub f terms id self formalsinit formalsi global_map
+    end
+
+  | Definition (funct,_) ->
   let f p =
     let vis = new aux_visitor_6 self#behavior in
     vis#set_current_func funct;
     vis#set_current_kf kf;
     Visitor.visitFramacTerm vis p
   in
-  let terms =
     binder f terms funct id self locals formalsi global_map
-  in
-  terms
 
 (**
    Function for making one copy of terms
@@ -1067,22 +1111,17 @@ let do_one_require_copy kf formalsi id global_map self proj=
   match kf.fundec with
   | Declaration (_,_,param,_) ->
     begin
-      match param with
+      let formalsinit = match param with
       | None | Some [] -> []
-      | Some formalsinit ->
-        let beh =
+      | Some formalsinit -> formalsinit
+      in
           binder_sub
             f ((Annotations.behaviors ~populate:false kf)) id self formalsinit formalsi global_map
-        in
-        beh
     end
   | Definition (funct,_) ->
     begin
-      let beh =
         binder_sub
           f ((Annotations.behaviors ~populate:false kf)) id self funct.sformals formalsi global_map
-      in
-      beh
     end
 
 (**
@@ -1097,9 +1136,9 @@ let rec get_typ_in_current_project t self loc=
   | TArray(t,e,b,a) -> let new_t = get_typ_in_current_project t self loc in TArray(new_t,e,b,a)
   | TFun(_) ->  Rpp_options.Self.abort ~source:loc
                   "Error in predicate: Function types are not supported yet"
-  | TNamed (t,a) -> let new_c = Cil.get_typeinfo self t in TNamed(new_c,a)
-  | TComp (c,b,a) ->let new_c = Cil.get_compinfo self c in TComp(new_c,b,a)
-  | TEnum (e,a) -> let new_e = Cil.get_enuminfo self e in TEnum(new_e,a)
+  | TNamed (t,a) -> let new_c = Visitor_behavior.Get.typeinfo self t in TNamed(new_c,a)
+  | TComp (c,b,a) ->let new_c = Visitor_behavior.Get.compinfo self c in TComp(new_c,b,a)
+  | TEnum (e,a) -> let new_e = Visitor_behavior.Get.enuminfo self e in TEnum(new_e,a)
   | TBuiltin_va_list(_) -> t
 
 (**
@@ -1179,7 +1218,7 @@ let inliner self proj funct id global_map = object (_)
               Project.on proj (
                 fun x ->
                   aux x
-              ) (Cil.get_original_varinfo self#behavior vi)
+              ) (Visitor_behavior.Get_orig.varinfo self#behavior vi)
             in
             let inline_funct =
               match Kernel_function.get_definition kf with
@@ -1234,8 +1273,8 @@ let inliner self proj funct id global_map = object (_)
             let f p =
               (*Save the current new kf and make a binding with the wrapper
                 function for code annotation generation*)
-              let buffer_kf = Cil.get_kernel_function self#behavior kf in
-              Cil.set_kernel_function self#behavior
+              let buffer_kf = Visitor_behavior.Get.kernel_function self#behavior kf in
+              Visitor_behavior.Set.kernel_function self#behavior
                 kf
                 (Globals.Functions.get (funct.svar));
               let vis = new aux_visitor self#behavior resi in
@@ -1251,7 +1290,7 @@ let inliner self proj funct id global_map = object (_)
               funct.slocals <- locals;
               funct.sformals <- formals;
               (*Make binding for reversing the last binding with the kf*)
-              Cil.set_kernel_function self#behavior
+              Visitor_behavior.Set.kernel_function self#behavior
                 kf
                 buffer_kf;
               body
@@ -1274,8 +1313,11 @@ let inliner self proj funct id global_map = object (_)
               sort_funbehavior behaviours
             in
             List.iter(fun data ->
+                let top_pred =
+                  Logic_const.(toplevel_predicate (pred_of_id_pred data))
+                in
                 let the_code_annotation =
-                  Logic_const.new_code_annotation (AAssert ([],(Logic_const.pred_of_id_pred data)))
+                  Logic_const.new_code_annotation (AAssert ([],top_pred))
                 in
                 Annotations.add_code_annot
                   Rpp_options.emitter ~kf:(Globals.Functions.get (funct.svar))
@@ -1294,19 +1336,12 @@ let inliner self proj funct id global_map = object (_)
     | _ -> Cil.DoChildren
 end
 
-
-(**
-   Function for making one copy of the body of kf
-*)
-let do_one_copy ?(proof=false) kf formalsi resi locals id global_map inline new_funct self proj l annot_data num =
-  match inline with
-  | 0 ->
-    begin
+let no_inline resi self kf l formalsi proof id global_map proj annot_data num =
       let return_lval = match resi with
         | None -> None
         | Some x -> Some(Var(x),NoOffset)
       in
-      let current_kf = Cil.get_kernel_function self#behavior kf in
+      let current_kf = Visitor_behavior.Get.kernel_function self#behavior kf in
       let var_funct = match current_kf.fundec with
         | Definition (f,_) -> f.svar
         | Declaration (_,v,_,_) -> v
@@ -1315,10 +1350,10 @@ let do_one_copy ?(proof=false) kf formalsi resi locals id global_map inline new_
         Lval(Var(var_funct),NoOffset)
       in
       let new_exp =
-        Cil.new_exp l new_exp_node
+        Cil.new_exp ~loc:l new_exp_node
       in
       let params =
-        List.map (fun x -> Cil.new_exp l (Lval(Var(x),NoOffset)))
+        List.map (fun x -> Cil.new_exp ~loc:l (Lval(Var(x),NoOffset)))
           formalsi
       in
       let k = Instr(Call(return_lval, new_exp, params, l))
@@ -1341,18 +1376,14 @@ let do_one_copy ?(proof=false) kf formalsi resi locals id global_map inline new_
         end
       else
         b
-    end
 
-  | n ->
-    begin
-      let funct = Kernel_function.get_definition kf in
-
+let do_inline self kf new_funct resi funct proj locals formalsi global_map id proof n l num annot_data =
       let f p =
         (*Save the current new kf and make a binding with the wrapper
           function for code annotation generation*)
-        let buffer_kf = Cil.get_kernel_function self#behavior kf in
+        let buffer_kf = Visitor_behavior.Get.kernel_function self#behavior kf in
 
-        Cil.set_kernel_function self#behavior
+        Visitor_behavior.Set.kernel_function self#behavior
           kf
           (Globals.Functions.get (new_funct.svar));
 
@@ -1369,7 +1400,7 @@ let do_one_copy ?(proof=false) kf formalsi resi locals id global_map inline new_
         new_funct.slocals <- locals;
         new_funct.sformals <- formals;
         (*Make binding for reversing the last binding with the kf*)
-        Cil.set_kernel_function self#behavior
+        Visitor_behavior.Set.kernel_function self#behavior
           kf
           buffer_kf;
         body
@@ -1377,10 +1408,7 @@ let do_one_copy ?(proof=false) kf formalsi resi locals id global_map inline new_
       let body =
         binder f (funct.sbody) funct id self locals formalsi global_map
       in
-      (**
-             Inlining all function
-      *)
-
+  (** Inlining all function  *)
       let rec aux b i =
         match i with
         | 0 -> b
@@ -1407,4 +1435,20 @@ let do_one_copy ?(proof=false) kf formalsi resi locals id global_map inline new_
           new_body
         end
       else new_body
+
+
+(**
+   Function for making one copy of the body of kf
+*)
+let do_one_copy ?(proof=false) kf formalsi resi locals id global_map inline new_funct self proj l annot_data num =
+  match Kernel_function.get_definition kf with
+  | exception _ -> no_inline resi self kf l formalsi proof id global_map proj annot_data num
+  | funct ->
+    begin
+      match inline with
+      | 0 ->
+        no_inline resi self kf l formalsi proof id global_map proj annot_data num
+      | n ->
+        do_inline self kf new_funct resi funct proj locals
+          formalsi global_map id proof n l num annot_data
     end

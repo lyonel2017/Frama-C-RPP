@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -29,34 +29,43 @@ let rec get_typ_in_current_project t self loc=
   | TVoid(_) -> t
   | TInt(_) -> t
   | TFloat(_) -> t
-  | TPtr(t,a) -> let new_t = get_typ_in_current_project t self loc in TPtr(new_t,a)
-  | TArray(t,e,b,a) -> let new_t = get_typ_in_current_project t self loc in TArray(new_t,e,b,a)
-  | TFun(_) ->  Rpp_options.Self.abort ~source:loc
+  | TPtr(t,a) ->
+    let new_t = get_typ_in_current_project t self loc in TPtr(new_t,a)
+  | TArray(t,e,b,a) ->
+    let new_t = get_typ_in_current_project t self loc in TArray(new_t,e,b,a)
+  | TFun(_) ->
+    Rpp_options.Self.abort ~source:(fst loc)
                   "Error in predicate: Function types are not supported yet"
-  | TNamed (t,a) -> let new_c = Cil.get_typeinfo self t in TNamed(new_c,a)
-  | TComp (c,b,a) ->let new_c = Cil.get_compinfo self c in TComp(new_c,b,a)
-  | TEnum (e,a) -> let new_e = Cil.get_enuminfo self e in TEnum(new_e,a)
+  | TNamed (t,a) -> let new_c = Visitor_behavior.Get.typeinfo self t in TNamed(new_c,a)
+  | TComp (c,b,a) ->let new_c = Visitor_behavior.Get.compinfo self c in TComp(new_c,b,a)
+  | TEnum (e,a) -> let new_e = Visitor_behavior.Get.enuminfo self e in TEnum(new_e,a)
   | TBuiltin_va_list(_) -> t
 
 let sorter l =
   List.fold_right (fun (x,y) (l1, l2) -> (x::l1, y::l2)) l ([],[])
 
 let id_convert identifier loc call_side_effect_data=
+  let source = fst loc in
   match Str.bounded_split (Str.regexp "_") identifier 2 with
   | "Pre":: id :: []  ->
-    (match List.find (fun data -> String.equal id data.id_call )
-             call_side_effect_data  with
+    (match
+       List.find
+         (fun data -> String.equal id data.id_call ) call_side_effect_data
+     with
     | exception Not_found ->
-      Rpp_options.Self.abort ~source:loc "The id %s is unknown in this clause" id
+       Rpp_options.Self.abort ~source "The id %s is unknown in this clause" id
     | _ -> Pre)
   |  "Post" :: id :: [] ->
-    (match List.find (fun data -> String.equal id data.id_call)
-             call_side_effect_data  with
+    (match
+       List.find
+         (fun data -> String.equal id data.id_call) call_side_effect_data
+     with
     | exception Not_found ->
-      Rpp_options.Self.abort ~source:loc "The id %s is unknown in this clause" id
+      Rpp_options.Self.abort ~source "The id %s is unknown in this clause" id
     | _ ->  Here)
-  | _ -> Rpp_options.Self.abort ~source:loc "Expect label of the forme Pre_id or Post_id:@ @[%s@] @."
-           identifier
+  | _ ->
+    Rpp_options.Self.abort ~source
+      "Expect label of the forme Pre_id or Post_id:@ @[%s@] @." identifier
 
 (**
      Function making "Set" stmt for a varinfo set to an expression
@@ -89,6 +98,10 @@ let function_return_type funct =
    Function making a copie of the local variable of copie funct for new_funct
 *)
 let make_local new_funct copie_funct i self loc inlining =
+  match Kernel_function.get_definition copie_funct with
+  | exception _ -> []
+  | copie_funct ->
+    begin
   let rec aux locals i acc =
     match locals with
     | [] -> acc
@@ -103,10 +116,9 @@ let make_local new_funct copie_funct i self loc inlining =
       aux q i (varinfo:: acc)
   in
   match inlining with
-  (*TODO return empty list id inlining is equals to 0. The term inliner will not work. Wait
-    before merge request for seprated generation is merged.*)
   | 0 -> copie_funct.slocals
   | _ ->  List.rev(aux copie_funct.slocals i [])
+    end
 
 
 type side_effect = {
@@ -141,12 +153,13 @@ let check_function_side_effect funct loc =
                 | exception Not_found -> sort_pointer q acc ((h,v)::acc_p)
                 | _ -> sort_pointer q ((h,v)::acc) acc_p
               end
-            | None ->  Rpp_options.Self.abort ~source:loc
-                         "Not supported parameter in \\assigns \\from \
+            | None ->
+              Rpp_options.Self.abort ~source:(fst loc)
+                "Unsupported parameter in \\assigns \\from \
                           annotation (not varinfo): @. @[%a@] @."
                          Printer.pp_logic_var l_v
           end
-        | _ -> Rpp_options.Self.fatal ~source:loc
+        | _ -> Rpp_options.Self.fatal ~source:(fst loc)
                  "Something went wrong during verification of assignes definition: \
                   @. @[%a@] @. is not supported."
                  Printer.pp_term h
@@ -162,9 +175,11 @@ let check_function_side_effect funct loc =
                        TBinOp(IndexPI,{term_node = TLval(TVar(_),TNoOffset)},
                               {term_node = Trange(_,_)})}),TNoOffset)} :: q ->
       check_pointer q
-    | _ -> Rpp_options.Self.abort ~source:loc
-             "Not supported definition of pointer \
-              assignment in assigns clause:@. @[%a@] @." Printer.pp_term (List.hd l)
+    | _ ->
+      Rpp_options.Self.abort ~source:(fst loc)
+        "Unsupported definition of pointer \
+         assignment in assigns clause:@. @[%a@] @."
+        Printer.pp_term (List.hd l)
   in
   let rec fillter l acc f =
     match l with
@@ -188,14 +203,17 @@ let check_function_side_effect funct loc =
                   supported_side_effect q acc acc_p
                 | _ -> supported_side_effect q (v::acc) acc_p
               end
-            | None ->  Rpp_options.Self.abort ~source:loc
-                         "Not supported parameter in \\assigns \\from annotation (not varinfo)"
+            | None ->
+              Rpp_options.Self.abort ~source:(fst loc)
+                "Unsupported parameter in \\assigns \\from \
+                 annotation (not varinfo)"
           end
         | TLval(TResult(_),_) -> supported_side_effect q acc acc_p
         | TLval(TMem(_),TNoOffset) -> supported_side_effect q acc ((h.it_content)::acc_p)
-        | TLval(TMem(_),_)-> Rpp_options.Self.abort ~source:loc
-                               "Not supported paramter in \\assigns \\from annotation (pointer)"
-        | _ ->  Rpp_options.Self.abort ~source:loc
+        | TLval(TMem(_),_)->
+          Rpp_options.Self.abort ~source:(fst loc)
+            "Unsupported paramter in \\assigns \\from annotation (pointer)"
+        | _ -> Rpp_options.Self.abort ~source:(fst loc)
                   "Not supported paramter in \\assigns \\from annotation:@. @[%a@] @."
                   Printer.pp_term h.it_content
       end
@@ -203,7 +221,8 @@ let check_function_side_effect funct loc =
   let rec sort_assigns_form l acc =
     match l with
     | [] -> acc
-    | (_,FromAny) :: _ ->  Rpp_options.Self.abort ~source:loc
+    | (_,FromAny) :: _ ->
+      Rpp_options.Self.abort ~source:(fst loc)
                              "The \\call require \\assigns \\from annotations"
     | (assigns,From(l)) :: q ->
       let (ass,ass_p),(froms,froms_p) = acc in
@@ -220,7 +239,8 @@ let check_function_side_effect funct loc =
     | x :: y  ->
       let data =
         (match x.b_assigns with
-         | WritesAny -> Rpp_options.Self.abort ~source:loc
+         | WritesAny ->
+           Rpp_options.Self.abort ~source:(fst loc)
                           "The \\call require \\assigns \\from annotations"
          | Writes([])-> get_assigns_form y acc
          | Writes(l) -> sort_assigns_form l acc )
@@ -231,7 +251,8 @@ let check_function_side_effect funct loc =
   let behaviours = Annotations.behaviors ~populate:false kf in
   begin
     match behaviours with
-    | [] -> Rpp_options.Self.abort ~source:loc
+    | [] ->
+      Rpp_options.Self.abort ~source:(fst loc)
               "The RPP require \\assigns \\from annotations for function %a"
               Printer.pp_fundec (Kernel_function.get_definition kf)
     | _ -> ()
@@ -290,13 +311,13 @@ let pretty_effect_data func data =
     (Pretty_utils.pp_list ~sep:"," ~pre:"[" ~suf:"]" Printer.pp_term)
     (f data.from_p_f)
 
-let rec make_unique_gloable_name ?(acc:int = 0) n formals =
+let rec make_unique_global_name ?(acc:int = 0) n formals =
   match List.find(fun x -> String.equal x.vname n) formals with
   | exception Not_found -> n
   | _ -> let new_name = String.concat "_" [n; string_of_int acc ] in
-    make_unique_gloable_name ~acc:(acc+1) new_name formals
+    make_unique_global_name ~acc:(acc+1) new_name formals
 
-let make_globale globale id map_ex self loc pos formals num =
+let make_global global id map_ex self loc formals num =
   let map = Cil_datatype.Varinfo.Map.empty
   in
   let rec aux global i m acc =
@@ -306,12 +327,13 @@ let make_globale globale id map_ex self loc pos formals num =
       match Cil_datatype.Varinfo.Map.find h map_ex with
       | exception Not_found ->
         let name = String.concat "_" [h.vname; id ; string_of_int num] in
-        let name = make_unique_gloable_name name formals in
+        let name = make_unique_global_name name formals in
         let varinfo =
           Cil.makeGlobalVar
-            ~source:true ~temp:false name (get_typ_in_current_project h.vtype self loc)
+            ~source:true ~temp:false name
+            (get_typ_in_current_project h.vtype self loc)
         in
-        varinfo.vdecl <- pos;
+        varinfo.vdecl <- loc;
         varinfo.vdefined <- true;
         varinfo.vreferenced <- true;
         (*Globals.Vars.add_decl varinfo;*)
@@ -322,7 +344,7 @@ let make_globale globale id map_ex self loc pos formals num =
         let m = Cil_datatype.Varinfo.Map.add h v m in
         aux q i m (v::acc)
   in
-  aux globale id map []
+  aux global id map []
 
 let rec clone_killer l1 acc f=
   match l1 with
@@ -342,9 +364,10 @@ let typer func env formals =
         begin
           match l_v.lv_origin with
           | Some x -> (x::fq,None::eq)
-          | None -> Rpp_options.Self.fatal ~source:env.loc
-                      "Something went wrong:\
-                       Logic variable @[%a@] have not originale varinfo."
+          | None ->
+            Rpp_options.Self.fatal ~source:(fst env.loc)
+              "Something went wrong: Logic variable @[%a@] \
+               does not have original varinfo."
                       Printer.pp_logic_var l_v
         end
       | _ ->
@@ -358,7 +381,7 @@ let typer func env formals =
           | Linteger, TNamed({ttype = TInt _},_) ->
             get_typ_in_current_project t env.self#behavior env.loc
           | Lreal ,TInt(_) | Lreal , TFloat(_) -> t
-          | _,_ ->  Rpp_options.Self.fatal ~source:env.loc
+          | _,_ ->  Rpp_options.Self.fatal ~source:(fst env.loc)
                       "Something went wrong during parsing:@.\
                        Function %s is called with a parameter with type \
                        is not supported:@. @[%a@] @."
@@ -368,11 +391,12 @@ let typer func env formals =
           Cil.makeLocalVar env.new_funct name term_type
         in
         let term_to_exp = !(Db.Properties.Interp.term_to_exp) in
-        let exp = term_to_exp None fh in
+        let exp = term_to_exp ~result:None fh in
         (assert_varinfo::fq,Some(exp,assert_varinfo,fh)::eq))
     ([],[]) formals args
 
 let inliner env inline_data data globals data_annot num proof =
+
   Queue.add(fun () ->
       (* Get the body of the function and add it to the wrapper function*)
       let bodie =
@@ -381,11 +405,11 @@ let inliner env inline_data data globals data_annot num proof =
           inline_data.kf  (inline_data.formals) (inline_data.return_option)
           (inline_data.locals) (inline_data.id_option)
           data (inline_data.inlining)
-          env.new_funct (env.self) (env.proj) (env.loc,env.loc) data_annot num
+          env.new_funct (env.self) (env.proj) env.loc data_annot num
       in
       env.new_funct.sbody.blocals <- env.new_funct.sbody.blocals @
                                      inline_data.formal_var @
-                                     Extlib.list_of_opt inline_data.return_option;
+                                     Option.to_list inline_data.return_option;
       env.new_funct.sbody.bstmts <- env.new_funct.sbody.bstmts @ inline_data.formal_exp
                                     @ [(Cil.mkStmt ~valid_sid:true (Block bodie))];
       (*The body include some assert clauses corresponding to requires clauses*)
@@ -401,8 +425,10 @@ let inliner env inline_data data globals data_annot num proof =
         Rpp_generator.sort_funbehavior behaviours
       in
       List.iter(fun data ->
+          let top_pred = Logic_const.(toplevel_predicate (pred_of_id_pred data)) in
           let the_code_annotation =
-            Logic_const.new_code_annotation (AAssert ([],(Logic_const.pred_of_id_pred data)))
+            Logic_const.new_code_annotation
+              (AAssert ([],top_pred))
           in
           Annotations.add_code_annot
             Rpp_options.emitter ~kf:(Globals.Functions.get (env.new_funct.svar))
@@ -422,9 +448,10 @@ let inliner env inline_data data globals data_annot num proof =
       let globals = List.map (
           fun x ->
             match x.lv_origin with
-            | None -> Rpp_options.Self.fatal ~source:env.loc
-                        "Something went wrong:\
-                         Logic variable @[%a@] have not originale varinfo."
+            | None ->
+              Rpp_options.Self.fatal ~source:(fst env.loc)
+                "Something went wrong: Logic variable @[%a@] \
+                 does have not original varinfo."
                         Printer.pp_logic_var x
             | Some x -> x
         ) globals
@@ -432,17 +459,10 @@ let inliner env inline_data data globals data_annot num proof =
       let formal_map =
         inline_data.formal_map
       in
-      let vis =
-        new Rpp_generator.aux_visitor_3
-          env.self#behavior
-          ((Kernel_function.get_formals  ((Globals.Functions.get (env.new_funct.svar))))
-           @globals)
-          (formal_map)
-      in
       let new_predicate =
-        List.map(fun x ->
-            Visitor.visitFramacIdPredicate vis x;
-          ) requires
+        Rpp_generator.do_one_require_vis
+          env.self env.new_funct globals formal_map
+          inline_data.kf requires
       in
       let funbehs =
         Cil.mk_behavior ~name:"default!" ~requires:new_predicate ()
@@ -490,7 +510,7 @@ let make_separate env inline_info call_side_effect_data=
   (**
      Visitor for checking there is no memory charing
   *)
-class separate_checker l terms id = object(_)
+class separate_checker loc terms id = object(_)
   inherit Visitor.frama_c_inplace
 
   method! vterm t =
@@ -499,15 +519,18 @@ class separate_checker l terms id = object(_)
       List.iter (fun x ->
           match Cil_datatype.Term.equal x t with
           | true ->
-            Rpp_options.Self.abort ~source:l
-              "Pointer variable %a is assigns or used in trace %s but also in \
-               an over trace.@. Memory sharing is not supported yet. Declare a \
+            Rpp_options.Self.abort ~source:(fst loc)
+              "Pointer variable %a is assigned or used in trace %s \
+               but also in another trace. \
+               Memory sharing is not supported yet. Declare a \
                new pointer variable for trace %s" Printer.pp_term x id id;
           | false -> ()) terms; Cil.DoChildren
     | _ -> Cil.DoChildren
 end
 
-let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot num =
+let predicate_visitor
+    ?(proof=false) predicate new_funct self proj data_annot num
+  =
   let v = object (self)
     inherit [_] Rpp_visitor.rpp_visitor
 
@@ -560,12 +583,14 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
                              t (env.self#behavior) (env.loc))
         | Linteger -> Linteger
         | Lreal -> Lreal
-        | _ -> Rpp_options.Self.fatal ~source:env.loc
-                 "Match bad terme type in term:@. @[%a@] @." Printer.pp_term new_term
+        | _ ->
+          Rpp_options.Self.fatal ~source:(fst env.loc)
+            "Match bad term type in term:@. @[%a@] @."
+            Printer.pp_term new_term
       in
       let assert_term =
         Logic_const.term
-          ~loc:(env.pos)
+          ~loc:env.loc
           term_node_assert
           typ
       in
@@ -599,8 +624,9 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
       let (func_formals,new_exp) =
         typer func env formals
       in
-      let vis = new separate_checker
-        env.loc !formal_pointer_check id
+
+      (*Check absence of memory sharing between traces *)
+      let vis = new separate_checker env.loc !formal_pointer_check id
       in
       let visitor =
         Visitor.visitFramacTerm vis
@@ -609,7 +635,7 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
       formal_pointer_check := !formal_pointer_check@formals;
 
       (*Generation of stmt for auxiliarie local variable*)
-      let (new_stmt,new_stmt_var) = make_stmt_from_exp new_exp env.pos in
+      let (new_stmt,new_stmt_var) = make_stmt_from_exp new_exp env.loc in
 
       (*Generation of terms for the assert predicate and the copie information*)
       let func_type_return = function_return_type func (env.self#behavior) (env.loc)in
@@ -623,31 +649,27 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
         |TVoid(_) -> None
         | x -> Some (Cil.makeLocalVar (env.new_funct) name x)
       in
-      (*Generation des variables locals *)
-      let locals =
-        make_local (env.new_funct) (Kernel_function.get_definition (Globals.Functions.get func))
-          (Rpp_options.Counting_local_variable_copies.next()) env.self#behavior env.loc inline
-      in
-
       (*Génération des pointer globales*)
       let map = Cil_datatype.Varinfo.Map.empty in
       let (new_assigns_p,new_assigns_p_list) =
-        make_globale
+        make_global
           (List.fold_right (fun (_,x) acc -> x ::acc) data.assigns_p [])
-          id map env.self#behavior env.loc env.pos func_formals num
+          id map env.self#behavior env.loc func_formals num
       in
       let (new_froms_p,new_froms_p_list) =
-        make_globale
+        make_global
           (List.fold_right(fun (_,x) acc -> x ::acc) data.from_p [])
-          id new_assigns_p env.self#behavior env.loc env.pos func_formals num
+          id new_assigns_p env.self#behavior env.loc func_formals num
       in
       (*Génération des variable globales*)
       let map = Cil_datatype.Varinfo.Map.empty in
       let (new_assigns,new_assigns_list) =
-        make_globale data.assigns id map env.self#behavior env.loc env.pos func_formals num
+        make_global
+          data.assigns id map env.self#behavior env.loc func_formals num
       in
       let (new_froms,new_from_list) =
-        make_globale data.froms id  new_assigns env.self#behavior env.loc env.pos func_formals num
+        make_global
+          data.froms id  new_assigns env.self#behavior env.loc func_formals num
       in
       let f y =
         List.map(fun (x,_)-> x) y
@@ -656,8 +678,14 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
         (f data.from_p_f)@(f data.from_p)@(f data.assigns_p)@(f data.assigns_p_f)
       in
       let separated_term = clone_killer separated_term [] (Cil_datatype.Term.equal) in
-      let inline_data = {
-        kf = Globals.Functions.get func;
+      let kf = Globals.Functions.get func in
+      let locals =
+        make_local (env.new_funct) kf
+          (Rpp_options.Counting_local_variable_copies.next()) env.self#behavior env.loc inline
+      in
+      let inline_data =
+          {
+            kf;
         formal_var = new_stmt_var;
         formal_exp = new_stmt;
         separated_terms = separated_term;
@@ -699,9 +727,10 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
       let (func_formals,new_exp) =
         typer funct env formals
       in
+
       (*Generation of stmt for auxiliarie local variable*)
       let (new_stmt,new_stmt_var) =
-        make_stmt_from_exp new_exp env.pos
+        make_stmt_from_exp new_exp env.loc
       in
       (*Generation of terms for the assert predicate and the copie information*)
       let func_type_return =
@@ -713,26 +742,11 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
       let logic_var = Cil.cvar_to_lvar return in
       (*Generation des variables locals *)
       let kf = Globals.Functions.get funct in
-      let inline_data =
-        match Kernel_function.get_definition kf with
-        | exception _ ->
-          {
-            kf;
-            formal_var = new_stmt_var;
-            formal_exp = new_stmt;
-            separated_terms = [];
-            id_option = None;
-            inlining = 0;
-            formals = List.rev func_formals;
-            return_option = Some return;
-            locals = [];
-            formal_map = new_exp;
-          }
-        | f ->
           let locals =
-            make_local env.new_funct f
+        make_local env.new_funct kf
               (Rpp_options.Counting_local_variable_copies.next()) env.self#behavior env.loc inline
           in
+      let inline_data =
           {
             kf;
             formal_var = new_stmt_var;
@@ -750,7 +764,7 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
       let term_node_assert = TLval(TVar(logic_var),TNoOffset) in
       let new_term_assert =
         Logic_const.term
-          ~loc:(env.pos)
+          ~loc:(env.loc)
           term_node_assert
           (logic_var.lv_type)
       in
@@ -776,40 +790,48 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
           | None ->
             let assert_param_varinfo =
               try (Cil_datatype.Logic_var.Map.find logic_var !quant_map) with
-                Not_found -> Rpp_options.Self.abort ~source:env.loc
-                               "Unknow logical vaiable %s in \\at"
-                               logic_var.lv_name
+                Not_found ->
+                Rpp_options.Self.abort ~source:(fst env.loc)
+                  "Unknow logical variable %s in \\at" logic_var.lv_name
             in
             assert_param_varinfo
           | Some v ->
             let data =
-              try List.find (fun data -> String.equal id data.id_call) !call_side_effect_data with
-              | Not_found -> Rpp_options.Self.fatal ~source:env.loc
-                               "The identifier %s is suppose to existe according \
+              try
+                List.find
+                  (fun data -> String.equal id data.id_call)
+                  !call_side_effect_data
+              with
+              | Not_found ->
+                Rpp_options.Self.fatal ~source:(fst env.loc)
+                  "The identifier %s is supposed to exist according \
                                 to the parser, but cannot be found for label %s"
                                id label
             in
             let new_lv_assert =
               try Cil_datatype.Varinfo.Map.find v (data.froms_map_p) with
-              | Not_found -> Rpp_options.Self.abort ~source:env.loc
-                               "The pointer %a is suppose not to be\
-                                used in the assignement of an over variable"
+              | Not_found ->
+                Rpp_options.Self.abort ~source:(fst env.loc)
+                  "The pointer %a is not supposed to be \
+                   used in the assignment of another variable"
                                Printer.pp_varinfo v
             in
             new_lv_assert
         in
         let typ = match ty with
-          | Ctype t -> Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
+          | Ctype t ->
+            Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
           | Linteger -> Linteger
           | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc
-                   "Match bad terme type for logical variable:@. @[%a@] @."
+          | _ ->
+            Rpp_options.Self.fatal ~source:(fst env.loc)
+              "Match bad term type for logical variable:@. @[%a@] @."
                    Printer.pp_logic_var logic_var
         in
         let the_terme_node_assert = TLval(TVar(new_lv_assert),new_off) in
         let new_assert_term =
           Logic_const.term
-            ~loc:(env.pos)
+            ~loc:(env.loc)
             the_terme_node_assert
             typ
         in
@@ -820,23 +842,29 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
           | None ->
             let assert_param_varinfo =
               try Cil_datatype.Logic_var.Map.find logic_var !quant_map with
-                Not_found -> Rpp_options.Self.abort ~source:env.loc
-                               "Unknow logical vaiable %s in \\at"
-                               logic_var.lv_name
+                Not_found ->
+                Rpp_options.Self.abort ~source:(fst env.loc)
+                  "Unknow logical variable %s in \\at" logic_var.lv_name
             in
             assert_param_varinfo
           | Some v ->
             let data =
-              try List.find (fun data -> String.equal id data.id_call) !call_side_effect_data with
-              | Not_found -> Rpp_options.Self.fatal ~source:env.loc
-                               "The identifier %s is suppose to existe according \
+              try
+                List.find
+                  (fun data -> String.equal id data.id_call)
+                  !call_side_effect_data
+              with
+              | Not_found ->
+                Rpp_options.Self.fatal ~source:(fst env.loc)
+                  "The identifier %s is supposed to exist according \
                                 to the parser, but cannot be found for label %s"
                                id label
             in
             let new_lv_assert =
               try Cil_datatype.Varinfo.Map.find v (data.assigns_map_p) with
-              | Not_found -> Rpp_options.Self.abort ~source:env.loc
-                               "The pointer %a is suppose not to be assigned"
+              | Not_found ->
+                Rpp_options.Self.abort ~source:(fst env.loc)
+                  "The pointer %a is not supposed to be assigned"
                                Printer.pp_varinfo v
             in
             new_lv_assert
@@ -845,20 +873,23 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
           | Ctype t -> Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
           | Linteger -> Linteger
           | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc
-                   "Match bad terme type in term variable:@. @[%a@] @."
+          | _ ->
+            Rpp_options.Self.fatal ~source:(fst env.loc)
+              "Match bad term type in term variable:@. @[%a@] @."
                    Printer.pp_logic_var logic_var
         in
         let the_terme_node_assert = TLval(TVar(new_lv_assert),new_off) in
         let new_assert_term =
           Logic_const.term
-            ~loc:(env.pos)
+            ~loc:env.loc
             the_terme_node_assert
             typ
         in
         new_assert_term
-      | _ -> Rpp_options.Self.fatal ~source:env.loc
-               "Something went wrong during parsing: \\at have an unsupported label %s" label
+      | _ ->
+        Rpp_options.Self.fatal ~source:(fst env.loc)
+          "Something went wrong during parsing: \
+           \\at has an unsupported label %s" label
 
 
     method  build_Toffset_at env off _ =
@@ -870,11 +901,13 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
           Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
         | Linteger -> Linteger
         | Lreal -> Lreal
-        | _ ->  Rpp_options.Self.fatal ~source:env.loc "Match bad terme type in logic corece"
+        | _ ->
+          Rpp_options.Self.fatal
+            ~source:(fst env.loc) "Match bad term type in logic coerce"
       in
       let new_term_assert =
         Logic_const.term
-          ~loc:(env.pos)
+          ~loc:env.loc
           (TBinOp(binop,term1_assert,term2_assert))
           (new_ty)
       in
@@ -885,17 +918,22 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
         | Ctype t -> Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
         | Linteger -> Linteger
         | Lreal -> Lreal
-        | _ -> Rpp_options.Self.fatal ~source:env.loc "Match bad terme type in logic corece"
+        | _ ->
+          Rpp_options.Self.fatal
+            ~source:(fst env.loc) "Match bad term type in logic coerce"
       in
       let new_typ = match typ with
-        | Ctype t -> Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
+        | Ctype t ->
+          Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
         | Linteger -> Linteger
         | Lreal -> Lreal
-        | _ -> Rpp_options.Self.fatal ~source:env.loc "Match bad terme type in logic corece"
+        | _ ->
+          Rpp_options.Self.fatal
+            ~source:(fst env.loc) "Match bad term type in logic coerce"
       in
       let new_term_assert =
         Logic_const.term
-          ~loc:(env.pos)
+          ~loc:env.loc
           (TLogic_coerce(new_ty,term_assert))
           (new_typ)
       in
@@ -904,30 +942,24 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
     method  build_term_const env logic_const _ =
       match logic_const with
       | Integer(int,x) ->
-        let new_term =
-          Logic_const.term ~loc:(env.pos) (TConst (Integer (int,x))) Linteger
-        in
-        new_term
-      | LReal(l_r) ->
-        let new_term =
-          Logic_const.term ~loc:(env.pos) (TConst (LReal l_r)) Lreal
-        in
-        new_term
-      | _ -> Rpp_options.Self.fatal ~source:env.loc "Match bad term constant"
+        Logic_const.term ~loc:env.loc (TConst (Integer (int,x))) Linteger
+      | LReal(l_r) -> Logic_const.term ~loc:env.loc (TConst (LReal l_r)) Lreal
+      | _ ->
+        Rpp_options.Self.fatal ~source:(fst env.loc) "Match bad term constant"
 
     method build_Toffset env offset =
       match offset with
       | TNoOffset -> TNoOffset
       | TField(field_info,field_offset) ->
         let new_field_info =
-          Cil.get_fieldinfo (env.self#behavior) field_info
+          Visitor_behavior.Get.fieldinfo (env.self#behavior) field_info
         in
         let new_field_offset =
           self#build_Toffset env field_offset
         in
         TField(new_field_info,new_field_offset)
       | TModel(_,_) -> (** access to a model field. *)
-        Rpp_options.Self.abort ~source:env.loc
+        Rpp_options.Self.abort ~source:(fst env.loc)
           "Error in pedicate: access to a model field are not supported"
       (** index. Note that a range is denoted by [TIndex(Trange(i1,i2),ofs)] *)
       | TIndex(term_index,index_offset) ->
@@ -942,7 +974,8 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
     method  build_term_valvar env logic_var new_off ty =
       let assert_param_varinfo =
         try (Cil_datatype.Logic_var.Map.find logic_var !quant_map) with
-          Not_found ->  Rpp_options.Self.abort ~source:env.loc
+          Not_found ->
+          Rpp_options.Self.abort ~source:(fst env.loc)
                           "Error in predicate: terme %s has no quantifiers"
                           (logic_var.lv_name)
       in
@@ -953,7 +986,7 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
         in
         let assert_term =
           Logic_const.term
-            ~loc:(env.pos)
+            ~loc:env.loc
             term_node_assert
             (assert_param_varinfo.lv_type)
         in
@@ -963,14 +996,16 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
           | Ctype t -> Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
           | Linteger -> Linteger
           | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc "Match bad terme type in term variable"
+          | _ ->
+            Rpp_options.Self.fatal
+              ~source:(fst env.loc) "Match bad term type in term variable"
         in
         let term_node_assert =
           TLval(TVar(assert_param_varinfo),new_off)
         in
         let assert_term =
           Logic_const.term
-            ~loc:(env.pos)
+            ~loc:env.loc
             term_node_assert
             new_ty
         in
@@ -979,25 +1014,21 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
     method  build_term_app_result env id _ =
       let data =
         try List.find (fun data -> String.equal id  data.id_call) !call_side_effect_data with
-        | Not_found -> Rpp_options.Self.fatal ~source:env.loc
+        | Not_found ->
+          Rpp_options.Self.fatal ~source:(fst env.loc)
                          "The identifier %s is suppose to existe according to the \
                           parser, but cannot be found" id
       in
       let l_v = match data.return with
-        | None -> Rpp_options.Self.abort ~source:env.loc
+        | None ->
+          Rpp_options.Self.abort ~source:(fst env.loc)
                     "Id %s refer to a function with not return variable" id
         | Some x -> Cil.cvar_to_lvar x
       in
       let term_node_assert =
         TLval(TVar(l_v),TNoOffset)
       in
-      let assert_term =
-        Logic_const.term
-          ~loc:(env.pos)
-          term_node_assert
-          (l_v.lv_type)
-      in
-      assert_term
+      Logic_const.term ~loc:env.loc term_node_assert (l_v.lv_type)
 
     method  build_term_at_var env l_v new_off s _ =
       let v =
@@ -1006,11 +1037,13 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
         | None ->
           begin
             match Cil_datatype.Logic_var.Map.find l_v !quant_map with
-            | exception Not_found -> Rpp_options.Self.abort ~source:env.loc
-                                       "Unknow logical vaiable %a in \\at built-in"
+            | exception Not_found ->
+              Rpp_options.Self.abort ~source:(fst env.loc)
+                "Unknow logical variable %a in \\at built-in"
                                        Printer.pp_logic_var l_v
-            | _ -> Rpp_options.Self.abort ~source:env.loc
-                     "Logical vaiable %a in \\at built-in is a formal variable, \
+            | _ ->
+              Rpp_options.Self.abort ~source:(fst env.loc)
+                "Logical variable %a in \\at built-in is a formal variable, \
                       it can not be modified"
                      Printer.pp_logic_var l_v
           end
@@ -1018,67 +1051,67 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
       match Str.bounded_split (Str.regexp "_") s 2 with
       | "Pre":: id :: [] ->
         let data =
-          try List.find (fun data -> String.equal id data.id_call) !call_side_effect_data with
+          try
+            List.find
+              (fun data -> String.equal id data.id_call)
+              !call_side_effect_data
+          with
           | Not_found ->
-            Rpp_options.Self.fatal ~source:env.loc
-              "The identifier %s is suppose to existe according to \
+            Rpp_options.Self.fatal ~source:(fst env.loc)
+              "The identifier %s is supposed to exist according to \
                the parser, but cannot be found" id
         in
         let new_lv_assert =
           try Cil_datatype.Varinfo.Map.find v (data.froms_map) with
-          | Not_found -> Rpp_options.Self.abort ~source:env.loc
-                           "The variable %a is suppose not to be\
-                            used in the assignement of an over variable"
+          | Not_found ->
+            Rpp_options.Self.abort ~source:(fst env.loc)
+              "The variable %a is not supposed to be\
+               used in the assignement of another variable"
                            Printer.pp_varinfo v
         in
         let the_term_node_assert = TLval(TVar(new_lv_assert),new_off) in
         let new_the_term =
           Logic_const.term
-            ~loc:(env.pos)
+            ~loc:env.loc
             the_term_node_assert
             (new_lv_assert.lv_type)
         in
         let term_node_assert = Tat(new_the_term,BuiltinLabel(Pre)) in
-        let assert_term =
-          Logic_const.term
-            ~loc:(env.pos)
-            term_node_assert
-            (new_lv_assert.lv_type)
-        in
-        assert_term
+        Logic_const.term ~loc:env.loc term_node_assert (new_lv_assert.lv_type)
 
       | "Post" :: id :: [] ->
         let data =
-          try List.find (fun data -> String.equal id data.id_call) !call_side_effect_data with
-          | Not_found -> Rpp_options.Self.fatal ~source:env.loc
-                           "The identifier %s is suppose to existe according \
+          try
+            List.find
+              (fun data -> String.equal id data.id_call)
+              !call_side_effect_data
+          with
+          | Not_found ->
+            Rpp_options.Self.fatal ~source:(fst env.loc)
+              "The identifier %s is supposed to exist according \
                             to the parser, but cannot be found" id
         in
         let new_lv_assert =
           try Cil_datatype.Varinfo.Map.find v (data.assigns_map) with
-          | Not_found -> Rpp_options.Self.abort ~source:env.loc
-                           "The variable %s is suppose not to be assigned"
+          | Not_found ->
+            Rpp_options.Self.abort ~source:(fst env.loc)
+              "The variable %s is not supposed to be assigned"
                            v.vname
         in
         let the_term_node_assert = TLval(TVar(new_lv_assert),new_off) in
         let new_the_term =
           Logic_const.term
-            ~loc:(env.pos)
+            ~loc:env.loc
             the_term_node_assert
             (new_lv_assert.lv_type)
         in
         let term_node_assert = Tat(new_the_term,BuiltinLabel(Here)) in
-        let assert_term =
+        Logic_const.term ~loc:env.loc term_node_assert (new_lv_assert.lv_type)
 
-          Logic_const.term
-            ~loc:(env.pos)
-            term_node_assert
-            (new_lv_assert.lv_type)
-        in
-        assert_term
-
-      | _ -> Rpp_options.Self.fatal ~source:env.loc
-               "Something went wrong during parsing: \\at have an unsupported label %s" s
+      | _ ->
+        Rpp_options.Self.fatal ~source:(fst env.loc)
+          "Something went wrong during parsing: \
+           \\at has an unsupported label %s" s
 
     method  build_term_at_mem env t s ty =
       match Str.bounded_split (Str.regexp "_") s 2 with
@@ -1088,22 +1121,18 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
           | Ctype t -> Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
           | Linteger -> Linteger
           | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc "Match bad terme type in term variable"
+          | _ ->
+            Rpp_options.Self.fatal
+              ~source:(fst env.loc) "Match bad terme type in term variable"
         in
         let new_assert_term =
           Logic_const.term
-            ~loc:env.pos
+            ~loc:env.loc
             the_terme_node_assert
             typ
         in
         let term_node_assert = Tat(new_assert_term,BuiltinLabel(Pre)) in
-        let assert_term =
-          Logic_const.term
-            ~loc:env.pos
-            term_node_assert
-            typ
-        in
-        assert_term
+        Logic_const.term ~loc:env.loc term_node_assert typ
 
       | "Post" :: _ :: [] ->
         let the_terme_node_assert = TLval(TMem(t),TNoOffset) in
@@ -1111,25 +1140,20 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
           | Ctype t -> Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
           | Linteger -> Linteger
           | Lreal -> Lreal
-          | _ -> Rpp_options.Self.fatal ~source:env.loc "Match bad terme type in term variable"
+          | _ ->
+            Rpp_options.Self.fatal
+              ~source:(fst env.loc) "Match bad term type in term variable"
         in
         let new_assert_term =
-          Logic_const.term
-            ~loc:env.pos
-            the_terme_node_assert
-            typ
+          Logic_const.term ~loc:env.loc the_terme_node_assert typ
         in
         let term_node_assert = Tat(new_assert_term,BuiltinLabel(Here)) in
-        let assert_term =
-          Logic_const.term
-            ~loc:env.pos
-            term_node_assert
-            typ
-        in
-        assert_term
+        Logic_const.term ~loc:env.loc term_node_assert typ
 
-      | _ -> Rpp_options.Self.fatal ~source:env.loc
-               "Something went wrong during parsing: \\at have an unsupported label %s" s
+      | _ ->
+        Rpp_options.Self.fatal ~source:(fst env.loc)
+          "Something went wrong during parsing: \
+           \\at have an unsupported label %s" s
 
     method  build_term_unop env op  term_assert ty =
       let term_node_assert =
@@ -1141,248 +1165,143 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
         | Linteger -> Linteger
         | Lreal -> Lreal
         | _ ->
-          Rpp_options.Self.fatal ~source:env.loc "Match bad terme type in logic corece"
+          Rpp_options.Self.fatal
+            ~source:(fst env.loc) "Match bad term type in logic coerce"
       in
-      let assert_term =
-        Logic_const.term
-          ~loc:(env.pos)
-          term_node_assert
-          (new_ty)
-      in
-      assert_term
+      Logic_const.term ~loc:env.loc term_node_assert (new_ty)
 
     method  build_term_range env term1 term2 _ =
-      let (term1_assert,term2_assert)=
-        match term1,term2 with
-        | None, None-> (None,None)
-        | Some(term1_assert),None -> (Some term1_assert,None)
-        | None, Some(term2_assert) -> (None,Some term2_assert)
-        | Some(term1_assert),Some(term2_assert) -> (Some term1_assert,Some term2_assert)
-      in
-      let assert_term =
-        Logic_const.trange
-          ~loc:(env.pos)
-          (term1_assert,term2_assert)
-      in
-      assert_term
+      Logic_const.trange ~loc:env.loc (term1,term2)
 
     method build_term_app  env logic_info t_list ty =
-      let new_logicinfo = Cil.get_logic_info env.self#behavior logic_info in
+      let new_logicinfo = Visitor_behavior.Get.logic_info env.self#behavior logic_info in
       let new_ty = match ty with
         | Ctype t ->
           Ctype(get_typ_in_current_project t (env.self#behavior) (env.loc))
         | Linteger -> Linteger
         | Lreal -> Lreal
         | _ ->
-          Rpp_options.Self.fatal ~source:env.loc "Match bad terme type in logic corece"
+          Rpp_options.Self.fatal
+            ~source:(fst env.loc) "Match bad term type in logic application"
       in
       let term_node_assert =
         Tapp(new_logicinfo,[],t_list)
       in
-      let assert_term =
-        Logic_const.term
-          ~loc:(env.pos)
-          term_node_assert
-          new_ty
-      in
-      assert_term
+      Logic_const.term ~loc:env.loc term_node_assert new_ty
 
     method  build_predicate_rel env rel t1_assert t2_assert =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Prel(rel,t1_assert,t2_assert);
-      }
-      in
-      new_assert_predicate
+      Logic_const.prel ~loc:env.loc(rel,t1_assert,t2_assert)
 
-    method  build_predicate_false env =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Pfalse;
-      }
-      in
-      new_assert_predicate
+    method  build_predicate_false env = Logic_const.unamed ~loc:env.loc Pfalse
 
-    method  build_predicate_true env =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Pfalse;
-      }
-      in
-      new_assert_predicate
+    method  build_predicate_true env = Logic_const.unamed ~loc:env.loc Ptrue
 
     method  build_predicate_and env pred1_assert pred2_assert =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Pand(pred1_assert,pred2_assert);
-      }
-      in
-      new_assert_predicate
+      Logic_const.pand ~loc:env.loc (pred1_assert, pred2_assert)
 
     method  build_predicate_or env pred1_assert pred2_assert =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Por(pred1_assert,pred2_assert);
-      }
-      in
-      new_assert_predicate
+      Logic_const.por ~loc:env.loc (pred1_assert, pred2_assert)
 
     method  build_predicate_xor env pred1_assert pred2_assert =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Pxor(pred1_assert,pred2_assert);
-      }
-      in
-      new_assert_predicate
+      Logic_const.pxor ~loc:env.loc (pred1_assert, pred2_assert)
 
     method  build_predicate_implies env pred1_assert pred2_assert =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Pimplies(pred1_assert,pred2_assert);
-      }
-      in
-      new_assert_predicate
+      Logic_const.pimplies ~loc:env.loc (pred1_assert, pred2_assert)
 
     method  build_predicate_iff env pred1_assert pred2_assert =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Piff(pred1_assert,pred2_assert);
-      }
-      in
-      new_assert_predicate
+      Logic_const.piff ~loc:env.loc (pred1_assert, pred2_assert)
 
     method  build_predicate_not env pred_assert =
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Pnot(pred_assert);
-      }
-      in
-      new_assert_predicate
+      Logic_const.pnot ~loc:env.loc (pred_assert)
 
     method build_predicate_label env l =
-      let new_labels =
-        begin
-          fun l ->
-            List.map(
-              fun x ->
-                match x with
+      List.map
+        (function
                 | FormalLabel(id) ->
-                  (BuiltinLabel((id_convert id (env.loc) (!call_side_effect_data))))
-                | _ -> assert false) l
-        end
-      in
-      new_labels l
+            BuiltinLabel (id_convert id env.loc (!call_side_effect_data))
+          | _ -> assert false)
+        l
 
     method  build_predicate_app env logic_info l_assert t_list =
-      let new_logicinfo = Cil.get_logic_info env.self#behavior logic_info in
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Papp(new_logicinfo,l_assert,t_list);
-      }
-      in
-      new_assert_predicate
+      let new_logicinfo = Visitor_behavior.Get.logic_info env.self#behavior logic_info in
+      Logic_const.papp ~loc:env.loc (new_logicinfo,l_assert,t_list)
 
     method build_predicate_quan env quan =
-      List.iter (fun x ->
+      List.iter
+        (fun x ->
           match x.lv_type with
           | Ctype(t) ->
             let new_t =
               get_typ_in_current_project t env.self#behavior env.loc
             in
             let new_logic_var =
-              Cil_const.make_logic_var_quant
-                (x.lv_name) (Ctype(new_t))
+               Cil_const.make_logic_var_quant (x.lv_name) (Ctype(new_t))
             in
             begin
               match Cil_datatype.Logic_var.Map.find x !quant_map with
               | exception Not_found ->
-                quant_map := Cil_datatype.Logic_var.Map.add x new_logic_var !quant_map
-              | _ -> Rpp_options.Self.abort ~source:env.loc
-                       "Quantified logic variable %a already exists" Printer.pp_logic_var x
+                 quant_map :=
+                   Cil_datatype.Logic_var.Map.add x new_logic_var !quant_map
+               | _ ->
+                 Rpp_options.Self.abort ~source:(fst env.loc)
+                   "Quantified logic variable %a already exists"
+                   Printer.pp_logic_var x
             end
           | Linteger ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in pedicate: Mathematical integer in quantifier are not supported:@. @[%a@]@."
+             Rpp_options.Self.abort
+               ~source:(fst env.loc)
+               "@[<v 2>Error in predicate: \
+                Mathematical integers in quantifier are not supported:@;%a@]"
               Printer.pp_logic_var x
           | Lreal ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in pedicate: Mathematical real in quantifier are not supported:@. @[%a@]@."
+             Rpp_options.Self.abort ~source:(fst env.loc)
+               "@[<v 2>Error in predicate: \
+                Mathematical reals in quantifier are not supported:@;%a@]"
               Printer.pp_logic_var x
           | Ltype _ ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in pedicate: Logic type in quantifier are not supported:@. @[%a@]@."
+             Rpp_options.Self.abort ~source:(fst env.loc)
+               "@[<v 2>Error in predicate: \
+                Logic types in quantifier are not supported:@;%a@]"
               Printer.pp_logic_var x
           | Lvar _ ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in pedicate: Logic variable in quantifier are not supported:@. @[%a@]@."
+             Rpp_options.Self.abort ~source:(fst env.loc)
+               "@[<v 2>Error in pedicate: \
+                Logic variable in quantifier are not supported:@. @[%a@]@."
               Printer.pp_logic_var x
           | Larrow _ ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in predicate: Logic function type in quantifier are not supported:@. @[%a@]@."
+            Rpp_options.Self.abort ~source:(fst env.loc)
+              "@[<v 2>Error in predicate: \
+               Logic function types in quantifier are not supported:@;%a@]"
               Printer.pp_logic_var x)
         quan ;
       quan
 
-    method build_predicate_forall env quan pred =
-      let new_quant = List.map(fun x ->
+    method private build_predicate_quant env quan =
+      List.map
+        (fun x ->
           let new_logic_var =
             (try (Cil_datatype.Logic_var.Map.find x !quant_map) with
-             | Not_found -> Rpp_options.Self.fatal ~source:env.loc
+              | Not_found ->
+                Rpp_options.Self.fatal ~source:(fst env.loc)
                               "Quantified logic variable %a is not in the new \
-                               quantified logic varible" Printer.pp_logic_var x
-
-             | _ -> assert false)
+                   quantified logic variable"
+                  Printer.pp_logic_var x)
           in
           quant_map := Cil_datatype.Logic_var.Map.remove x !quant_map;
-          new_logic_var) quan
-      in
-      let new_predicate_content =
-        Pforall(new_quant,pred)
-      in
-      let new_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = new_predicate_content;
-      }
-      in
-      new_predicate
+           new_logic_var)
+        quan
 
-    method build_predicate_exists env quan pred =
-      let new_quant = List.map(fun x ->
-          let new_logic_var =
-            (try (Cil_datatype.Logic_var.Map.find x !quant_map) with
-             | Not_found -> Rpp_options.Self.fatal ~source:env.loc
-                              "Quantified logic variable %a is not in the new \
-                               quantified logic varible" Printer.pp_logic_var x
+    method build_predicate_forall env quant pred =
+      let new_quant = self#build_predicate_quant env quant in
+      Logic_const.pforall ~loc:env.loc (new_quant,pred)
 
-             | _ -> assert false)
-          in
-          quant_map := Cil_datatype.Logic_var.Map.remove x !quant_map;
-          new_logic_var) quan
-      in
-      let new_predicate_content =
-        Pexists(new_quant,pred)
-      in
-      let new_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = new_predicate_content;
-      }
-      in
-      new_predicate
+    method build_predicate_exists env quant pred =
+      let new_quant = self# build_predicate_quant env quant in
+      Logic_const.pexists ~loc:env.loc (new_quant,pred)
 
     method build_rpp_quan env quan =
-      List.iter (fun x ->
+      List.iter
+        (fun x ->
           match x.lv_type with
           | Ctype(t) ->
             let new_t =
@@ -1391,102 +1310,106 @@ let predicate_visitor ?(proof=false) predicate new_funct self proj data_annot nu
             let new_param_varinfo =
               Cil.makeFormalVar (env.new_funct) (x.lv_name) new_t
             in
-            quant_map := Cil_datatype.Logic_var.Map.add x (Cil.cvar_to_lvar new_param_varinfo) !quant_map;
-            fun_quant_map := Cil_datatype.Logic_var.Map.add x (Cil.cvar_to_lvar new_param_varinfo) !fun_quant_map
+             quant_map :=
+               Cil_datatype.Logic_var.Map.add
+                 x (Cil.cvar_to_lvar new_param_varinfo) !quant_map;
+             fun_quant_map :=
+               Cil_datatype.Logic_var.Map.add
+                 x (Cil.cvar_to_lvar new_param_varinfo) !fun_quant_map
 
           | Linteger ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in pedicate: A C function can not have a mathematical integer as parameter"
+             Rpp_options.Self.abort ~source:(fst env.loc)
+              "Error in predicate: A C function cannot \
+               have a mathematical integer as parameter"
           | Lreal ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in pedicate: A C function can not have a mathematical real as parameter"
+            Rpp_options.Self.abort ~source:(fst env.loc)
+              "Error in predicate: A C function cannot \
+               have a mathematical real as parameter"
           | Ltype _ ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in pedicate: A C function can not have a logic type as parameter"
+            Rpp_options.Self.abort ~source:(fst env.loc)
+              "Error in predicate: A C function cannot \
+               have a logic type as parameter"
           | Lvar _ ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in pedicate: A C function can not have a logic type variable as parameter"
+            Rpp_options.Self.abort ~source:(fst env.loc)
+              "Error in predicate: A C function cannot \
+               have a logic type variable as parameter"
           | Larrow _ ->
-            Rpp_options.Self.abort ~source:env.loc
-              "Error in predicate: A C function can not have a logic function type as parameter")
+            Rpp_options.Self.abort ~source:(fst env.loc)
+              "Error in predicate: A C function cannot \
+               have a logic function type as parameter")
         quan ;
 
     method build_rpp_predicate_forall env _ new_assert_predicate =
       make_separate env !inline_info !call_side_effect_data;
-      Queue.add(fun () ->
-          env.new_funct.sbody.bstmts <- env.new_funct.sbody.bstmts @ [Cil.mkStmt ~valid_sid:true (Return(None,(env.loc,env.loc)))];
-        )
-        env.self#get_filling_actions;new_assert_predicate
+      Queue.add(
+        fun () ->
+          env.new_funct.sbody.bstmts <-
+            env.new_funct.sbody.bstmts @
+            [Cil.mkStmt ~valid_sid:true (Return(None,env.loc))])
+        env.self#get_filling_actions;
+      new_assert_predicate
 
     method build_rpp_predicate_forall_callset env _ () new_assert_predicate =
       make_separate env !inline_info !call_side_effect_data;
-      Queue.add(fun () ->
-          env.new_funct.sbody.bstmts <- env.new_funct.sbody.bstmts @ [Cil.mkStmt ~valid_sid:true (Return(None,(env.loc,env.loc)))];
-        )
+      Queue.add(
+        fun () ->
+          env.new_funct.sbody.bstmts <-
+            env.new_funct.sbody.bstmts @
+            [Cil.mkStmt ~valid_sid:true (Return(None,env.loc))])
         env.self#get_filling_actions;
       new_assert_predicate
 
     method build_rpp_predicate_implies_callset env () new_assert_predicate =
       make_separate env !inline_info !call_side_effect_data;
-      Queue.add(fun () ->
-          env.new_funct.sbody.bstmts <- env.new_funct.sbody.bstmts @ [Cil.mkStmt ~valid_sid:true (Return(None,(env.loc,env.loc)))];
-        )
+      Queue.add(
+        fun () ->
+          env.new_funct.sbody.bstmts <-
+            env.new_funct.sbody.bstmts @
+            [Cil.mkStmt ~valid_sid:true (Return(None,env.loc))])
         env.self#get_filling_actions;
       new_assert_predicate
 
     method build_rpp_predicate_implies env new_assert_predicate =
       make_separate env !inline_info !call_side_effect_data;
-      Queue.add(fun () ->
-          env.new_funct.sbody.bstmts <- env.new_funct.sbody.bstmts @ [Cil.mkStmt ~valid_sid:true (Return(None,(env.loc,env.loc)))];
-        )
+      Queue.add(
+        fun () ->
+          env.new_funct.sbody.bstmts <-
+            env.new_funct.sbody.bstmts @
+            [Cil.mkStmt ~valid_sid:true (Return(None,env.loc))])
         env.self#get_filling_actions;
       new_assert_predicate
 
     method  build_rpp_predicate_rel env rel t1_assert t2_assert =
       make_separate env !inline_info !call_side_effect_data;
-      Queue.add(fun () ->
-          env.new_funct.sbody.bstmts <- env.new_funct.sbody.bstmts @ [Cil.mkStmt ~valid_sid:true (Return(None,(env.loc,env.loc)))];
-        )
+      Queue.add(
+        fun () ->
+          env.new_funct.sbody.bstmts <-
+            env.new_funct.sbody.bstmts @
+            [Cil.mkStmt ~valid_sid:true (Return(None,env.loc))])
         env.self#get_filling_actions;
-      let new_assert_predicate ={
-        pred_name = [];
-        pred_loc = env.pos;
-        pred_content = Prel(rel,t1_assert,t2_assert);
-      }
-      in
-      new_assert_predicate
-
+      Logic_const.prel ~loc:env.loc (rel,t1_assert,t2_assert)
   end
   in
-  let (loc,_)=predicate.pred_loc in
-  let env = {
-    loc = loc;
-    pos = predicate.pred_loc;
-    new_funct = new_funct;
-    proj = proj;
-    self = self;
-    proof = proof;
-  }
-  in
-  let new_predicate =
-    v#visit_rpp_predicate env predicate
-  in
+  let loc = predicate.pred_loc in
+  let env = { loc; new_funct; proj; self; proof} in
+  let new_predicate = v#visit_rpp_predicate env predicate in
 
   (*Add the assert clause in the new kernel function for the proof of the
                relational property and make relation between the properties of the
                assert and the corresponding lemma*)
-  let predicate_named =
-    Logic_const.new_predicate new_predicate
-  in
+  let predicate_named = Logic_const.new_predicate new_predicate in
   let the_code_annotation =
+    let top_pred =
+      Logic_const.(toplevel_predicate ~kind:Check (pred_of_id_pred predicate_named))
+    in
     Logic_const.new_code_annotation
-      (AAssert ([],(Logic_const.pred_of_id_pred predicate_named)))
+      (AAssert ([],top_pred))
   in
-  Queue.add(fun () ->
+  Queue.add(
+    fun () ->
       Annotations.add_code_annot
         Rpp_options.emitter ~kf:(Globals.Functions.get (env.new_funct.svar))
         (List.hd (List.rev env.new_funct.sbody.bstmts))
-        the_code_annotation;
-    )
+        the_code_annotation)
     self#get_filling_actions;
   the_code_annotation

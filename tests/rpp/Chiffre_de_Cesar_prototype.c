@@ -1,4 +1,6 @@
 /* run.config
+   OPT: -rpp -rpp-hyp
+   OPT: -rpp -rpp-pro
    OPT: -rpp
 */
 
@@ -21,13 +23,19 @@ struct tableau Cryptage(struct tableau Message, int length, int PubKey);
   @ requires 0 < PubKey < 127; 
   @ requires is_good(Message,length);
   @ assigns \result \from Message,length,PubKey;
-  @ relational \forall struct tableau message,int key,length; is_good(\callpure(Cryptage,message,length,key),length);
-  @ relational \forall struct tableau message ,message_beta1,message_beta2,int key,length; 
+ */
+struct tableau Decryptage(struct tableau Message, int length, int PubKey);
+
+/*@
+  relational \forall struct tableau message,int key,length; is_good(\callpure(Cryptage,message,length,key),length);
+*/
+ 
+/*@
+  relational \forall struct tableau message ,message_beta1,message_beta2,int key,length; 
   is_eq(message_beta2,message_beta1,length)  ==> 
   (message_beta1 == \callpure(Cryptage,message,length,key) ==> 
   is_eq(\callpure(Decryptage,message_beta2,length,key),message,length));
- */
-struct tableau Decryptage(struct tableau Message, int length, int PubKey);
+*/
 
 /*@ ensures is_eq(\result,message,len);
   @ assigns \nothing;

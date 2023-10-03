@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/Node-false.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/Node-false.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -29,13 +29,14 @@ int get(int id, int *t);
 int getID(struct Node o1);
 
 /*@
-axiomatic Relational_axiome_3 {
-  logic int compare_acsl_pure_3(struct Node o1, struct Node o2, int *Map) ;
+axiomatic Relational_axiome_2 {
+  logic int compare_acsl_pure_2(struct Node o1, struct Node o2, int *Map) ;
   
-  lemma Relational_lemma_3{L}:
+  lemma Relational_lemma_2{L}:
     ∀ struct Node x1, struct Node x2, struct Node x3, int *Map;
-      compare_acsl_pure_3(x1, x2, Map) ≡ 0 ⇒
-      compare_acsl_pure_3(x1, x3, Map) ≡ compare_acsl_pure_3(x2, x3, Map);
+      compare_acsl_pure_2(x1, x2, Map) > 0 ∧
+      compare_acsl_pure_2(x2, x3, Map) > 0 ⇒
+      compare_acsl_pure_2(x1, x3, Map) > 0;
   
   }
  */
@@ -50,14 +51,13 @@ axiomatic Relational_axiome_1 {
   }
  */
 /*@
-axiomatic Relational_axiome_2 {
-  logic int compare_acsl_pure_2(struct Node o1, struct Node o2, int *Map) ;
+axiomatic Relational_axiome_3 {
+  logic int compare_acsl_pure_3(struct Node o1, struct Node o2, int *Map) ;
   
-  lemma Relational_lemma_2{L}:
+  lemma Relational_lemma_3{L}:
     ∀ struct Node x1, struct Node x2, struct Node x3, int *Map;
-      compare_acsl_pure_2(x1, x2, Map) > 0 ∧
-      compare_acsl_pure_2(x2, x3, Map) > 0 ⇒
-      compare_acsl_pure_2(x1, x3, Map) > 0;
+      compare_acsl_pure_3(x1, x2, Map) ≡ 0 ⇒
+      compare_acsl_pure_3(x1, x3, Map) ≡ compare_acsl_pure_3(x2, x3, Map);
   
   }
  */
@@ -120,11 +120,71 @@ int compare(struct Node o1, struct Node o2, int *Map)
   return_label: return __retres;
 }
 
-int getID_aux_1(struct Node o1);
+/*@ requires 0 ≤ id < 1000;
+    ensures \result ≡ *(\old(t) + \old(id));
+    assigns \result;
+    assigns \result \from id, *(t + (0 .. 1000));
+ */
+int get_aux_3(int id, int *t);
 
+/*@ requires 0 ≤ id < 1000;
+    ensures *(\old(t) + \old(id)) ≢ -1 ⇒ \result ≡ 1;
+    ensures *(\old(t) + \old(id)) ≡ -1 ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from id, *(t + (0 .. 1000));
+ */
+int containsKey_aux_3(int id, int *t);
+
+/*@ ensures \result ≡ \old(o1.ID);
+    ensures 0 ≤ \result < 1000;
+    assigns \result;
+    assigns \result \from o1;
+ */
+int getID_aux_3(struct Node o1);
+
+/*@ requires 0 ≤ id < 1000;
+    ensures \result ≡ *(\old(t) + \old(id));
+    assigns \result;
+    assigns \result \from id, *(t + (0 .. 1000));
+ */
+int get_aux_2(int id, int *t);
+
+/*@ requires 0 ≤ id < 1000;
+    ensures *(\old(t) + \old(id)) ≢ -1 ⇒ \result ≡ 1;
+    ensures *(\old(t) + \old(id)) ≡ -1 ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from id, *(t + (0 .. 1000));
+ */
+int containsKey_aux_2(int id, int *t);
+
+/*@ ensures \result ≡ \old(o1.ID);
+    ensures 0 ≤ \result < 1000;
+    assigns \result;
+    assigns \result \from o1;
+ */
+int getID_aux_2(struct Node o1);
+
+/*@ requires 0 ≤ id < 1000;
+    ensures \result ≡ *(\old(t) + \old(id));
+    assigns \result;
+    assigns \result \from id, *(t + (0 .. 1000));
+ */
+int get_aux_1(int id, int *t);
+
+/*@ requires 0 ≤ id < 1000;
+    ensures *(\old(t) + \old(id)) ≢ -1 ⇒ \result ≡ 1;
+    ensures *(\old(t) + \old(id)) ≡ -1 ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from id, *(t + (0 .. 1000));
+ */
 int containsKey_aux_1(int id, int *t);
 
-int get_aux_1(int id, int *t);
+/*@ ensures \result ≡ \old(o1.ID);
+    ensures 0 ≤ \result < 1000;
+    assigns \result;
+    assigns \result \from o1;
+ */
+int getID_aux_1(struct Node o1);
 
 /*@ requires \valid(Map + (0 .. 1000));
     requires \valid(Map + (0 .. 1000)); */
@@ -226,17 +286,11 @@ void relational_wrapper_1(struct Node x1, struct Node x2, int *Map)
     __retres_2 = 0;
     return_label_label_2: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
 }
-
-int getID_aux_2(struct Node o1);
-
-int containsKey_aux_2(int id, int *t);
-
-int get_aux_2(int id, int *t);
 
 /*@ requires \valid(Map + (0 .. 1000));
     requires \valid(Map + (0 .. 1000));
@@ -389,19 +443,13 @@ void relational_wrapper_2(struct Node x1, struct Node x2, struct Node x3,
     __retres_5 = 0;
     return_label_label_5: return_variable_relational_5 = __retres_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
   */
   return;
 }
-
-int getID_aux_3(struct Node o1);
-
-int containsKey_aux_3(int id, int *t);
-
-int get_aux_3(int id, int *t);
 
 /*@ requires \valid(Map + (0 .. 1000));
     requires \valid(Map + (0 .. 1000));
@@ -554,79 +602,13 @@ void relational_wrapper_3(struct Node x1, struct Node x2, struct Node x3,
     __retres_8 = 0;
     return_label_label_8: return_variable_relational_8 = __retres_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;
   */
   return;
 }
-
-/*@ requires 0 ≤ id < 1000;
-    ensures \result ≡ *(\old(t) + \old(id));
-    assigns \result;
-    assigns \result \from id, *(t + (0 .. 1000));
- */
-int get_aux_3(int id, int *t);
-
-/*@ requires 0 ≤ id < 1000;
-    ensures *(\old(t) + \old(id)) ≢ -1 ⇒ \result ≡ 1;
-    ensures *(\old(t) + \old(id)) ≡ -1 ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from id, *(t + (0 .. 1000));
- */
-int containsKey_aux_3(int id, int *t);
-
-/*@ ensures \result ≡ \old(o1.ID);
-    ensures 0 ≤ \result < 1000;
-    assigns \result;
-    assigns \result \from o1;
- */
-int getID_aux_3(struct Node o1);
-
-/*@ requires 0 ≤ id < 1000;
-    ensures \result ≡ *(\old(t) + \old(id));
-    assigns \result;
-    assigns \result \from id, *(t + (0 .. 1000));
- */
-int get_aux_2(int id, int *t);
-
-/*@ requires 0 ≤ id < 1000;
-    ensures *(\old(t) + \old(id)) ≢ -1 ⇒ \result ≡ 1;
-    ensures *(\old(t) + \old(id)) ≡ -1 ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from id, *(t + (0 .. 1000));
- */
-int containsKey_aux_2(int id, int *t);
-
-/*@ ensures \result ≡ \old(o1.ID);
-    ensures 0 ≤ \result < 1000;
-    assigns \result;
-    assigns \result \from o1;
- */
-int getID_aux_2(struct Node o1);
-
-/*@ requires 0 ≤ id < 1000;
-    ensures \result ≡ *(\old(t) + \old(id));
-    assigns \result;
-    assigns \result \from id, *(t + (0 .. 1000));
- */
-int get_aux_1(int id, int *t);
-
-/*@ requires 0 ≤ id < 1000;
-    ensures *(\old(t) + \old(id)) ≢ -1 ⇒ \result ≡ 1;
-    ensures *(\old(t) + \old(id)) ≡ -1 ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from id, *(t + (0 .. 1000));
- */
-int containsKey_aux_1(int id, int *t);
-
-/*@ ensures \result ≡ \old(o1.ID);
-    ensures 0 ≤ \result < 1000;
-    assigns \result;
-    assigns \result \from o1;
- */
-int getID_aux_1(struct Node o1);
 
 
 [rpp] ***************************************

@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/Container-true.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/Container-true.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -42,16 +42,6 @@ axiomatic Relational_axiome_2 {
   }
  */
 /*@
-axiomatic Relational_axiome_1 {
-  logic int compare_acsl_pure_1(struct Container o1, struct Container o2) ;
-  
-  lemma Relational_lemma_1{L}:
-    ∀ struct Container x1, struct Container x2;
-      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
-  
-  }
- */
-/*@
 axiomatic Relational_axiome_3 {
   logic int compare_acsl_pure_3(struct Container o1, struct Container o2) ;
   
@@ -59,6 +49,16 @@ axiomatic Relational_axiome_3 {
     ∀ struct Container x1, struct Container x2, struct Container x3;
       compare_acsl_pure_3(x1, x2) ≡ 0 ⇒
       compare_acsl_pure_3(x1, x3) ≡ compare_acsl_pure_3(x2, x3);
+  
+  }
+ */
+/*@
+axiomatic Relational_axiome_1 {
+  logic int compare_acsl_pure_1(struct Container o1, struct Container o2) ;
+  
+  lemma Relational_lemma_1{L}:
+    ∀ struct Container x1, struct Container x2;
+      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
   
   }
 
@@ -92,6 +92,28 @@ int compare(struct Container o1, struct Container o2)
   return rv;
 }
 
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
+int IntCompare_aux_3(int x, int y);
+
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
+int IntCompare_aux_2(int x, int y);
+
+/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
+    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
+    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
+    assigns \result;
+    assigns \result \from x, y;
+ */
 int IntCompare_aux_1(int x, int y);
 
 void relational_wrapper_1(struct Container x1, struct Container x2)
@@ -128,13 +150,11 @@ void relational_wrapper_1(struct Container x1, struct Container x2)
         }
     return_variable_relational_2 = rv_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
 }
-
-int IntCompare_aux_2(int x, int y);
 
 void relational_wrapper_2(struct Container x1, struct Container x2,
                           struct Container x3)
@@ -187,15 +207,13 @@ void relational_wrapper_2(struct Container x1, struct Container x2,
         }
     return_variable_relational_5 = rv_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
   */
   return;
 }
-
-int IntCompare_aux_3(int x, int y);
 
 void relational_wrapper_3(struct Container x1, struct Container x2,
                           struct Container x3)
@@ -248,37 +266,13 @@ void relational_wrapper_3(struct Container x1, struct Container x2,
         }
     return_variable_relational_8 = rv_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;
   */
   return;
 }
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_3(int x, int y);
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_2(int x, int y);
-
-/*@ ensures \old(x) < \old(y) ⇒ \result ≡ -1;
-    ensures \old(x) > \old(y) ⇒ \result ≡ 1;
-    ensures \old(x) ≡ \old(y) ⇒ \result ≡ 0;
-    assigns \result;
-    assigns \result \from x, y;
- */
-int IntCompare_aux_1(int x, int y);
 
 
 [rpp] ***************************************

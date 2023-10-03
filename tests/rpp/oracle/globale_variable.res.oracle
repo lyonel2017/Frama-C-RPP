@@ -45,7 +45,7 @@ void relational_wrapper_1(void)
     y_id2_1 += a_2;
     ;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         \at(y_id1_1,Pre) < \at(y_id2_1,Pre) ⇒
         \at(y_id1_1,Here) < \at(y_id2_1,Here);

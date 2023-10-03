@@ -69,46 +69,6 @@ int f(int n, int *t)
   return s;
 }
 
-int f_id2(int n, int *t);
-
-/*@ requires \separated(t1 + (0 .. n), t2 + (0 .. n));
-    requires n > 0;
-    requires \valid(t2 + (0 .. n));
-    requires n > 0;
-    requires \valid(t1 + (0 .. n));
- */
-void relational_wrapper_1(int n, int *t1, int *t2)
-{
-  int return_variable_relational_1;
-  int return_variable_relational_2;
-  {
-    /*@ assert Rpp: n > 0; */
-    /*@ assert Rpp: \valid(t1 + (0 .. n)); */
-    int i_1 = 0;
-    int s_1 = 0;
-    i_1 = 0;
-    /*@ loop invariant 0 ≤ i_1 ≤ n ∧ s_1 ≡ sum(t1, 0, i_1);
-        loop assigns s_1, i_1;
-        loop variant n - i_1;
-    */
-    while (i_1 < n) {
-      s_1 += *(t1 + i_1);
-      i_1 ++;
-    }
-    return_variable_relational_1 = s_1;
-  }
-  /*@ assert Rpp: n > 0; */
-  /*@ assert Rpp: \valid(t2 + (0 .. n)); */
-  return_variable_relational_2 = f_id2(n,t2);
-  /*@ assert
-      Rpp:
-        (∀ int k; 0 ≤ k < n ⇒ \at(*(t1 + k),Pre) ≡ \at(*(t2 + k),Pre)) ⇒
-        return_variable_relational_1 ≡
-        return_variable_relational_2 + \at(*(t2 + (n - 1)),Pre);
-  */
-  return;
-}
-
 /*@
 axiomatic Relational_axiome_2 {
   predicate g_acsl_2{pre}(int n, int *t, int return_variable_relational) 
@@ -191,25 +151,26 @@ int p(int *t, int n)
   return __retres;
 }
 
-/*@ requires \separated(t1 + (0 .. aux_local_variable_1));
-    requires 10 > *(t1 + 9) > 0;
-    requires \valid(t1 + (0 .. *(t1 + 9)));
+/*@ requires 10 > n > 0;
+    requires \valid(t + (0 .. n));
+    assigns \result;
+    assigns \result \from n, *(t + (0 .. n));
  */
-void relational_wrapper_2(int *t1)
-{
-  int aux_local_variable_1;
-  int return_variable_relational_3;
-  aux_local_variable_1 = *(t1 + 9);
-  {
-    int __retres_3;
-    /*@ assert Rpp: 10 > aux_local_variable_1 > 0; */
-    /*@ assert Rpp: \valid(t1 + (0 .. aux_local_variable_1)); */
-    __retres_3 = *(t1 + aux_local_variable_1);
-    return_variable_relational_3 = __retres_3;
-  }
-  /*@ assert Rpp: return_variable_relational_3 ≡ \at(*(t1 + 10),Pre); */
-  return;
-}
+int k_id5(int *t, int n);
+
+/*@ requires n > 0;
+    requires \valid(t + (0 .. n));
+    assigns \result;
+    assigns \result \from n, *(t + (0 .. n));
+ */
+int g_id4(int n, int *t);
+
+/*@ requires n > 0;
+    requires \valid(t + (0 .. n));
+    assigns \result;
+    assigns \result \from n, *(t + (0 .. n));
+ */
+int g_id3(int n, int *t);
 
 /*@ requires n > 0;
     requires \valid(t + (0 .. n));
@@ -217,6 +178,105 @@ void relational_wrapper_2(int *t1)
     assigns \result \from n, *(t + (0 .. n));
  */
 int f_id2(int n, int *t);
+
+/*@ requires \separated(t1 + (0 .. n), t2 + (0 .. n));
+    requires n > 0;
+    requires \valid(t2 + (0 .. n));
+    requires n > 0;
+    requires \valid(t1 + (0 .. n));
+ */
+void relational_wrapper_1(int n, int *t1, int *t2)
+{
+  int return_variable_relational_1;
+  int return_variable_relational_2;
+  {
+    /*@ assert Rpp: n > 0; */
+    /*@ assert Rpp: \valid(t1 + (0 .. n)); */
+    int i_1 = 0;
+    int s_1 = 0;
+    i_1 = 0;
+    /*@ loop invariant 0 ≤ i_1 ≤ n ∧ s_1 ≡ sum(t1, 0, i_1);
+        loop assigns s_1, i_1;
+        loop variant n - i_1;
+    */
+    while (i_1 < n) {
+      s_1 += *(t1 + i_1);
+      i_1 ++;
+    }
+    return_variable_relational_1 = s_1;
+  }
+  /*@ assert Rpp: n > 0; */
+  /*@ assert Rpp: \valid(t2 + (0 .. n)); */
+  return_variable_relational_2 = f_id2(n,t2);
+  /*@ check
+      Rpp:
+        (∀ int k; 0 ≤ k < n ⇒ \at(*(t1 + k),Pre) ≡ \at(*(t2 + k),Pre)) ⇒
+        return_variable_relational_1 ≡
+        return_variable_relational_2 + \at(*(t2 + (n - 1)),Pre);
+  */
+  return;
+}
+
+/*@ requires \separated(t1 + (0 .. n), t2 + (0 .. n));
+    requires n > 0;
+    requires \valid(t2 + (0 .. n));
+    requires n > 0;
+    requires \valid(t1 + (0 .. n));
+ */
+void relational_wrapper_2(int n, int *t1, int *t2)
+{
+  int return_variable_relational_3;
+  int return_variable_relational_4;
+  /*@ assert Rpp: n > 0; */
+  /*@ assert Rpp: \valid(t1 + (0 .. n)); */
+  return_variable_relational_3 = g_id3(n,t1);
+  /*@ assert Rpp: n > 0; */
+  /*@ assert Rpp: \valid(t2 + (0 .. n)); */
+  return_variable_relational_4 = g_id4(n,t2);
+  /*@ check
+      Rpp:
+        (∀ int k; 0 ≤ k < n ⇒ \at(*(t1 + k),Pre) ≡ \at(*(t2 + k),Pre)) ⇒
+        return_variable_relational_3 ≡
+        return_variable_relational_4 + \at(*(t2 + (n - 1)),Pre);
+  */
+  return;
+}
+
+/*@ requires \separated(t1 + (0 .. aux_local_variable_1));
+    requires 10 > *(t1 + 9) > 0;
+    requires \valid(t1 + (0 .. *(t1 + 9)));
+ */
+void relational_wrapper_3(int *t1)
+{
+  int aux_local_variable_1;
+  int return_variable_relational_5;
+  aux_local_variable_1 = *(t1 + 9);
+  /*@ assert Rpp: 10 > aux_local_variable_1 > 0; */
+  /*@ assert Rpp: \valid(t1 + (0 .. aux_local_variable_1)); */
+  return_variable_relational_5 = k_id5(t1,aux_local_variable_1);
+  /*@ check Rpp: return_variable_relational_5 ≡ \at(*(t1 + 10),Pre); */
+  return;
+}
+
+/*@ requires \separated(t1 + (0 .. aux_local_variable_2));
+    requires 10 > *(t1 + 9) > 0;
+    requires \valid(t1 + (0 .. *(t1 + 9)));
+ */
+void relational_wrapper_4(int *t1)
+{
+  int aux_local_variable_2;
+  int return_variable_relational_6;
+  aux_local_variable_2 = *(t1 + 9);
+  {
+    int __retres_6;
+    /*@ assert Rpp: 10 > aux_local_variable_2 > 0; */
+    /*@ assert Rpp: \valid(t1 + (0 .. aux_local_variable_2)); */
+    __retres_6 = *(t1 + aux_local_variable_2);
+    return_variable_relational_6 = __retres_6;
+  }
+  /*@ check Rpp: return_variable_relational_6 ≡ \at(*(t1 + 10),Pre); */
+  return;
+}
 
 
 [rpp] ***************************************

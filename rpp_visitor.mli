@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -18,7 +18,8 @@
 (*  for more details (enclosed in the file LICENSE).                      *)
 (**************************************************************************)
 
-val check_is_pure_function: Cil_types.kernel_function -> Lexing.position -> unit
+val check_is_pure_function:
+  Cil_types.kernel_function -> Filepath.position -> unit
 
 class virtual ['self] rpp_visitor : object('self)
   constraint 'a =

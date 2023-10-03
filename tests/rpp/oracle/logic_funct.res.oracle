@@ -37,7 +37,7 @@ void relational_wrapper_1(int x)
     __retres_1 = x + 1;
     return_variable_relational_1 = __retres_1;
   }
-  /*@ assert Rpp: return_variable_relational_1 ≡ f(x); */
+  /*@ check Rpp: return_variable_relational_1 ≡ f(x); */
   return;
 }
 

@@ -25,9 +25,16 @@ int f2(){
   @ requires y > 0;
   @ assigns y \from y;
   @ assigns x \from x;
-  @ relational \rela(\callset(\call(1,f1,id1),\call(1,f2,id2),\call(2,g,id3)),
-    \at(x,Pre_id1) == \at(x,Pre_id3) && \at(y,Pre_id2) == \at(y,Pre_id3) && \at(x,Pre_id1) == \at(y,Pre_id2)  ==> \callresult(id1) < \callresult(id2) < \callresult(id3));
 */
 int g(){
   return f1()+f2()+f1();
 }
+
+/*@ relational
+     \rela(
+       \callset(\call(1,f1,id1),\call(1,f2,id2),\call(2,g,id3)),
+       \at(x,Pre_id1) == \at(x,Pre_id3) &&
+       \at(y,Pre_id2) == \at(y,Pre_id3) &&
+       \at(x,Pre_id1) == \at(y,Pre_id2)
+       ==> \callresult(id1) < \callresult(id2) < \callresult(id3));
+*/

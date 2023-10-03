@@ -54,7 +54,7 @@ void relational_wrapper_1(int x, int y)
     __retres_2 = local_variable_relational_1 - y;
     return_variable_relational_1 = __retres_2;
   }
-  /*@ assert Rpp: return_variable_relational_1 ≡ x; */
+  /*@ check Rpp: return_variable_relational_1 ≡ x; */
   return;
 }
 

@@ -29,9 +29,6 @@ int getID(struct Node o1);
 
 /*@ requires \valid(Map+(0..1000));
   @ assigns \result \from o1,o2,Map[0..100];
-  @ relational \forall struct Node x1,x2, int *Map; \callpure(compare,x1,x2,Map) == -(\callpure(compare,x2,x1,Map));
-  @ relational \forall struct Node x1,x2,x3, int *Map; (\callpure(compare,x1,x2,Map) > 0 && \callpure(compare,x2,x3,Map) > 0) ==> \callpure(compare,x1,x3,Map) > 0;
-  @ relational \forall struct Node x1,x2,x3, int *Map; \callpure(compare,x1,x2,Map) == 0 ==> (\callpure(compare,x1,x3,Map) == \callpure(compare,x2,x3,Map));
 */
 int compare(struct Node o1, struct Node o2, int *Map){
   if(containsKey(getID(o1),Map) && containsKey(getID(o2),Map)){
@@ -47,3 +44,20 @@ int compare(struct Node o1, struct Node o2, int *Map){
   }
   return 0;
 }
+
+/*@ relational
+      \forall struct Node x1,x2, int *Map;
+      \callpure(compare,x1,x2,Map) == -(\callpure(compare,x2,x1,Map));
+*/
+
+/*@ relational
+      \forall struct Node x1,x2,x3, int *Map;
+      (\callpure(compare,x1,x2,Map) > 0 && \callpure(compare,x2,x3,Map) > 0)
+      ==> \callpure(compare,x1,x3,Map) > 0;
+*/
+
+/*@ relational
+      \forall struct Node x1,x2,x3, int *Map;
+      \callpure(compare,x1,x2,Map) == 0 ==>
+      (\callpure(compare,x1,x3,Map) == \callpure(compare,x2,x3,Map));
+*/

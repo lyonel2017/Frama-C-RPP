@@ -1,24 +1,23 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
-(*    CEA (Commissariat a l'energie atomique et aux energies              *)
-(*         alternatives)                                                  *)
+(*  Copyright (C) 2016-2023                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*    alternatives)                                                       *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 3.                                                *)
+(*  Foundation, version 2.1.                                              *)
 (*                                                                        *)
 (*  It is distributed in the hope that it will be useful,                 *)
 (*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
 (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
 (*  GNU Lesser General Public License for more details.                   *)
 (*                                                                        *)
-(*  See the GNU Lesser General Public License version 3                   *)
-(*  for more details (enclosed in the file LICENCE).                      *)
-(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file LICENSE).                      *)
 (**************************************************************************)
- 
+
 class type visitor =
   object
     inherit Visitor.generic_frama_c_visitor
@@ -86,8 +85,7 @@ type call_info = {
 }
 
 type rpp_env = {
-  mutable loc: Lexing.position;
-  mutable pos: Cil_types.location;
+  mutable loc: Cil_types.location;
   mutable proj: Project.t;
   mutable new_funct: Cil_types.fundec;
   mutable self: visitor;
@@ -95,7 +93,6 @@ type rpp_env = {
 }
 
 type rpp_env_axiom = {
-  mutable loc_axiom: Lexing.position;
-  mutable pos_axiom: Cil_types.location;
+  mutable loc_axiom: Cil_types.location;
   mutable self_axiom : visitor;
 }

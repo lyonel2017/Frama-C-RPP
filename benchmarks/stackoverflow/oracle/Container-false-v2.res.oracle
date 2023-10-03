@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/Container-false-v2.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/Container-false-v2.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -15,16 +15,6 @@ struct Container {
  */
 int departureTimeIsBefore(int time1, int time2);
 
-/*@
-axiomatic Relational_axiome_1 {
-  logic int compare_acsl_pure_1(struct Container o1, struct Container o2) ;
-  
-  lemma Relational_lemma_1{L}:
-    ∀ struct Container x1, struct Container x2;
-      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
-  
-  }
- */
 /*@
 axiomatic Relational_axiome_2 {
   logic int compare_acsl_pure_2(struct Container o1, struct Container o2) ;
@@ -44,6 +34,16 @@ axiomatic Relational_axiome_3 {
     ∀ struct Container x1, struct Container x2, struct Container x3;
       compare_acsl_pure_3(x1, x2) ≡ 0 ⇒
       compare_acsl_pure_3(x1, x3) ≡ compare_acsl_pure_3(x2, x3);
+  
+  }
+ */
+/*@
+axiomatic Relational_axiome_1 {
+  logic int compare_acsl_pure_1(struct Container o1, struct Container o2) ;
+  
+  lemma Relational_lemma_1{L}:
+    ∀ struct Container x1, struct Container x2;
+      compare_acsl_pure_1(x1, x2) ≡ -compare_acsl_pure_1(x2, x1);
   
   }
  */
@@ -98,6 +98,22 @@ int compare(struct Container o1, struct Container o2)
   return_label: return __retres;
 }
 
+/*@ ensures \result ≡ 1 ∨ \result ≡ 0;
+    assigns \result;
+    assigns \result \from time1, time2;
+ */
+int departureTimeIsBefore_aux_3(int time1, int time2);
+
+/*@ ensures \result ≡ 1 ∨ \result ≡ 0;
+    assigns \result;
+    assigns \result \from time1, time2;
+ */
+int departureTimeIsBefore_aux_2(int time1, int time2);
+
+/*@ ensures \result ≡ 1 ∨ \result ≡ 0;
+    assigns \result;
+    assigns \result \from time1, time2;
+ */
 int departureTimeIsBefore_aux_1(int time1, int time2);
 
 void relational_wrapper_1(struct Container x1, struct Container x2)
@@ -178,13 +194,11 @@ void relational_wrapper_1(struct Container x1, struct Container x2)
     }
     return_label_label_2: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
   */
   return;
 }
-
-int departureTimeIsBefore_aux_2(int time1, int time2);
 
 void relational_wrapper_2(struct Container x1, struct Container x2,
                           struct Container x3)
@@ -303,15 +317,13 @@ void relational_wrapper_2(struct Container x1, struct Container x2,
     }
     return_label_label_5: return_variable_relational_5 = __retres_5;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
         return_variable_relational_5 > 0;
   */
   return;
 }
-
-int departureTimeIsBefore_aux_3(int time1, int time2);
 
 void relational_wrapper_3(struct Container x1, struct Container x2,
                           struct Container x3)
@@ -430,31 +442,13 @@ void relational_wrapper_3(struct Container x1, struct Container x2,
     }
     return_label_label_8: return_variable_relational_8 = __retres_8;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         return_variable_relational_6 ≡ 0 ⇒
         return_variable_relational_7 ≡ return_variable_relational_8;
   */
   return;
 }
-
-/*@ ensures \result ≡ 1 ∨ \result ≡ 0;
-    assigns \result;
-    assigns \result \from time1, time2;
- */
-int departureTimeIsBefore_aux_3(int time1, int time2);
-
-/*@ ensures \result ≡ 1 ∨ \result ≡ 0;
-    assigns \result;
-    assigns \result \from time1, time2;
- */
-int departureTimeIsBefore_aux_2(int time1, int time2);
-
-/*@ ensures \result ≡ 1 ∨ \result ≡ 0;
-    assigns \result;
-    assigns \result \from time1, time2;
- */
-int departureTimeIsBefore_aux_1(int time1, int time2);
 
 
 [rpp] ***************************************

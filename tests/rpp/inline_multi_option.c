@@ -3,11 +3,12 @@
 */
 
 /*@ requires x > 0;
-  @ relational \forall int x1; \callpure(f1,x1) > 0;
   @ assigns \result \from x;*/
 int f1(int x){
 	return x + 1;
 }
+
+/*@ relational \forall int x1; \callpure(f1,x1) > 0; */
 
 /*@ requires y > 0;
   @ assigns \result \from y;*/
@@ -15,12 +16,14 @@ int f2(int y){
   return 2+y;
 }
 
-/*@ relational \forall int x1; \callpure(f1,x1) < \callpure(f2,x1) < \callpure(2,g,x1);
-  @ assigns \result \from x;
-*/
+/*@ assigns \result \from x; */
 int g(int x){
   return f1(x)+f2(x)+f1(x);
 }
+
+/*@ relational
+      \forall int x1; \callpure(f1,x1) < \callpure(f2,x1) < \callpure(2,g,x1);
+*/
 
 /*@ assigns \result \from x;*/
 int k1(int x){
@@ -36,10 +39,9 @@ int k1(int x){
  good:return temp;
 }
 
-/*@ assigns \result \from \nothing;
-  @ relational \callpure(2,l) == \callpure(2,l);
-*/
+/*@ assigns \result \from \nothing; */
 int l(){
   return k1(10)+k1(10);
 }
 
+/*@ relational \callpure(2,l) == \callpure(2,l); */

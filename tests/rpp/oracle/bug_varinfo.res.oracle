@@ -120,6 +120,42 @@ void matrix_mult(int *a, int *b, int *c, int n)
   return;
 }
 
+/*@ requires \separated(a + (0 .. n * n - 1), c + (0 .. n * n - 1));
+    requires \separated(b + (0 .. n * n - 1), c + (0 .. n * n - 1));
+    requires \valid_read(a + (0 .. n * n - 1));
+    requires \valid_read(b + (0 .. n * n - 1));
+    requires \valid(c + (0 .. n * n - 1));
+    requires n ≥ 0;
+    ensures
+      ∀ ℤ i, ℤ j;
+        0 ≤ i < \old(n) ∧ 0 ≤ j < \old(n) ⇒
+        *(\old(c) + (i * \old(n) + j)) ≡
+        sum(\old(a), \old(b), i, j, \old(n), \old(n));
+    assigns *(c + (0 .. n * n - 1));
+    assigns *(c + (0 .. n * n - 1))
+      \from *(a + (0 .. n * n - 1)), *(b + (0 .. n * n - 1));
+    
+    behavior Relational_behavior:
+      ensures
+        matrix_mult_acsl_1{Pre, Post}(\old(a), \old(b), \old(c), \old(n));
+ */
+void matrix_mult_id3(int *a, int *b, int *c, int n);
+
+/*@ requires \separated(a + (0 .. n * n - 1), c + (0 .. n * n - 1));
+    requires \separated(b + (0 .. n * n - 1), c + (0 .. n * n - 1));
+    requires \valid_read(a + (0 .. n * n - 1));
+    requires \valid_read(b + (0 .. n * n - 1));
+    requires \valid(c + (0 .. n * n - 1));
+    requires n ≥ 0;
+    ensures
+      ∀ ℤ i, ℤ j;
+        0 ≤ i < \old(n) ∧ 0 ≤ j < \old(n) ⇒
+        *(\old(c) + (i * \old(n) + j)) ≡
+        sum(\old(a), \old(b), i, j, \old(n), \old(n));
+    assigns *(c + (0 .. n * n - 1));
+    assigns *(c + (0 .. n * n - 1))
+      \from *(a + (0 .. n * n - 1)), *(b + (0 .. n * n - 1));
+ */
 void matrix_mult_id1(int *a, int *b, int *c, int n);
 
 /*@ requires
@@ -204,11 +240,9 @@ void relational_wrapper_1(int *a1, int *a2, int *b1, int *b2, int *c1,
     }
     ;
   }
-  /*@ assert Rpp: \at(*c1,Here) < \at(*c2,Here); */
+  /*@ check Rpp: \at(*c1,Here) < \at(*c2,Here); */
   return;
 }
-
-void matrix_mult_id3(int *a, int *b, int *c, int n);
 
 /*@ requires
       \separated(
@@ -232,47 +266,9 @@ void relational_wrapper_2(int *a1, int *c1, int *b1, int n)
   /*@ assert Rpp: \valid(c1 + (0 .. n * n - 1)); */
   /*@ assert Rpp: n ≥ 0; */
   matrix_mult_id3(a1,b1,c1,n);
-  /*@ assert Rpp: \at(*c1,Here) < 0; */
+  /*@ check Rpp: \at(*c1,Here) < 0; */
   return;
 }
-
-/*@ requires \separated(a + (0 .. n * n - 1), c + (0 .. n * n - 1));
-    requires \separated(b + (0 .. n * n - 1), c + (0 .. n * n - 1));
-    requires \valid_read(a + (0 .. n * n - 1));
-    requires \valid_read(b + (0 .. n * n - 1));
-    requires \valid(c + (0 .. n * n - 1));
-    requires n ≥ 0;
-    ensures
-      ∀ ℤ i, ℤ j;
-        0 ≤ i < \old(n) ∧ 0 ≤ j < \old(n) ⇒
-        *(\old(c) + (i * \old(n) + j)) ≡
-        sum(\old(a), \old(b), i, j, \old(n), \old(n));
-    assigns *(c + (0 .. n * n - 1));
-    assigns *(c + (0 .. n * n - 1))
-      \from *(a + (0 .. n * n - 1)), *(b + (0 .. n * n - 1));
-    
-    behavior Relational_behavior:
-      ensures
-        matrix_mult_acsl_1{Pre, Post}(\old(a), \old(b), \old(c), \old(n));
- */
-void matrix_mult_id3(int *a, int *b, int *c, int n);
-
-/*@ requires \separated(a + (0 .. n * n - 1), c + (0 .. n * n - 1));
-    requires \separated(b + (0 .. n * n - 1), c + (0 .. n * n - 1));
-    requires \valid_read(a + (0 .. n * n - 1));
-    requires \valid_read(b + (0 .. n * n - 1));
-    requires \valid(c + (0 .. n * n - 1));
-    requires n ≥ 0;
-    ensures
-      ∀ ℤ i, ℤ j;
-        0 ≤ i < \old(n) ∧ 0 ≤ j < \old(n) ⇒
-        *(\old(c) + (i * \old(n) + j)) ≡
-        sum(\old(a), \old(b), i, j, \old(n), \old(n));
-    assigns *(c + (0 .. n * n - 1));
-    assigns *(c + (0 .. n * n - 1))
-      \from *(a + (0 .. n * n - 1)), *(b + (0 .. n * n - 1));
- */
-void matrix_mult_id1(int *a, int *b, int *c, int n);
 
 
 [rpp] ***************************************

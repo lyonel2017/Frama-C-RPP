@@ -1,4 +1,4 @@
-[kernel] Parsing tests/../benchmarks/stackoverflow/Contact-false.c (with preprocessing)
+[kernel] Parsing benchmarks/stackoverflow/Contact-false.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -9,13 +9,12 @@ struct Contact {
    int getEmails ;
 };
 /*@
-axiomatic Relational_axiome_3 {
-  logic int IntCompare_acsl_pure_3(int x, int y) ;
+axiomatic Relational_axiome_1 {
+  logic int IntCompare_acsl_pure_1(int x, int y) ;
   
-  lemma Relational_lemma_3{L}:
-    ∀ int x1, int x2, int x3;
-      IntCompare_acsl_pure_3(x1, x2) ≡ 0 ⇒
-      IntCompare_acsl_pure_3(x1, x3) ≡ IntCompare_acsl_pure_3(x2, x3);
+  lemma Relational_lemma_1{L}:
+    ∀ int x1, int x2;
+      IntCompare_acsl_pure_1(x1, x2) ≡ -IntCompare_acsl_pure_1(x2, x1);
   
   }
  */
@@ -32,12 +31,13 @@ axiomatic Relational_axiome_2 {
   }
  */
 /*@
-axiomatic Relational_axiome_1 {
-  logic int IntCompare_acsl_pure_1(int x, int y) ;
+axiomatic Relational_axiome_3 {
+  logic int IntCompare_acsl_pure_3(int x, int y) ;
   
-  lemma Relational_lemma_1{L}:
-    ∀ int x1, int x2;
-      IntCompare_acsl_pure_1(x1, x2) ≡ -IntCompare_acsl_pure_1(x2, x1);
+  lemma Relational_lemma_3{L}:
+    ∀ int x1, int x2, int x3;
+      IntCompare_acsl_pure_3(x1, x2) ≡ 0 ⇒
+      IntCompare_acsl_pure_3(x1, x3) ≡ IntCompare_acsl_pure_3(x2, x3);
   
   }
  */
@@ -66,146 +66,6 @@ int IntCompare(int x, int y)
   }
   __retres = 0;
   return_label: return __retres;
-}
-
-void relational_wrapper_1(int x1, int x2)
-{
-  int return_variable_relational_1;
-  int return_variable_relational_2;
-  {
-    int __retres_1;
-    if (x1 < x2) {
-      __retres_1 = -1;
-      goto return_label_label_1;
-    }
-    if (x1 > x2) {
-      __retres_1 = 1;
-      goto return_label_label_1;
-    }
-    __retres_1 = 0;
-    return_label_label_1: return_variable_relational_1 = __retres_1;
-  }
-  {
-    int __retres_2;
-    if (x2 < x1) {
-      __retres_2 = -1;
-      goto return_label_label_2;
-    }
-    if (x2 > x1) {
-      __retres_2 = 1;
-      goto return_label_label_2;
-    }
-    __retres_2 = 0;
-    return_label_label_2: return_variable_relational_2 = __retres_2;
-  }
-  /*@ assert
-      Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
-  */
-  return;
-}
-
-void relational_wrapper_2(int x1, int x2, int x3)
-{
-  int return_variable_relational_3;
-  int return_variable_relational_4;
-  int return_variable_relational_5;
-  {
-    int __retres_3;
-    if (x1 < x2) {
-      __retres_3 = -1;
-      goto return_label_label_3;
-    }
-    if (x1 > x2) {
-      __retres_3 = 1;
-      goto return_label_label_3;
-    }
-    __retres_3 = 0;
-    return_label_label_3: return_variable_relational_3 = __retres_3;
-  }
-  {
-    int __retres_4;
-    if (x2 < x3) {
-      __retres_4 = -1;
-      goto return_label_label_4;
-    }
-    if (x2 > x3) {
-      __retres_4 = 1;
-      goto return_label_label_4;
-    }
-    __retres_4 = 0;
-    return_label_label_4: return_variable_relational_4 = __retres_4;
-  }
-  {
-    int __retres_5;
-    if (x1 < x3) {
-      __retres_5 = -1;
-      goto return_label_label_5;
-    }
-    if (x1 > x3) {
-      __retres_5 = 1;
-      goto return_label_label_5;
-    }
-    __retres_5 = 0;
-    return_label_label_5: return_variable_relational_5 = __retres_5;
-  }
-  /*@ assert
-      Rpp:
-        return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
-        return_variable_relational_5 > 0;
-  */
-  return;
-}
-
-void relational_wrapper_3(int x1, int x2, int x3)
-{
-  int return_variable_relational_6;
-  int return_variable_relational_7;
-  int return_variable_relational_8;
-  {
-    int __retres_6;
-    if (x1 < x2) {
-      __retres_6 = -1;
-      goto return_label_label_6;
-    }
-    if (x1 > x2) {
-      __retres_6 = 1;
-      goto return_label_label_6;
-    }
-    __retres_6 = 0;
-    return_label_label_6: return_variable_relational_6 = __retres_6;
-  }
-  {
-    int __retres_7;
-    if (x1 < x3) {
-      __retres_7 = -1;
-      goto return_label_label_7;
-    }
-    if (x1 > x3) {
-      __retres_7 = 1;
-      goto return_label_label_7;
-    }
-    __retres_7 = 0;
-    return_label_label_7: return_variable_relational_7 = __retres_7;
-  }
-  {
-    int __retres_8;
-    if (x2 < x3) {
-      __retres_8 = -1;
-      goto return_label_label_8;
-    }
-    if (x2 > x3) {
-      __retres_8 = 1;
-      goto return_label_label_8;
-    }
-    __retres_8 = 0;
-    return_label_label_8: return_variable_relational_8 = __retres_8;
-  }
-  /*@ assert
-      Rpp:
-        return_variable_relational_6 ≡ 0 ⇒
-        return_variable_relational_7 ≡ return_variable_relational_8;
-  */
-  return;
 }
 
 /*@
@@ -276,8 +136,10 @@ int compare(struct Contact o1, struct Contact o2)
                 else goto _LAND;
               }
               else {
-                _LAND: __retres = 0;
-                       goto return_label;
+                _LAND: {
+                         __retres = 0;
+                         goto return_label;
+                       }
               }
             }
             else {
@@ -300,8 +162,10 @@ int compare(struct Contact o1, struct Contact o2)
               else goto _LAND_0;
             }
             else {
-              _LAND_0: __retres = 0;
-                       goto return_label;
+              _LAND_0: {
+                         __retres = 0;
+                         goto return_label;
+                       }
             }
           }
         }
@@ -331,8 +195,10 @@ int compare(struct Contact o1, struct Contact o2)
               else goto _LAND_2;
             }
             else {
-              _LAND_2: __retres = 0;
-                       goto return_label;
+              _LAND_2: {
+                         __retres = 0;
+                         goto return_label;
+                       }
             }
           }
           else {
@@ -355,1016 +221,16 @@ int compare(struct Contact o1, struct Contact o2)
             else goto _LAND_3;
           }
           else {
-            _LAND_3: __retres = 0;
-                     goto return_label;
+            _LAND_3: {
+                       __retres = 0;
+                       goto return_label;
+                     }
           }
         }
       }
     }
   }
   return_label: return __retres;
-}
-
-int IntCompare_aux_4(int x, int y);
-
-void relational_wrapper_4(struct Contact x1, struct Contact x2)
-{
-  int return_variable_relational_9;
-  int return_variable_relational_10;
-  {
-    int __retres_9;
-    int compareFirstName_9 = 0;
-    if (x1.getFirstName != 0) {
-      if (x2.getFirstName != 0) {
-        compareFirstName_9 = IntCompare_aux_4(x1.getFirstName,
-                                              x2.getFirstName);
-        if (compareFirstName_9 == 0) {
-          int compareLastName_9 = 0;
-          if (x1.getLastName != 0) {
-            if (x2.getLastName != 0) {
-              compareLastName_9 = IntCompare_aux_4(x1.getLastName,
-                                                   x2.getLastName);
-              if (compareLastName_9 == 0) {
-                int compareEmail_9 = 0;
-                if (x1.getEmails != 0) {
-                  if (x2.getEmails != 0) {
-                    compareEmail_9 = IntCompare_aux_4(x1.getEmails,
-                                                      x2.getEmails);
-                    __retres_9 = compareEmail_9;
-                    goto return_label_label_9;
-                  }
-                  else goto _LAND_label_10;
-                }
-                else {
-                  _LAND_label_10: __retres_9 = 0;
-                                  goto return_label_label_9;
-                }
-              }
-              else {
-                __retres_9 = compareLastName_9;
-                goto return_label_label_9;
-              }
-            }
-            else goto _LAND_1_label_11;
-          }
-          else {
-            _LAND_1_label_11:
-            {
-              int compareEmail_0_9 = 0;
-              if (x1.getEmails != 0) {
-                if (x2.getEmails != 0) {
-                  compareEmail_0_9 = IntCompare_aux_4(x1.getEmails,
-                                                      x2.getEmails);
-                  __retres_9 = compareEmail_0_9;
-                  goto return_label_label_9;
-                }
-                else goto _LAND_0_label_12;
-              }
-              else {
-                _LAND_0_label_12: __retres_9 = 0;
-                                  goto return_label_label_9;
-              }
-            }
-          }
-        }
-        else {
-          __retres_9 = compareFirstName_9;
-          goto return_label_label_9;
-        }
-      }
-      else goto _LAND_5_label_13;
-    }
-    else {
-      _LAND_5_label_13:
-      {
-        int compareLastName_0_9 = 0;
-        if (x1.getLastName != 0) {
-          if (x2.getLastName != 0) {
-            compareLastName_0_9 = IntCompare_aux_4(x1.getLastName,
-                                                   x2.getLastName);
-            if (compareLastName_0_9 == 0) {
-              int compareEmail_1_9 = 0;
-              if (x1.getEmails != 0) {
-                if (x2.getEmails != 0) {
-                  compareEmail_1_9 = IntCompare_aux_4(x1.getEmails,
-                                                      x2.getEmails);
-                  __retres_9 = compareEmail_1_9;
-                  goto return_label_label_9;
-                }
-                else goto _LAND_2_label_14;
-              }
-              else {
-                _LAND_2_label_14: __retres_9 = 0;
-                                  goto return_label_label_9;
-              }
-            }
-            else {
-              __retres_9 = compareLastName_0_9;
-              goto return_label_label_9;
-            }
-          }
-          else goto _LAND_4_label_15;
-        }
-        else {
-          _LAND_4_label_15:
-          {
-            int compareEmail_2_9 = 0;
-            if (x1.getEmails != 0) {
-              if (x2.getEmails != 0) {
-                compareEmail_2_9 = IntCompare_aux_4(x1.getEmails,
-                                                    x2.getEmails);
-                __retres_9 = compareEmail_2_9;
-                goto return_label_label_9;
-              }
-              else goto _LAND_3_label_16;
-            }
-            else {
-              _LAND_3_label_16: __retres_9 = 0;
-                                goto return_label_label_9;
-            }
-          }
-        }
-      }
-    }
-    return_label_label_9: return_variable_relational_9 = __retres_9;
-  }
-  {
-    int __retres_10;
-    int compareFirstName_10 = 0;
-    if (x2.getFirstName != 0) {
-      if (x1.getFirstName != 0) {
-        compareFirstName_10 = IntCompare_aux_4(x2.getFirstName,
-                                               x1.getFirstName);
-        if (compareFirstName_10 == 0) {
-          int compareLastName_10 = 0;
-          if (x2.getLastName != 0) {
-            if (x1.getLastName != 0) {
-              compareLastName_10 = IntCompare_aux_4(x2.getLastName,
-                                                    x1.getLastName);
-              if (compareLastName_10 == 0) {
-                int compareEmail_10 = 0;
-                if (x2.getEmails != 0) {
-                  if (x1.getEmails != 0) {
-                    compareEmail_10 = IntCompare_aux_4(x2.getEmails,
-                                                       x1.getEmails);
-                    __retres_10 = compareEmail_10;
-                    goto return_label_label_17;
-                  }
-                  else goto _LAND_label_18;
-                }
-                else {
-                  _LAND_label_18:
-                  __retres_10 = 0;
-                  goto return_label_label_17;
-                }
-              }
-              else {
-                __retres_10 = compareLastName_10;
-                goto return_label_label_17;
-              }
-            }
-            else goto _LAND_1_label_19;
-          }
-          else {
-            _LAND_1_label_19:
-            {
-              int compareEmail_0_10 = 0;
-              if (x2.getEmails != 0) {
-                if (x1.getEmails != 0) {
-                  compareEmail_0_10 = IntCompare_aux_4(x2.getEmails,
-                                                       x1.getEmails);
-                  __retres_10 = compareEmail_0_10;
-                  goto return_label_label_17;
-                }
-                else goto _LAND_0_label_20;
-              }
-              else {
-                _LAND_0_label_20:
-                __retres_10 = 0;
-                goto return_label_label_17;
-              }
-            }
-          }
-        }
-        else {
-          __retres_10 = compareFirstName_10;
-          goto return_label_label_17;
-        }
-      }
-      else goto _LAND_5_label_21;
-    }
-    else {
-      _LAND_5_label_21:
-      {
-        int compareLastName_0_10 = 0;
-        if (x2.getLastName != 0) {
-          if (x1.getLastName != 0) {
-            compareLastName_0_10 = IntCompare_aux_4(x2.getLastName,
-                                                    x1.getLastName);
-            if (compareLastName_0_10 == 0) {
-              int compareEmail_1_10 = 0;
-              if (x2.getEmails != 0) {
-                if (x1.getEmails != 0) {
-                  compareEmail_1_10 = IntCompare_aux_4(x2.getEmails,
-                                                       x1.getEmails);
-                  __retres_10 = compareEmail_1_10;
-                  goto return_label_label_17;
-                }
-                else goto _LAND_2_label_22;
-              }
-              else {
-                _LAND_2_label_22:
-                __retres_10 = 0;
-                goto return_label_label_17;
-              }
-            }
-            else {
-              __retres_10 = compareLastName_0_10;
-              goto return_label_label_17;
-            }
-          }
-          else goto _LAND_4_label_23;
-        }
-        else {
-          _LAND_4_label_23:
-          {
-            int compareEmail_2_10 = 0;
-            if (x2.getEmails != 0) {
-              if (x1.getEmails != 0) {
-                compareEmail_2_10 = IntCompare_aux_4(x2.getEmails,
-                                                     x1.getEmails);
-                __retres_10 = compareEmail_2_10;
-                goto return_label_label_17;
-              }
-              else goto _LAND_3_label_24;
-            }
-            else {
-              _LAND_3_label_24: __retres_10 = 0;
-                                goto return_label_label_17;
-            }
-          }
-        }
-      }
-    }
-    return_label_label_17: return_variable_relational_10 = __retres_10;
-  }
-  /*@ assert
-      Rpp: return_variable_relational_9 ≡ -return_variable_relational_10;
-  */
-  return;
-}
-
-int IntCompare_aux_5(int x, int y);
-
-void relational_wrapper_5(struct Contact x1, struct Contact x2,
-                          struct Contact x3)
-{
-  int return_variable_relational_11;
-  int return_variable_relational_12;
-  int return_variable_relational_13;
-  {
-    int __retres_11;
-    int compareFirstName_11 = 0;
-    if (x1.getFirstName != 0) {
-      if (x2.getFirstName != 0) {
-        compareFirstName_11 = IntCompare_aux_5(x1.getFirstName,
-                                               x2.getFirstName);
-        if (compareFirstName_11 == 0) {
-          int compareLastName_11 = 0;
-          if (x1.getLastName != 0) {
-            if (x2.getLastName != 0) {
-              compareLastName_11 = IntCompare_aux_5(x1.getLastName,
-                                                    x2.getLastName);
-              if (compareLastName_11 == 0) {
-                int compareEmail_11 = 0;
-                if (x1.getEmails != 0) {
-                  if (x2.getEmails != 0) {
-                    compareEmail_11 = IntCompare_aux_5(x1.getEmails,
-                                                       x2.getEmails);
-                    __retres_11 = compareEmail_11;
-                    goto return_label_label_25;
-                  }
-                  else goto _LAND_label_26;
-                }
-                else {
-                  _LAND_label_26:
-                  __retres_11 = 0;
-                  goto return_label_label_25;
-                }
-              }
-              else {
-                __retres_11 = compareLastName_11;
-                goto return_label_label_25;
-              }
-            }
-            else goto _LAND_1_label_27;
-          }
-          else {
-            _LAND_1_label_27:
-            {
-              int compareEmail_0_11 = 0;
-              if (x1.getEmails != 0) {
-                if (x2.getEmails != 0) {
-                  compareEmail_0_11 = IntCompare_aux_5(x1.getEmails,
-                                                       x2.getEmails);
-                  __retres_11 = compareEmail_0_11;
-                  goto return_label_label_25;
-                }
-                else goto _LAND_0_label_28;
-              }
-              else {
-                _LAND_0_label_28:
-                __retres_11 = 0;
-                goto return_label_label_25;
-              }
-            }
-          }
-        }
-        else {
-          __retres_11 = compareFirstName_11;
-          goto return_label_label_25;
-        }
-      }
-      else goto _LAND_5_label_29;
-    }
-    else {
-      _LAND_5_label_29:
-      {
-        int compareLastName_0_11 = 0;
-        if (x1.getLastName != 0) {
-          if (x2.getLastName != 0) {
-            compareLastName_0_11 = IntCompare_aux_5(x1.getLastName,
-                                                    x2.getLastName);
-            if (compareLastName_0_11 == 0) {
-              int compareEmail_1_11 = 0;
-              if (x1.getEmails != 0) {
-                if (x2.getEmails != 0) {
-                  compareEmail_1_11 = IntCompare_aux_5(x1.getEmails,
-                                                       x2.getEmails);
-                  __retres_11 = compareEmail_1_11;
-                  goto return_label_label_25;
-                }
-                else goto _LAND_2_label_30;
-              }
-              else {
-                _LAND_2_label_30:
-                __retres_11 = 0;
-                goto return_label_label_25;
-              }
-            }
-            else {
-              __retres_11 = compareLastName_0_11;
-              goto return_label_label_25;
-            }
-          }
-          else goto _LAND_4_label_31;
-        }
-        else {
-          _LAND_4_label_31:
-          {
-            int compareEmail_2_11 = 0;
-            if (x1.getEmails != 0) {
-              if (x2.getEmails != 0) {
-                compareEmail_2_11 = IntCompare_aux_5(x1.getEmails,
-                                                     x2.getEmails);
-                __retres_11 = compareEmail_2_11;
-                goto return_label_label_25;
-              }
-              else goto _LAND_3_label_32;
-            }
-            else {
-              _LAND_3_label_32: __retres_11 = 0;
-                                goto return_label_label_25;
-            }
-          }
-        }
-      }
-    }
-    return_label_label_25: return_variable_relational_11 = __retres_11;
-  }
-  {
-    int __retres_12;
-    int compareFirstName_12 = 0;
-    if (x2.getFirstName != 0) {
-      if (x3.getFirstName != 0) {
-        compareFirstName_12 = IntCompare_aux_5(x2.getFirstName,
-                                               x3.getFirstName);
-        if (compareFirstName_12 == 0) {
-          int compareLastName_12 = 0;
-          if (x2.getLastName != 0) {
-            if (x3.getLastName != 0) {
-              compareLastName_12 = IntCompare_aux_5(x2.getLastName,
-                                                    x3.getLastName);
-              if (compareLastName_12 == 0) {
-                int compareEmail_12 = 0;
-                if (x2.getEmails != 0) {
-                  if (x3.getEmails != 0) {
-                    compareEmail_12 = IntCompare_aux_5(x2.getEmails,
-                                                       x3.getEmails);
-                    __retres_12 = compareEmail_12;
-                    goto return_label_label_33;
-                  }
-                  else goto _LAND_label_34;
-                }
-                else {
-                  _LAND_label_34:
-                  __retres_12 = 0;
-                  goto return_label_label_33;
-                }
-              }
-              else {
-                __retres_12 = compareLastName_12;
-                goto return_label_label_33;
-              }
-            }
-            else goto _LAND_1_label_35;
-          }
-          else {
-            _LAND_1_label_35:
-            {
-              int compareEmail_0_12 = 0;
-              if (x2.getEmails != 0) {
-                if (x3.getEmails != 0) {
-                  compareEmail_0_12 = IntCompare_aux_5(x2.getEmails,
-                                                       x3.getEmails);
-                  __retres_12 = compareEmail_0_12;
-                  goto return_label_label_33;
-                }
-                else goto _LAND_0_label_36;
-              }
-              else {
-                _LAND_0_label_36:
-                __retres_12 = 0;
-                goto return_label_label_33;
-              }
-            }
-          }
-        }
-        else {
-          __retres_12 = compareFirstName_12;
-          goto return_label_label_33;
-        }
-      }
-      else goto _LAND_5_label_37;
-    }
-    else {
-      _LAND_5_label_37:
-      {
-        int compareLastName_0_12 = 0;
-        if (x2.getLastName != 0) {
-          if (x3.getLastName != 0) {
-            compareLastName_0_12 = IntCompare_aux_5(x2.getLastName,
-                                                    x3.getLastName);
-            if (compareLastName_0_12 == 0) {
-              int compareEmail_1_12 = 0;
-              if (x2.getEmails != 0) {
-                if (x3.getEmails != 0) {
-                  compareEmail_1_12 = IntCompare_aux_5(x2.getEmails,
-                                                       x3.getEmails);
-                  __retres_12 = compareEmail_1_12;
-                  goto return_label_label_33;
-                }
-                else goto _LAND_2_label_38;
-              }
-              else {
-                _LAND_2_label_38:
-                __retres_12 = 0;
-                goto return_label_label_33;
-              }
-            }
-            else {
-              __retres_12 = compareLastName_0_12;
-              goto return_label_label_33;
-            }
-          }
-          else goto _LAND_4_label_39;
-        }
-        else {
-          _LAND_4_label_39:
-          {
-            int compareEmail_2_12 = 0;
-            if (x2.getEmails != 0) {
-              if (x3.getEmails != 0) {
-                compareEmail_2_12 = IntCompare_aux_5(x2.getEmails,
-                                                     x3.getEmails);
-                __retres_12 = compareEmail_2_12;
-                goto return_label_label_33;
-              }
-              else goto _LAND_3_label_40;
-            }
-            else {
-              _LAND_3_label_40: __retres_12 = 0;
-                                goto return_label_label_33;
-            }
-          }
-        }
-      }
-    }
-    return_label_label_33: return_variable_relational_12 = __retres_12;
-  }
-  {
-    int __retres_13;
-    int compareFirstName_13 = 0;
-    if (x1.getFirstName != 0) {
-      if (x3.getFirstName != 0) {
-        compareFirstName_13 = IntCompare_aux_5(x1.getFirstName,
-                                               x3.getFirstName);
-        if (compareFirstName_13 == 0) {
-          int compareLastName_13 = 0;
-          if (x1.getLastName != 0) {
-            if (x3.getLastName != 0) {
-              compareLastName_13 = IntCompare_aux_5(x1.getLastName,
-                                                    x3.getLastName);
-              if (compareLastName_13 == 0) {
-                int compareEmail_13 = 0;
-                if (x1.getEmails != 0) {
-                  if (x3.getEmails != 0) {
-                    compareEmail_13 = IntCompare_aux_5(x1.getEmails,
-                                                       x3.getEmails);
-                    __retres_13 = compareEmail_13;
-                    goto return_label_label_41;
-                  }
-                  else goto _LAND_label_42;
-                }
-                else {
-                  _LAND_label_42:
-                  __retres_13 = 0;
-                  goto return_label_label_41;
-                }
-              }
-              else {
-                __retres_13 = compareLastName_13;
-                goto return_label_label_41;
-              }
-            }
-            else goto _LAND_1_label_43;
-          }
-          else {
-            _LAND_1_label_43:
-            {
-              int compareEmail_0_13 = 0;
-              if (x1.getEmails != 0) {
-                if (x3.getEmails != 0) {
-                  compareEmail_0_13 = IntCompare_aux_5(x1.getEmails,
-                                                       x3.getEmails);
-                  __retres_13 = compareEmail_0_13;
-                  goto return_label_label_41;
-                }
-                else goto _LAND_0_label_44;
-              }
-              else {
-                _LAND_0_label_44:
-                __retres_13 = 0;
-                goto return_label_label_41;
-              }
-            }
-          }
-        }
-        else {
-          __retres_13 = compareFirstName_13;
-          goto return_label_label_41;
-        }
-      }
-      else goto _LAND_5_label_45;
-    }
-    else {
-      _LAND_5_label_45:
-      {
-        int compareLastName_0_13 = 0;
-        if (x1.getLastName != 0) {
-          if (x3.getLastName != 0) {
-            compareLastName_0_13 = IntCompare_aux_5(x1.getLastName,
-                                                    x3.getLastName);
-            if (compareLastName_0_13 == 0) {
-              int compareEmail_1_13 = 0;
-              if (x1.getEmails != 0) {
-                if (x3.getEmails != 0) {
-                  compareEmail_1_13 = IntCompare_aux_5(x1.getEmails,
-                                                       x3.getEmails);
-                  __retres_13 = compareEmail_1_13;
-                  goto return_label_label_41;
-                }
-                else goto _LAND_2_label_46;
-              }
-              else {
-                _LAND_2_label_46:
-                __retres_13 = 0;
-                goto return_label_label_41;
-              }
-            }
-            else {
-              __retres_13 = compareLastName_0_13;
-              goto return_label_label_41;
-            }
-          }
-          else goto _LAND_4_label_47;
-        }
-        else {
-          _LAND_4_label_47:
-          {
-            int compareEmail_2_13 = 0;
-            if (x1.getEmails != 0) {
-              if (x3.getEmails != 0) {
-                compareEmail_2_13 = IntCompare_aux_5(x1.getEmails,
-                                                     x3.getEmails);
-                __retres_13 = compareEmail_2_13;
-                goto return_label_label_41;
-              }
-              else goto _LAND_3_label_48;
-            }
-            else {
-              _LAND_3_label_48: __retres_13 = 0;
-                                goto return_label_label_41;
-            }
-          }
-        }
-      }
-    }
-    return_label_label_41: return_variable_relational_13 = __retres_13;
-  }
-  /*@ assert
-      Rpp:
-        return_variable_relational_11 > 0 ∧
-        return_variable_relational_12 > 0 ⇒
-        return_variable_relational_13 > 0;
-  */
-  return;
-}
-
-int IntCompare_aux_6(int x, int y);
-
-void relational_wrapper_6(struct Contact x1, struct Contact x2,
-                          struct Contact x3)
-{
-  int return_variable_relational_14;
-  int return_variable_relational_15;
-  int return_variable_relational_16;
-  {
-    int __retres_14;
-    int compareFirstName_14 = 0;
-    if (x1.getFirstName != 0) {
-      if (x2.getFirstName != 0) {
-        compareFirstName_14 = IntCompare_aux_6(x1.getFirstName,
-                                               x2.getFirstName);
-        if (compareFirstName_14 == 0) {
-          int compareLastName_14 = 0;
-          if (x1.getLastName != 0) {
-            if (x2.getLastName != 0) {
-              compareLastName_14 = IntCompare_aux_6(x1.getLastName,
-                                                    x2.getLastName);
-              if (compareLastName_14 == 0) {
-                int compareEmail_14 = 0;
-                if (x1.getEmails != 0) {
-                  if (x2.getEmails != 0) {
-                    compareEmail_14 = IntCompare_aux_6(x1.getEmails,
-                                                       x2.getEmails);
-                    __retres_14 = compareEmail_14;
-                    goto return_label_label_49;
-                  }
-                  else goto _LAND_label_50;
-                }
-                else {
-                  _LAND_label_50:
-                  __retres_14 = 0;
-                  goto return_label_label_49;
-                }
-              }
-              else {
-                __retres_14 = compareLastName_14;
-                goto return_label_label_49;
-              }
-            }
-            else goto _LAND_1_label_51;
-          }
-          else {
-            _LAND_1_label_51:
-            {
-              int compareEmail_0_14 = 0;
-              if (x1.getEmails != 0) {
-                if (x2.getEmails != 0) {
-                  compareEmail_0_14 = IntCompare_aux_6(x1.getEmails,
-                                                       x2.getEmails);
-                  __retres_14 = compareEmail_0_14;
-                  goto return_label_label_49;
-                }
-                else goto _LAND_0_label_52;
-              }
-              else {
-                _LAND_0_label_52:
-                __retres_14 = 0;
-                goto return_label_label_49;
-              }
-            }
-          }
-        }
-        else {
-          __retres_14 = compareFirstName_14;
-          goto return_label_label_49;
-        }
-      }
-      else goto _LAND_5_label_53;
-    }
-    else {
-      _LAND_5_label_53:
-      {
-        int compareLastName_0_14 = 0;
-        if (x1.getLastName != 0) {
-          if (x2.getLastName != 0) {
-            compareLastName_0_14 = IntCompare_aux_6(x1.getLastName,
-                                                    x2.getLastName);
-            if (compareLastName_0_14 == 0) {
-              int compareEmail_1_14 = 0;
-              if (x1.getEmails != 0) {
-                if (x2.getEmails != 0) {
-                  compareEmail_1_14 = IntCompare_aux_6(x1.getEmails,
-                                                       x2.getEmails);
-                  __retres_14 = compareEmail_1_14;
-                  goto return_label_label_49;
-                }
-                else goto _LAND_2_label_54;
-              }
-              else {
-                _LAND_2_label_54:
-                __retres_14 = 0;
-                goto return_label_label_49;
-              }
-            }
-            else {
-              __retres_14 = compareLastName_0_14;
-              goto return_label_label_49;
-            }
-          }
-          else goto _LAND_4_label_55;
-        }
-        else {
-          _LAND_4_label_55:
-          {
-            int compareEmail_2_14 = 0;
-            if (x1.getEmails != 0) {
-              if (x2.getEmails != 0) {
-                compareEmail_2_14 = IntCompare_aux_6(x1.getEmails,
-                                                     x2.getEmails);
-                __retres_14 = compareEmail_2_14;
-                goto return_label_label_49;
-              }
-              else goto _LAND_3_label_56;
-            }
-            else {
-              _LAND_3_label_56: __retres_14 = 0;
-                                goto return_label_label_49;
-            }
-          }
-        }
-      }
-    }
-    return_label_label_49: return_variable_relational_14 = __retres_14;
-  }
-  {
-    int __retres_15;
-    int compareFirstName_15 = 0;
-    if (x1.getFirstName != 0) {
-      if (x3.getFirstName != 0) {
-        compareFirstName_15 = IntCompare_aux_6(x1.getFirstName,
-                                               x3.getFirstName);
-        if (compareFirstName_15 == 0) {
-          int compareLastName_15 = 0;
-          if (x1.getLastName != 0) {
-            if (x3.getLastName != 0) {
-              compareLastName_15 = IntCompare_aux_6(x1.getLastName,
-                                                    x3.getLastName);
-              if (compareLastName_15 == 0) {
-                int compareEmail_15 = 0;
-                if (x1.getEmails != 0) {
-                  if (x3.getEmails != 0) {
-                    compareEmail_15 = IntCompare_aux_6(x1.getEmails,
-                                                       x3.getEmails);
-                    __retres_15 = compareEmail_15;
-                    goto return_label_label_57;
-                  }
-                  else goto _LAND_label_58;
-                }
-                else {
-                  _LAND_label_58:
-                  __retres_15 = 0;
-                  goto return_label_label_57;
-                }
-              }
-              else {
-                __retres_15 = compareLastName_15;
-                goto return_label_label_57;
-              }
-            }
-            else goto _LAND_1_label_59;
-          }
-          else {
-            _LAND_1_label_59:
-            {
-              int compareEmail_0_15 = 0;
-              if (x1.getEmails != 0) {
-                if (x3.getEmails != 0) {
-                  compareEmail_0_15 = IntCompare_aux_6(x1.getEmails,
-                                                       x3.getEmails);
-                  __retres_15 = compareEmail_0_15;
-                  goto return_label_label_57;
-                }
-                else goto _LAND_0_label_60;
-              }
-              else {
-                _LAND_0_label_60:
-                __retres_15 = 0;
-                goto return_label_label_57;
-              }
-            }
-          }
-        }
-        else {
-          __retres_15 = compareFirstName_15;
-          goto return_label_label_57;
-        }
-      }
-      else goto _LAND_5_label_61;
-    }
-    else {
-      _LAND_5_label_61:
-      {
-        int compareLastName_0_15 = 0;
-        if (x1.getLastName != 0) {
-          if (x3.getLastName != 0) {
-            compareLastName_0_15 = IntCompare_aux_6(x1.getLastName,
-                                                    x3.getLastName);
-            if (compareLastName_0_15 == 0) {
-              int compareEmail_1_15 = 0;
-              if (x1.getEmails != 0) {
-                if (x3.getEmails != 0) {
-                  compareEmail_1_15 = IntCompare_aux_6(x1.getEmails,
-                                                       x3.getEmails);
-                  __retres_15 = compareEmail_1_15;
-                  goto return_label_label_57;
-                }
-                else goto _LAND_2_label_62;
-              }
-              else {
-                _LAND_2_label_62:
-                __retres_15 = 0;
-                goto return_label_label_57;
-              }
-            }
-            else {
-              __retres_15 = compareLastName_0_15;
-              goto return_label_label_57;
-            }
-          }
-          else goto _LAND_4_label_63;
-        }
-        else {
-          _LAND_4_label_63:
-          {
-            int compareEmail_2_15 = 0;
-            if (x1.getEmails != 0) {
-              if (x3.getEmails != 0) {
-                compareEmail_2_15 = IntCompare_aux_6(x1.getEmails,
-                                                     x3.getEmails);
-                __retres_15 = compareEmail_2_15;
-                goto return_label_label_57;
-              }
-              else goto _LAND_3_label_64;
-            }
-            else {
-              _LAND_3_label_64: __retres_15 = 0;
-                                goto return_label_label_57;
-            }
-          }
-        }
-      }
-    }
-    return_label_label_57: return_variable_relational_15 = __retres_15;
-  }
-  {
-    int __retres_16;
-    int compareFirstName_16 = 0;
-    if (x2.getFirstName != 0) {
-      if (x3.getFirstName != 0) {
-        compareFirstName_16 = IntCompare_aux_6(x2.getFirstName,
-                                               x3.getFirstName);
-        if (compareFirstName_16 == 0) {
-          int compareLastName_16 = 0;
-          if (x2.getLastName != 0) {
-            if (x3.getLastName != 0) {
-              compareLastName_16 = IntCompare_aux_6(x2.getLastName,
-                                                    x3.getLastName);
-              if (compareLastName_16 == 0) {
-                int compareEmail_16 = 0;
-                if (x2.getEmails != 0) {
-                  if (x3.getEmails != 0) {
-                    compareEmail_16 = IntCompare_aux_6(x2.getEmails,
-                                                       x3.getEmails);
-                    __retres_16 = compareEmail_16;
-                    goto return_label_label_65;
-                  }
-                  else goto _LAND_label_66;
-                }
-                else {
-                  _LAND_label_66:
-                  __retres_16 = 0;
-                  goto return_label_label_65;
-                }
-              }
-              else {
-                __retres_16 = compareLastName_16;
-                goto return_label_label_65;
-              }
-            }
-            else goto _LAND_1_label_67;
-          }
-          else {
-            _LAND_1_label_67:
-            {
-              int compareEmail_0_16 = 0;
-              if (x2.getEmails != 0) {
-                if (x3.getEmails != 0) {
-                  compareEmail_0_16 = IntCompare_aux_6(x2.getEmails,
-                                                       x3.getEmails);
-                  __retres_16 = compareEmail_0_16;
-                  goto return_label_label_65;
-                }
-                else goto _LAND_0_label_68;
-              }
-              else {
-                _LAND_0_label_68:
-                __retres_16 = 0;
-                goto return_label_label_65;
-              }
-            }
-          }
-        }
-        else {
-          __retres_16 = compareFirstName_16;
-          goto return_label_label_65;
-        }
-      }
-      else goto _LAND_5_label_69;
-    }
-    else {
-      _LAND_5_label_69:
-      {
-        int compareLastName_0_16 = 0;
-        if (x2.getLastName != 0) {
-          if (x3.getLastName != 0) {
-            compareLastName_0_16 = IntCompare_aux_6(x2.getLastName,
-                                                    x3.getLastName);
-            if (compareLastName_0_16 == 0) {
-              int compareEmail_1_16 = 0;
-              if (x2.getEmails != 0) {
-                if (x3.getEmails != 0) {
-                  compareEmail_1_16 = IntCompare_aux_6(x2.getEmails,
-                                                       x3.getEmails);
-                  __retres_16 = compareEmail_1_16;
-                  goto return_label_label_65;
-                }
-                else goto _LAND_2_label_70;
-              }
-              else {
-                _LAND_2_label_70:
-                __retres_16 = 0;
-                goto return_label_label_65;
-              }
-            }
-            else {
-              __retres_16 = compareLastName_0_16;
-              goto return_label_label_65;
-            }
-          }
-          else goto _LAND_4_label_71;
-        }
-        else {
-          _LAND_4_label_71:
-          {
-            int compareEmail_2_16 = 0;
-            if (x2.getEmails != 0) {
-              if (x3.getEmails != 0) {
-                compareEmail_2_16 = IntCompare_aux_6(x2.getEmails,
-                                                     x3.getEmails);
-                __retres_16 = compareEmail_2_16;
-                goto return_label_label_65;
-              }
-              else goto _LAND_3_label_72;
-            }
-            else {
-              _LAND_3_label_72: __retres_16 = 0;
-                                goto return_label_label_65;
-            }
-          }
-        }
-      }
-    }
-    return_label_label_65: return_variable_relational_16 = __retres_16;
-  }
-  /*@ assert
-      Rpp:
-        return_variable_relational_14 ≡ 0 ⇒
-        return_variable_relational_15 ≡ return_variable_relational_16;
-  */
-  return;
 }
 
 /*@ assigns \result;
@@ -1401,6 +267,1217 @@ int IntCompare_aux_5(int x, int y);
       ensures \result ≡ IntCompare_acsl_pure_3(\old(x), \old(y));
  */
 int IntCompare_aux_4(int x, int y);
+
+void relational_wrapper_1(int x1, int x2)
+{
+  int return_variable_relational_1;
+  int return_variable_relational_2;
+  {
+    int __retres_1;
+    if (x1 < x2) {
+      __retres_1 = -1;
+      goto return_label_label_1;
+    }
+    if (x1 > x2) {
+      __retres_1 = 1;
+      goto return_label_label_1;
+    }
+    __retres_1 = 0;
+    return_label_label_1: return_variable_relational_1 = __retres_1;
+  }
+  {
+    int __retres_2;
+    if (x2 < x1) {
+      __retres_2 = -1;
+      goto return_label_label_2;
+    }
+    if (x2 > x1) {
+      __retres_2 = 1;
+      goto return_label_label_2;
+    }
+    __retres_2 = 0;
+    return_label_label_2: return_variable_relational_2 = __retres_2;
+  }
+  /*@ check
+      Rpp: return_variable_relational_1 ≡ -return_variable_relational_2;
+  */
+  return;
+}
+
+void relational_wrapper_2(int x1, int x2, int x3)
+{
+  int return_variable_relational_3;
+  int return_variable_relational_4;
+  int return_variable_relational_5;
+  {
+    int __retres_3;
+    if (x1 < x2) {
+      __retres_3 = -1;
+      goto return_label_label_3;
+    }
+    if (x1 > x2) {
+      __retres_3 = 1;
+      goto return_label_label_3;
+    }
+    __retres_3 = 0;
+    return_label_label_3: return_variable_relational_3 = __retres_3;
+  }
+  {
+    int __retres_4;
+    if (x2 < x3) {
+      __retres_4 = -1;
+      goto return_label_label_4;
+    }
+    if (x2 > x3) {
+      __retres_4 = 1;
+      goto return_label_label_4;
+    }
+    __retres_4 = 0;
+    return_label_label_4: return_variable_relational_4 = __retres_4;
+  }
+  {
+    int __retres_5;
+    if (x1 < x3) {
+      __retres_5 = -1;
+      goto return_label_label_5;
+    }
+    if (x1 > x3) {
+      __retres_5 = 1;
+      goto return_label_label_5;
+    }
+    __retres_5 = 0;
+    return_label_label_5: return_variable_relational_5 = __retres_5;
+  }
+  /*@ check
+      Rpp:
+        return_variable_relational_3 > 0 ∧ return_variable_relational_4 > 0 ⇒
+        return_variable_relational_5 > 0;
+  */
+  return;
+}
+
+void relational_wrapper_3(int x1, int x2, int x3)
+{
+  int return_variable_relational_6;
+  int return_variable_relational_7;
+  int return_variable_relational_8;
+  {
+    int __retres_6;
+    if (x1 < x2) {
+      __retres_6 = -1;
+      goto return_label_label_6;
+    }
+    if (x1 > x2) {
+      __retres_6 = 1;
+      goto return_label_label_6;
+    }
+    __retres_6 = 0;
+    return_label_label_6: return_variable_relational_6 = __retres_6;
+  }
+  {
+    int __retres_7;
+    if (x1 < x3) {
+      __retres_7 = -1;
+      goto return_label_label_7;
+    }
+    if (x1 > x3) {
+      __retres_7 = 1;
+      goto return_label_label_7;
+    }
+    __retres_7 = 0;
+    return_label_label_7: return_variable_relational_7 = __retres_7;
+  }
+  {
+    int __retres_8;
+    if (x2 < x3) {
+      __retres_8 = -1;
+      goto return_label_label_8;
+    }
+    if (x2 > x3) {
+      __retres_8 = 1;
+      goto return_label_label_8;
+    }
+    __retres_8 = 0;
+    return_label_label_8: return_variable_relational_8 = __retres_8;
+  }
+  /*@ check
+      Rpp:
+        return_variable_relational_6 ≡ 0 ⇒
+        return_variable_relational_7 ≡ return_variable_relational_8;
+  */
+  return;
+}
+
+void relational_wrapper_4(struct Contact x1, struct Contact x2)
+{
+  int return_variable_relational_9;
+  int return_variable_relational_10;
+  {
+    int __retres_9;
+    int compareFirstName_9 = 0;
+    if (x1.getFirstName != 0) {
+      if (x2.getFirstName != 0) {
+        compareFirstName_9 = IntCompare_aux_4(x1.getFirstName,
+                                              x2.getFirstName);
+        if (compareFirstName_9 == 0) {
+          int compareLastName_9 = 0;
+          if (x1.getLastName != 0) {
+            if (x2.getLastName != 0) {
+              compareLastName_9 = IntCompare_aux_4(x1.getLastName,
+                                                   x2.getLastName);
+              if (compareLastName_9 == 0) {
+                int compareEmail_9 = 0;
+                if (x1.getEmails != 0) {
+                  if (x2.getEmails != 0) {
+                    compareEmail_9 = IntCompare_aux_4(x1.getEmails,
+                                                      x2.getEmails);
+                    __retres_9 = compareEmail_9;
+                    goto return_label_label_9;
+                  }
+                  else goto _LAND_label_10;
+                }
+                else {
+                  _LAND_label_10:
+                  {
+                    __retres_9 = 0;
+                    goto return_label_label_9;
+                  }
+                }
+              }
+              else {
+                __retres_9 = compareLastName_9;
+                goto return_label_label_9;
+              }
+            }
+            else goto _LAND_1_label_11;
+          }
+          else {
+            _LAND_1_label_11:
+            {
+              int compareEmail_0_9 = 0;
+              if (x1.getEmails != 0) {
+                if (x2.getEmails != 0) {
+                  compareEmail_0_9 = IntCompare_aux_4(x1.getEmails,
+                                                      x2.getEmails);
+                  __retres_9 = compareEmail_0_9;
+                  goto return_label_label_9;
+                }
+                else goto _LAND_0_label_12;
+              }
+              else {
+                _LAND_0_label_12:
+                {
+                  __retres_9 = 0;
+                  goto return_label_label_9;
+                }
+              }
+            }
+          }
+        }
+        else {
+          __retres_9 = compareFirstName_9;
+          goto return_label_label_9;
+        }
+      }
+      else goto _LAND_5_label_13;
+    }
+    else {
+      _LAND_5_label_13:
+      {
+        int compareLastName_0_9 = 0;
+        if (x1.getLastName != 0) {
+          if (x2.getLastName != 0) {
+            compareLastName_0_9 = IntCompare_aux_4(x1.getLastName,
+                                                   x2.getLastName);
+            if (compareLastName_0_9 == 0) {
+              int compareEmail_1_9 = 0;
+              if (x1.getEmails != 0) {
+                if (x2.getEmails != 0) {
+                  compareEmail_1_9 = IntCompare_aux_4(x1.getEmails,
+                                                      x2.getEmails);
+                  __retres_9 = compareEmail_1_9;
+                  goto return_label_label_9;
+                }
+                else goto _LAND_2_label_14;
+              }
+              else {
+                _LAND_2_label_14:
+                {
+                  __retres_9 = 0;
+                  goto return_label_label_9;
+                }
+              }
+            }
+            else {
+              __retres_9 = compareLastName_0_9;
+              goto return_label_label_9;
+            }
+          }
+          else goto _LAND_4_label_15;
+        }
+        else {
+          _LAND_4_label_15:
+          {
+            int compareEmail_2_9 = 0;
+            if (x1.getEmails != 0) {
+              if (x2.getEmails != 0) {
+                compareEmail_2_9 = IntCompare_aux_4(x1.getEmails,
+                                                    x2.getEmails);
+                __retres_9 = compareEmail_2_9;
+                goto return_label_label_9;
+              }
+              else goto _LAND_3_label_16;
+            }
+            else {
+              _LAND_3_label_16:
+              {
+                __retres_9 = 0;
+                goto return_label_label_9;
+              }
+            }
+          }
+        }
+      }
+    }
+    return_label_label_9: return_variable_relational_9 = __retres_9;
+  }
+  {
+    int __retres_10;
+    int compareFirstName_10 = 0;
+    if (x2.getFirstName != 0) {
+      if (x1.getFirstName != 0) {
+        compareFirstName_10 = IntCompare_aux_4(x2.getFirstName,
+                                               x1.getFirstName);
+        if (compareFirstName_10 == 0) {
+          int compareLastName_10 = 0;
+          if (x2.getLastName != 0) {
+            if (x1.getLastName != 0) {
+              compareLastName_10 = IntCompare_aux_4(x2.getLastName,
+                                                    x1.getLastName);
+              if (compareLastName_10 == 0) {
+                int compareEmail_10 = 0;
+                if (x2.getEmails != 0) {
+                  if (x1.getEmails != 0) {
+                    compareEmail_10 = IntCompare_aux_4(x2.getEmails,
+                                                       x1.getEmails);
+                    __retres_10 = compareEmail_10;
+                    goto return_label_label_17;
+                  }
+                  else goto _LAND_label_18;
+                }
+                else {
+                  _LAND_label_18:
+                  {
+                    __retres_10 = 0;
+                    goto return_label_label_17;
+                  }
+                }
+              }
+              else {
+                __retres_10 = compareLastName_10;
+                goto return_label_label_17;
+              }
+            }
+            else goto _LAND_1_label_19;
+          }
+          else {
+            _LAND_1_label_19:
+            {
+              int compareEmail_0_10 = 0;
+              if (x2.getEmails != 0) {
+                if (x1.getEmails != 0) {
+                  compareEmail_0_10 = IntCompare_aux_4(x2.getEmails,
+                                                       x1.getEmails);
+                  __retres_10 = compareEmail_0_10;
+                  goto return_label_label_17;
+                }
+                else goto _LAND_0_label_20;
+              }
+              else {
+                _LAND_0_label_20:
+                {
+                  __retres_10 = 0;
+                  goto return_label_label_17;
+                }
+              }
+            }
+          }
+        }
+        else {
+          __retres_10 = compareFirstName_10;
+          goto return_label_label_17;
+        }
+      }
+      else goto _LAND_5_label_21;
+    }
+    else {
+      _LAND_5_label_21:
+      {
+        int compareLastName_0_10 = 0;
+        if (x2.getLastName != 0) {
+          if (x1.getLastName != 0) {
+            compareLastName_0_10 = IntCompare_aux_4(x2.getLastName,
+                                                    x1.getLastName);
+            if (compareLastName_0_10 == 0) {
+              int compareEmail_1_10 = 0;
+              if (x2.getEmails != 0) {
+                if (x1.getEmails != 0) {
+                  compareEmail_1_10 = IntCompare_aux_4(x2.getEmails,
+                                                       x1.getEmails);
+                  __retres_10 = compareEmail_1_10;
+                  goto return_label_label_17;
+                }
+                else goto _LAND_2_label_22;
+              }
+              else {
+                _LAND_2_label_22:
+                {
+                  __retres_10 = 0;
+                  goto return_label_label_17;
+                }
+              }
+            }
+            else {
+              __retres_10 = compareLastName_0_10;
+              goto return_label_label_17;
+            }
+          }
+          else goto _LAND_4_label_23;
+        }
+        else {
+          _LAND_4_label_23:
+          {
+            int compareEmail_2_10 = 0;
+            if (x2.getEmails != 0) {
+              if (x1.getEmails != 0) {
+                compareEmail_2_10 = IntCompare_aux_4(x2.getEmails,
+                                                     x1.getEmails);
+                __retres_10 = compareEmail_2_10;
+                goto return_label_label_17;
+              }
+              else goto _LAND_3_label_24;
+            }
+            else {
+              _LAND_3_label_24:
+              {
+                __retres_10 = 0;
+                goto return_label_label_17;
+              }
+            }
+          }
+        }
+      }
+    }
+    return_label_label_17: return_variable_relational_10 = __retres_10;
+  }
+  /*@ check
+      Rpp: return_variable_relational_9 ≡ -return_variable_relational_10;
+  */
+  return;
+}
+
+void relational_wrapper_5(struct Contact x1, struct Contact x2,
+                          struct Contact x3)
+{
+  int return_variable_relational_11;
+  int return_variable_relational_12;
+  int return_variable_relational_13;
+  {
+    int __retres_11;
+    int compareFirstName_11 = 0;
+    if (x1.getFirstName != 0) {
+      if (x2.getFirstName != 0) {
+        compareFirstName_11 = IntCompare_aux_5(x1.getFirstName,
+                                               x2.getFirstName);
+        if (compareFirstName_11 == 0) {
+          int compareLastName_11 = 0;
+          if (x1.getLastName != 0) {
+            if (x2.getLastName != 0) {
+              compareLastName_11 = IntCompare_aux_5(x1.getLastName,
+                                                    x2.getLastName);
+              if (compareLastName_11 == 0) {
+                int compareEmail_11 = 0;
+                if (x1.getEmails != 0) {
+                  if (x2.getEmails != 0) {
+                    compareEmail_11 = IntCompare_aux_5(x1.getEmails,
+                                                       x2.getEmails);
+                    __retres_11 = compareEmail_11;
+                    goto return_label_label_25;
+                  }
+                  else goto _LAND_label_26;
+                }
+                else {
+                  _LAND_label_26:
+                  {
+                    __retres_11 = 0;
+                    goto return_label_label_25;
+                  }
+                }
+              }
+              else {
+                __retres_11 = compareLastName_11;
+                goto return_label_label_25;
+              }
+            }
+            else goto _LAND_1_label_27;
+          }
+          else {
+            _LAND_1_label_27:
+            {
+              int compareEmail_0_11 = 0;
+              if (x1.getEmails != 0) {
+                if (x2.getEmails != 0) {
+                  compareEmail_0_11 = IntCompare_aux_5(x1.getEmails,
+                                                       x2.getEmails);
+                  __retres_11 = compareEmail_0_11;
+                  goto return_label_label_25;
+                }
+                else goto _LAND_0_label_28;
+              }
+              else {
+                _LAND_0_label_28:
+                {
+                  __retres_11 = 0;
+                  goto return_label_label_25;
+                }
+              }
+            }
+          }
+        }
+        else {
+          __retres_11 = compareFirstName_11;
+          goto return_label_label_25;
+        }
+      }
+      else goto _LAND_5_label_29;
+    }
+    else {
+      _LAND_5_label_29:
+      {
+        int compareLastName_0_11 = 0;
+        if (x1.getLastName != 0) {
+          if (x2.getLastName != 0) {
+            compareLastName_0_11 = IntCompare_aux_5(x1.getLastName,
+                                                    x2.getLastName);
+            if (compareLastName_0_11 == 0) {
+              int compareEmail_1_11 = 0;
+              if (x1.getEmails != 0) {
+                if (x2.getEmails != 0) {
+                  compareEmail_1_11 = IntCompare_aux_5(x1.getEmails,
+                                                       x2.getEmails);
+                  __retres_11 = compareEmail_1_11;
+                  goto return_label_label_25;
+                }
+                else goto _LAND_2_label_30;
+              }
+              else {
+                _LAND_2_label_30:
+                {
+                  __retres_11 = 0;
+                  goto return_label_label_25;
+                }
+              }
+            }
+            else {
+              __retres_11 = compareLastName_0_11;
+              goto return_label_label_25;
+            }
+          }
+          else goto _LAND_4_label_31;
+        }
+        else {
+          _LAND_4_label_31:
+          {
+            int compareEmail_2_11 = 0;
+            if (x1.getEmails != 0) {
+              if (x2.getEmails != 0) {
+                compareEmail_2_11 = IntCompare_aux_5(x1.getEmails,
+                                                     x2.getEmails);
+                __retres_11 = compareEmail_2_11;
+                goto return_label_label_25;
+              }
+              else goto _LAND_3_label_32;
+            }
+            else {
+              _LAND_3_label_32:
+              {
+                __retres_11 = 0;
+                goto return_label_label_25;
+              }
+            }
+          }
+        }
+      }
+    }
+    return_label_label_25: return_variable_relational_11 = __retres_11;
+  }
+  {
+    int __retres_12;
+    int compareFirstName_12 = 0;
+    if (x2.getFirstName != 0) {
+      if (x3.getFirstName != 0) {
+        compareFirstName_12 = IntCompare_aux_5(x2.getFirstName,
+                                               x3.getFirstName);
+        if (compareFirstName_12 == 0) {
+          int compareLastName_12 = 0;
+          if (x2.getLastName != 0) {
+            if (x3.getLastName != 0) {
+              compareLastName_12 = IntCompare_aux_5(x2.getLastName,
+                                                    x3.getLastName);
+              if (compareLastName_12 == 0) {
+                int compareEmail_12 = 0;
+                if (x2.getEmails != 0) {
+                  if (x3.getEmails != 0) {
+                    compareEmail_12 = IntCompare_aux_5(x2.getEmails,
+                                                       x3.getEmails);
+                    __retres_12 = compareEmail_12;
+                    goto return_label_label_33;
+                  }
+                  else goto _LAND_label_34;
+                }
+                else {
+                  _LAND_label_34:
+                  {
+                    __retres_12 = 0;
+                    goto return_label_label_33;
+                  }
+                }
+              }
+              else {
+                __retres_12 = compareLastName_12;
+                goto return_label_label_33;
+              }
+            }
+            else goto _LAND_1_label_35;
+          }
+          else {
+            _LAND_1_label_35:
+            {
+              int compareEmail_0_12 = 0;
+              if (x2.getEmails != 0) {
+                if (x3.getEmails != 0) {
+                  compareEmail_0_12 = IntCompare_aux_5(x2.getEmails,
+                                                       x3.getEmails);
+                  __retres_12 = compareEmail_0_12;
+                  goto return_label_label_33;
+                }
+                else goto _LAND_0_label_36;
+              }
+              else {
+                _LAND_0_label_36:
+                {
+                  __retres_12 = 0;
+                  goto return_label_label_33;
+                }
+              }
+            }
+          }
+        }
+        else {
+          __retres_12 = compareFirstName_12;
+          goto return_label_label_33;
+        }
+      }
+      else goto _LAND_5_label_37;
+    }
+    else {
+      _LAND_5_label_37:
+      {
+        int compareLastName_0_12 = 0;
+        if (x2.getLastName != 0) {
+          if (x3.getLastName != 0) {
+            compareLastName_0_12 = IntCompare_aux_5(x2.getLastName,
+                                                    x3.getLastName);
+            if (compareLastName_0_12 == 0) {
+              int compareEmail_1_12 = 0;
+              if (x2.getEmails != 0) {
+                if (x3.getEmails != 0) {
+                  compareEmail_1_12 = IntCompare_aux_5(x2.getEmails,
+                                                       x3.getEmails);
+                  __retres_12 = compareEmail_1_12;
+                  goto return_label_label_33;
+                }
+                else goto _LAND_2_label_38;
+              }
+              else {
+                _LAND_2_label_38:
+                {
+                  __retres_12 = 0;
+                  goto return_label_label_33;
+                }
+              }
+            }
+            else {
+              __retres_12 = compareLastName_0_12;
+              goto return_label_label_33;
+            }
+          }
+          else goto _LAND_4_label_39;
+        }
+        else {
+          _LAND_4_label_39:
+          {
+            int compareEmail_2_12 = 0;
+            if (x2.getEmails != 0) {
+              if (x3.getEmails != 0) {
+                compareEmail_2_12 = IntCompare_aux_5(x2.getEmails,
+                                                     x3.getEmails);
+                __retres_12 = compareEmail_2_12;
+                goto return_label_label_33;
+              }
+              else goto _LAND_3_label_40;
+            }
+            else {
+              _LAND_3_label_40:
+              {
+                __retres_12 = 0;
+                goto return_label_label_33;
+              }
+            }
+          }
+        }
+      }
+    }
+    return_label_label_33: return_variable_relational_12 = __retres_12;
+  }
+  {
+    int __retres_13;
+    int compareFirstName_13 = 0;
+    if (x1.getFirstName != 0) {
+      if (x3.getFirstName != 0) {
+        compareFirstName_13 = IntCompare_aux_5(x1.getFirstName,
+                                               x3.getFirstName);
+        if (compareFirstName_13 == 0) {
+          int compareLastName_13 = 0;
+          if (x1.getLastName != 0) {
+            if (x3.getLastName != 0) {
+              compareLastName_13 = IntCompare_aux_5(x1.getLastName,
+                                                    x3.getLastName);
+              if (compareLastName_13 == 0) {
+                int compareEmail_13 = 0;
+                if (x1.getEmails != 0) {
+                  if (x3.getEmails != 0) {
+                    compareEmail_13 = IntCompare_aux_5(x1.getEmails,
+                                                       x3.getEmails);
+                    __retres_13 = compareEmail_13;
+                    goto return_label_label_41;
+                  }
+                  else goto _LAND_label_42;
+                }
+                else {
+                  _LAND_label_42:
+                  {
+                    __retres_13 = 0;
+                    goto return_label_label_41;
+                  }
+                }
+              }
+              else {
+                __retres_13 = compareLastName_13;
+                goto return_label_label_41;
+              }
+            }
+            else goto _LAND_1_label_43;
+          }
+          else {
+            _LAND_1_label_43:
+            {
+              int compareEmail_0_13 = 0;
+              if (x1.getEmails != 0) {
+                if (x3.getEmails != 0) {
+                  compareEmail_0_13 = IntCompare_aux_5(x1.getEmails,
+                                                       x3.getEmails);
+                  __retres_13 = compareEmail_0_13;
+                  goto return_label_label_41;
+                }
+                else goto _LAND_0_label_44;
+              }
+              else {
+                _LAND_0_label_44:
+                {
+                  __retres_13 = 0;
+                  goto return_label_label_41;
+                }
+              }
+            }
+          }
+        }
+        else {
+          __retres_13 = compareFirstName_13;
+          goto return_label_label_41;
+        }
+      }
+      else goto _LAND_5_label_45;
+    }
+    else {
+      _LAND_5_label_45:
+      {
+        int compareLastName_0_13 = 0;
+        if (x1.getLastName != 0) {
+          if (x3.getLastName != 0) {
+            compareLastName_0_13 = IntCompare_aux_5(x1.getLastName,
+                                                    x3.getLastName);
+            if (compareLastName_0_13 == 0) {
+              int compareEmail_1_13 = 0;
+              if (x1.getEmails != 0) {
+                if (x3.getEmails != 0) {
+                  compareEmail_1_13 = IntCompare_aux_5(x1.getEmails,
+                                                       x3.getEmails);
+                  __retres_13 = compareEmail_1_13;
+                  goto return_label_label_41;
+                }
+                else goto _LAND_2_label_46;
+              }
+              else {
+                _LAND_2_label_46:
+                {
+                  __retres_13 = 0;
+                  goto return_label_label_41;
+                }
+              }
+            }
+            else {
+              __retres_13 = compareLastName_0_13;
+              goto return_label_label_41;
+            }
+          }
+          else goto _LAND_4_label_47;
+        }
+        else {
+          _LAND_4_label_47:
+          {
+            int compareEmail_2_13 = 0;
+            if (x1.getEmails != 0) {
+              if (x3.getEmails != 0) {
+                compareEmail_2_13 = IntCompare_aux_5(x1.getEmails,
+                                                     x3.getEmails);
+                __retres_13 = compareEmail_2_13;
+                goto return_label_label_41;
+              }
+              else goto _LAND_3_label_48;
+            }
+            else {
+              _LAND_3_label_48:
+              {
+                __retres_13 = 0;
+                goto return_label_label_41;
+              }
+            }
+          }
+        }
+      }
+    }
+    return_label_label_41: return_variable_relational_13 = __retres_13;
+  }
+  /*@ check
+      Rpp:
+        return_variable_relational_11 > 0 ∧
+        return_variable_relational_12 > 0 ⇒
+        return_variable_relational_13 > 0;
+  */
+  return;
+}
+
+void relational_wrapper_6(struct Contact x1, struct Contact x2,
+                          struct Contact x3)
+{
+  int return_variable_relational_14;
+  int return_variable_relational_15;
+  int return_variable_relational_16;
+  {
+    int __retres_14;
+    int compareFirstName_14 = 0;
+    if (x1.getFirstName != 0) {
+      if (x2.getFirstName != 0) {
+        compareFirstName_14 = IntCompare_aux_6(x1.getFirstName,
+                                               x2.getFirstName);
+        if (compareFirstName_14 == 0) {
+          int compareLastName_14 = 0;
+          if (x1.getLastName != 0) {
+            if (x2.getLastName != 0) {
+              compareLastName_14 = IntCompare_aux_6(x1.getLastName,
+                                                    x2.getLastName);
+              if (compareLastName_14 == 0) {
+                int compareEmail_14 = 0;
+                if (x1.getEmails != 0) {
+                  if (x2.getEmails != 0) {
+                    compareEmail_14 = IntCompare_aux_6(x1.getEmails,
+                                                       x2.getEmails);
+                    __retres_14 = compareEmail_14;
+                    goto return_label_label_49;
+                  }
+                  else goto _LAND_label_50;
+                }
+                else {
+                  _LAND_label_50:
+                  {
+                    __retres_14 = 0;
+                    goto return_label_label_49;
+                  }
+                }
+              }
+              else {
+                __retres_14 = compareLastName_14;
+                goto return_label_label_49;
+              }
+            }
+            else goto _LAND_1_label_51;
+          }
+          else {
+            _LAND_1_label_51:
+            {
+              int compareEmail_0_14 = 0;
+              if (x1.getEmails != 0) {
+                if (x2.getEmails != 0) {
+                  compareEmail_0_14 = IntCompare_aux_6(x1.getEmails,
+                                                       x2.getEmails);
+                  __retres_14 = compareEmail_0_14;
+                  goto return_label_label_49;
+                }
+                else goto _LAND_0_label_52;
+              }
+              else {
+                _LAND_0_label_52:
+                {
+                  __retres_14 = 0;
+                  goto return_label_label_49;
+                }
+              }
+            }
+          }
+        }
+        else {
+          __retres_14 = compareFirstName_14;
+          goto return_label_label_49;
+        }
+      }
+      else goto _LAND_5_label_53;
+    }
+    else {
+      _LAND_5_label_53:
+      {
+        int compareLastName_0_14 = 0;
+        if (x1.getLastName != 0) {
+          if (x2.getLastName != 0) {
+            compareLastName_0_14 = IntCompare_aux_6(x1.getLastName,
+                                                    x2.getLastName);
+            if (compareLastName_0_14 == 0) {
+              int compareEmail_1_14 = 0;
+              if (x1.getEmails != 0) {
+                if (x2.getEmails != 0) {
+                  compareEmail_1_14 = IntCompare_aux_6(x1.getEmails,
+                                                       x2.getEmails);
+                  __retres_14 = compareEmail_1_14;
+                  goto return_label_label_49;
+                }
+                else goto _LAND_2_label_54;
+              }
+              else {
+                _LAND_2_label_54:
+                {
+                  __retres_14 = 0;
+                  goto return_label_label_49;
+                }
+              }
+            }
+            else {
+              __retres_14 = compareLastName_0_14;
+              goto return_label_label_49;
+            }
+          }
+          else goto _LAND_4_label_55;
+        }
+        else {
+          _LAND_4_label_55:
+          {
+            int compareEmail_2_14 = 0;
+            if (x1.getEmails != 0) {
+              if (x2.getEmails != 0) {
+                compareEmail_2_14 = IntCompare_aux_6(x1.getEmails,
+                                                     x2.getEmails);
+                __retres_14 = compareEmail_2_14;
+                goto return_label_label_49;
+              }
+              else goto _LAND_3_label_56;
+            }
+            else {
+              _LAND_3_label_56:
+              {
+                __retres_14 = 0;
+                goto return_label_label_49;
+              }
+            }
+          }
+        }
+      }
+    }
+    return_label_label_49: return_variable_relational_14 = __retres_14;
+  }
+  {
+    int __retres_15;
+    int compareFirstName_15 = 0;
+    if (x1.getFirstName != 0) {
+      if (x3.getFirstName != 0) {
+        compareFirstName_15 = IntCompare_aux_6(x1.getFirstName,
+                                               x3.getFirstName);
+        if (compareFirstName_15 == 0) {
+          int compareLastName_15 = 0;
+          if (x1.getLastName != 0) {
+            if (x3.getLastName != 0) {
+              compareLastName_15 = IntCompare_aux_6(x1.getLastName,
+                                                    x3.getLastName);
+              if (compareLastName_15 == 0) {
+                int compareEmail_15 = 0;
+                if (x1.getEmails != 0) {
+                  if (x3.getEmails != 0) {
+                    compareEmail_15 = IntCompare_aux_6(x1.getEmails,
+                                                       x3.getEmails);
+                    __retres_15 = compareEmail_15;
+                    goto return_label_label_57;
+                  }
+                  else goto _LAND_label_58;
+                }
+                else {
+                  _LAND_label_58:
+                  {
+                    __retres_15 = 0;
+                    goto return_label_label_57;
+                  }
+                }
+              }
+              else {
+                __retres_15 = compareLastName_15;
+                goto return_label_label_57;
+              }
+            }
+            else goto _LAND_1_label_59;
+          }
+          else {
+            _LAND_1_label_59:
+            {
+              int compareEmail_0_15 = 0;
+              if (x1.getEmails != 0) {
+                if (x3.getEmails != 0) {
+                  compareEmail_0_15 = IntCompare_aux_6(x1.getEmails,
+                                                       x3.getEmails);
+                  __retres_15 = compareEmail_0_15;
+                  goto return_label_label_57;
+                }
+                else goto _LAND_0_label_60;
+              }
+              else {
+                _LAND_0_label_60:
+                {
+                  __retres_15 = 0;
+                  goto return_label_label_57;
+                }
+              }
+            }
+          }
+        }
+        else {
+          __retres_15 = compareFirstName_15;
+          goto return_label_label_57;
+        }
+      }
+      else goto _LAND_5_label_61;
+    }
+    else {
+      _LAND_5_label_61:
+      {
+        int compareLastName_0_15 = 0;
+        if (x1.getLastName != 0) {
+          if (x3.getLastName != 0) {
+            compareLastName_0_15 = IntCompare_aux_6(x1.getLastName,
+                                                    x3.getLastName);
+            if (compareLastName_0_15 == 0) {
+              int compareEmail_1_15 = 0;
+              if (x1.getEmails != 0) {
+                if (x3.getEmails != 0) {
+                  compareEmail_1_15 = IntCompare_aux_6(x1.getEmails,
+                                                       x3.getEmails);
+                  __retres_15 = compareEmail_1_15;
+                  goto return_label_label_57;
+                }
+                else goto _LAND_2_label_62;
+              }
+              else {
+                _LAND_2_label_62:
+                {
+                  __retres_15 = 0;
+                  goto return_label_label_57;
+                }
+              }
+            }
+            else {
+              __retres_15 = compareLastName_0_15;
+              goto return_label_label_57;
+            }
+          }
+          else goto _LAND_4_label_63;
+        }
+        else {
+          _LAND_4_label_63:
+          {
+            int compareEmail_2_15 = 0;
+            if (x1.getEmails != 0) {
+              if (x3.getEmails != 0) {
+                compareEmail_2_15 = IntCompare_aux_6(x1.getEmails,
+                                                     x3.getEmails);
+                __retres_15 = compareEmail_2_15;
+                goto return_label_label_57;
+              }
+              else goto _LAND_3_label_64;
+            }
+            else {
+              _LAND_3_label_64:
+              {
+                __retres_15 = 0;
+                goto return_label_label_57;
+              }
+            }
+          }
+        }
+      }
+    }
+    return_label_label_57: return_variable_relational_15 = __retres_15;
+  }
+  {
+    int __retres_16;
+    int compareFirstName_16 = 0;
+    if (x2.getFirstName != 0) {
+      if (x3.getFirstName != 0) {
+        compareFirstName_16 = IntCompare_aux_6(x2.getFirstName,
+                                               x3.getFirstName);
+        if (compareFirstName_16 == 0) {
+          int compareLastName_16 = 0;
+          if (x2.getLastName != 0) {
+            if (x3.getLastName != 0) {
+              compareLastName_16 = IntCompare_aux_6(x2.getLastName,
+                                                    x3.getLastName);
+              if (compareLastName_16 == 0) {
+                int compareEmail_16 = 0;
+                if (x2.getEmails != 0) {
+                  if (x3.getEmails != 0) {
+                    compareEmail_16 = IntCompare_aux_6(x2.getEmails,
+                                                       x3.getEmails);
+                    __retres_16 = compareEmail_16;
+                    goto return_label_label_65;
+                  }
+                  else goto _LAND_label_66;
+                }
+                else {
+                  _LAND_label_66:
+                  {
+                    __retres_16 = 0;
+                    goto return_label_label_65;
+                  }
+                }
+              }
+              else {
+                __retres_16 = compareLastName_16;
+                goto return_label_label_65;
+              }
+            }
+            else goto _LAND_1_label_67;
+          }
+          else {
+            _LAND_1_label_67:
+            {
+              int compareEmail_0_16 = 0;
+              if (x2.getEmails != 0) {
+                if (x3.getEmails != 0) {
+                  compareEmail_0_16 = IntCompare_aux_6(x2.getEmails,
+                                                       x3.getEmails);
+                  __retres_16 = compareEmail_0_16;
+                  goto return_label_label_65;
+                }
+                else goto _LAND_0_label_68;
+              }
+              else {
+                _LAND_0_label_68:
+                {
+                  __retres_16 = 0;
+                  goto return_label_label_65;
+                }
+              }
+            }
+          }
+        }
+        else {
+          __retres_16 = compareFirstName_16;
+          goto return_label_label_65;
+        }
+      }
+      else goto _LAND_5_label_69;
+    }
+    else {
+      _LAND_5_label_69:
+      {
+        int compareLastName_0_16 = 0;
+        if (x2.getLastName != 0) {
+          if (x3.getLastName != 0) {
+            compareLastName_0_16 = IntCompare_aux_6(x2.getLastName,
+                                                    x3.getLastName);
+            if (compareLastName_0_16 == 0) {
+              int compareEmail_1_16 = 0;
+              if (x2.getEmails != 0) {
+                if (x3.getEmails != 0) {
+                  compareEmail_1_16 = IntCompare_aux_6(x2.getEmails,
+                                                       x3.getEmails);
+                  __retres_16 = compareEmail_1_16;
+                  goto return_label_label_65;
+                }
+                else goto _LAND_2_label_70;
+              }
+              else {
+                _LAND_2_label_70:
+                {
+                  __retres_16 = 0;
+                  goto return_label_label_65;
+                }
+              }
+            }
+            else {
+              __retres_16 = compareLastName_0_16;
+              goto return_label_label_65;
+            }
+          }
+          else goto _LAND_4_label_71;
+        }
+        else {
+          _LAND_4_label_71:
+          {
+            int compareEmail_2_16 = 0;
+            if (x2.getEmails != 0) {
+              if (x3.getEmails != 0) {
+                compareEmail_2_16 = IntCompare_aux_6(x2.getEmails,
+                                                     x3.getEmails);
+                __retres_16 = compareEmail_2_16;
+                goto return_label_label_65;
+              }
+              else goto _LAND_3_label_72;
+            }
+            else {
+              _LAND_3_label_72:
+              {
+                __retres_16 = 0;
+                goto return_label_label_65;
+              }
+            }
+          }
+        }
+      }
+    }
+    return_label_label_65: return_variable_relational_16 = __retres_16;
+  }
+  /*@ check
+      Rpp:
+        return_variable_relational_14 ≡ 0 ⇒
+        return_variable_relational_15 ≡ return_variable_relational_16;
+  */
+  return;
+}
 
 
 [rpp] ***************************************

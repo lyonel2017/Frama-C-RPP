@@ -26,9 +26,6 @@ int IntCompare(int x, int y);
 /*@ requires 0 <= o1.length && o1.length < 1000;
   @ requires 0 <= o2.length && o2.length < 1000;
   @ assigns \result \from o1,o2;
-  @ relational \forall struct Word x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct Word x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct Word x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
 */
 int compare(struct Word o1, struct Word o2) {
   int left = o1.count;
@@ -62,3 +59,20 @@ int compare(struct Word o1, struct Word o2) {
   }
   else return (left > right)? 1:-1;
 }
+
+/*@ relational
+      \forall struct Word x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+
+/*@ relational
+      \forall struct Word x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct Word x1,x2,x3;
+      \callpure(compare,x1,x2) == 0
+      ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

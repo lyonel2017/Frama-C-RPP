@@ -36,10 +36,7 @@ struct TextPosition {
   float getWidthDirAdj;
 };
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct TextPosition x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct TextPosition x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct TextPosition x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));*/
+/*@ assigns \result \from o1,o2; */
 int compare(struct TextPosition o1, struct TextPosition o2){
   int retval = 0;
 
@@ -95,3 +92,20 @@ int compare(struct TextPosition o1, struct TextPosition o2){
     }
   return retval;
 }
+
+/*@ relational
+      \forall struct TextPosition x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+
+/*@ relational
+      \forall struct TextPosition x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct TextPosition x1,x2,x3;
+      \callpure(compare,x1,x2) == 0
+      ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

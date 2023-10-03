@@ -37,24 +37,6 @@ void p(int x)
   return;
 }
 
-int y_id3_1;
-
-int y_id4_1;
-
-void relational_wrapper_1(int x)
-{
-  y_id3_1 += x;
-  ;
-  y_id4_1 += x;
-  ;
-  /*@ assert
-      Rpp:
-        \at(y_id3_1,Pre) < \at(y_id4_1,Pre) ⇒
-        \at(y_id3_1,Here) < \at(y_id4_1,Here);
-  */
-  return;
-}
-
 /*@
 axiomatic Relational_axiome_2 {
   predicate f_acsl_2(int y_pre, int y_post) ;
@@ -82,17 +64,51 @@ void f(void)
   return;
 }
 
-void k_id1(int x);
+int y_id2_2;
 
-void p_id1(int x);
-
-void k_id2(int x);
-
+/*@ assigns y_id2_2;
+    assigns y_id2_2 \from y_id2_2, x;
+    
+    behavior Relational_behavior:
+      ensures p_acsl_1(\old(x), \at(y_id2_2,Pre), \at(y_id2_2,Post));
+ */
 void p_id2(int x);
+
+/*@ assigns y_id2_2;
+    assigns y_id2_2 \from y_id2_2, x; */
+void k_id2(int x);
 
 int y_id1_2;
 
-int y_id2_2;
+/*@ assigns y_id1_2;
+    assigns y_id1_2 \from y_id1_2, x;
+    
+    behavior Relational_behavior:
+      ensures p_acsl_1(\old(x), \at(y_id1_2,Pre), \at(y_id1_2,Post));
+ */
+void p_id1(int x);
+
+/*@ assigns y_id1_2;
+    assigns y_id1_2 \from y_id1_2, x; */
+void k_id1(int x);
+
+int y_id3_1;
+
+int y_id4_1;
+
+void relational_wrapper_1(int x)
+{
+  y_id3_1 += x;
+  ;
+  y_id4_1 += x;
+  ;
+  /*@ check
+      Rpp:
+        \at(y_id3_1,Pre) < \at(y_id4_1,Pre) ⇒
+        \at(y_id3_1,Here) < \at(y_id4_1,Here);
+  */
+  return;
+}
 
 void relational_wrapper_2(void)
 {
@@ -108,37 +124,13 @@ void relational_wrapper_2(void)
     p_id2(x_4);
     ;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         \at(y_id1_2,Pre) < \at(y_id2_2,Pre) ⇒
         \at(y_id1_2,Here) < \at(y_id2_2,Here);
   */
   return;
 }
-
-/*@ assigns y_id2_2;
-    assigns y_id2_2 \from y_id2_2, x;
-    
-    behavior Relational_behavior:
-      ensures p_acsl_1(\old(x), \at(y_id2_2,Pre), \at(y_id2_2,Post));
- */
-void p_id2(int x);
-
-/*@ assigns y_id2_2;
-    assigns y_id2_2 \from y_id2_2, x; */
-void k_id2(int x);
-
-/*@ assigns y_id1_2;
-    assigns y_id1_2 \from y_id1_2, x;
-    
-    behavior Relational_behavior:
-      ensures p_acsl_1(\old(x), \at(y_id1_2,Pre), \at(y_id1_2,Post));
- */
-void p_id1(int x);
-
-/*@ assigns y_id1_2;
-    assigns y_id1_2 \from y_id1_2, x; */
-void k_id1(int x);
 
 
 [rpp] ***************************************

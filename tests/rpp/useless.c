@@ -2,7 +2,8 @@
    OPT: -rpp
 */
 
-/*@ relational 1 < 2;*/
 void f(){
   return;
 }
+
+/*@ relational 1 < 2;*/

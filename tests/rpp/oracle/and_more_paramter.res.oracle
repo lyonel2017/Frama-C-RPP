@@ -49,34 +49,6 @@ int g(int x)
   return y;
 }
 
-int y_id1_1;
-
-int y_id2_1;
-
-void relational_wrapper_1(int x, int k)
-{
-  int return_variable_relational_1;
-  int local_variable_relational_1;
-  int return_variable_relational_2;
-  y_id1_1 += x;
-  return_variable_relational_1 = y_id1_1;
-  {
-    int __retres_2;
-    __retres_2 = k + 1;
-    local_variable_relational_1 = __retres_2;
-  }
-  y_id2_1 += local_variable_relational_1;
-  return_variable_relational_2 = y_id2_1;
-  /*@ assert
-      Rpp:
-        \at(y_id1_1,Pre) ≡ \at(y_id2_1,Pre) ∧ x > 0 ∧
-        \at(y_id1_1,Pre) > 0 ∧ \at(y_id2_1,Pre) > 0 ∧
-        k ≡ return_variable_relational_1 ⇒
-        \at(y_id1_1,Here) < \at(y_id2_1,Here);
-  */
-  return;
-}
-
 int l;
 /*@
 axiomatic Relational_axiome_2 {
@@ -120,6 +92,34 @@ void p(void)
   return;
 }
 
+int y_id1_1;
+
+int y_id2_1;
+
+void relational_wrapper_1(int x, int k)
+{
+  int return_variable_relational_1;
+  int local_variable_relational_1;
+  int return_variable_relational_2;
+  y_id1_1 += x;
+  return_variable_relational_1 = y_id1_1;
+  {
+    int __retres_2;
+    __retres_2 = k + 1;
+    local_variable_relational_1 = __retres_2;
+  }
+  y_id2_1 += local_variable_relational_1;
+  return_variable_relational_2 = y_id2_1;
+  /*@ check
+      Rpp:
+        \at(y_id1_1,Pre) ≡ \at(y_id2_1,Pre) ∧ x > 0 ∧
+        \at(y_id1_1,Pre) > 0 ∧ \at(y_id2_1,Pre) > 0 ∧
+        k ≡ return_variable_relational_1 ⇒
+        \at(y_id1_1,Here) < \at(y_id2_1,Here);
+  */
+  return;
+}
+
 int l_id3_2;
 
 int l_id4_2;
@@ -134,7 +134,7 @@ void relational_wrapper_2(int x)
   ;
   l_id5_2 ++;
   ;
-  /*@ assert
+  /*@ check
       Rpp:
         x ≡ \at(l_id3_2,Here) ∧ \at(l_id3_2,Pre) ≡ \at(l_id5_2,Pre) ⇒
         \at(l_id4_2,Here) ≡ \at(l_id5_2,Here);

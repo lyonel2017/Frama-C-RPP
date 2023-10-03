@@ -9,9 +9,11 @@ struct s {
 
 int i[10];
 
-/*@ assigns \result \from x;
-  @ relational \forall struct s var; \callpure(f,var.s1) == \callpure(f, var.s1);
-*/
+/*@ assigns \result \from x; */
 int f(int x){
   return x;
 }
+
+/*@ relational
+      \forall struct s var; \callpure(f,var.s1) == \callpure(f, var.s1);
+*/

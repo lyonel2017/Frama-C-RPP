@@ -26,11 +26,7 @@ struct NzbFile{
 */
 int IntCompare(int x, int y);
 
-/*@ assigns \result \from o1,o2;
-  @ relational \forall struct NzbFile x1,x2; \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
-  @ relational \forall struct NzbFile x1,x2,x3; (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0) ==> \callpure(compare,x1,x3) > 0;
-  @ relational \forall struct NzbFile x1,x2,x3; \callpure(compare,x1,x2) == 0 ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
-*/
+/*@ assigns \result \from o1,o2; */
 int compare(struct NzbFile o1, struct NzbFile o2){
   if ((o1.FileName != NULL) && (o2.FileName != NULL)){
     if (o1.getFileName_toLowerCase_endsWith[0]) // ".nfo"
@@ -70,3 +66,20 @@ int compare(struct NzbFile o1, struct NzbFile o2){
     }
 
 }
+
+/*@ relational
+      \forall struct NzbFile x1,x2;
+      \callpure(compare,x1,x2) == -(\callpure(compare,x2,x1));
+*/
+
+/*@ relational
+      \forall struct NzbFile x1,x2,x3;
+      (\callpure(compare,x1,x2) > 0 && \callpure(compare,x2,x3) > 0)
+      ==> \callpure(compare,x1,x3) > 0;
+*/
+
+/*@ relational
+      \forall struct NzbFile x1,x2,x3;
+      \callpure(compare,x1,x2) == 0
+      ==> (\callpure(compare,x1,x3) == \callpure(compare,x2,x3));
+*/

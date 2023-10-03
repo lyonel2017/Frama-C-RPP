@@ -25,16 +25,6 @@ int g(void)
   return y;
 }
 
-int y_id1_1;
-
-void relational_wrapper_1(void)
-{
-  int return_variable_relational_1;
-  return_variable_relational_1 = y_id1_1;
-  /*@ assert Rpp: 0 ≡ 0; */
-  return;
-}
-
 /*@
 axiomatic Relational_axiome_2 {
   predicate k_acsl_2(int y_pre, int return_variable_relational) ;
@@ -58,13 +48,23 @@ int k(void)
   return y;
 }
 
+int y_id1_1;
+
+void relational_wrapper_1(void)
+{
+  int return_variable_relational_1;
+  return_variable_relational_1 = y_id1_1;
+  /*@ check Rpp: 0 ≡ 0; */
+  return;
+}
+
 int y_id1_2;
 
 void relational_wrapper_2(void)
 {
   int return_variable_relational_2;
   return_variable_relational_2 = y_id1_2;
-  /*@ assert Rpp: return_variable_relational_2 ≡ \at(y_id1_2,Pre); */
+  /*@ check Rpp: return_variable_relational_2 ≡ \at(y_id1_2,Pre); */
   return;
 }
 

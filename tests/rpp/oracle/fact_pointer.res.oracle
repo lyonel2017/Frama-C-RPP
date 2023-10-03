@@ -7,17 +7,6 @@ int r;
 /*@ lemma test: ∀ int x; x ≥ 0 ⇒ x - 1 ≡ (int)(x - 1);
  */
 /*@
-axiomatic Relational_axiome_1 {
-  predicate fact_acsl_1(int x, int r_pre, int r_post) ;
-  
-  lemma Relational_lemma_1{L}:
-    ∀ int x1, int r_id1_pre, int r_id1_post;
-      fact_acsl_1(x1, r_id1_pre, r_id1_post) ⇒
-      x1 ≤ 1 ⇒ r_id1_post ≡ 1;
-  
-  }
- */
-/*@
 axiomatic Relational_axiome_2 {
   predicate fact_acsl_2(int x, int r_pre, int r_post) ;
   
@@ -26,6 +15,17 @@ axiomatic Relational_axiome_2 {
       fact_acsl_2((int)(x1 - 1), r_id3_pre, r_id3_post) ⇒
       fact_acsl_2(x1, r_id2_pre, r_id2_post) ⇒
       x1 > 1 ⇒ r_id2_post ≡ x1 * r_id3_post;
+  
+  }
+ */
+/*@
+axiomatic Relational_axiome_1 {
+  predicate fact_acsl_1(int x, int r_pre, int r_post) ;
+  
+  lemma Relational_lemma_1{L}:
+    ∀ int x1, int r_id1_pre, int r_id1_post;
+      fact_acsl_1(x1, r_id1_pre, r_id1_post) ⇒
+      x1 ≤ 1 ⇒ r_id1_post ≡ 1;
   
   }
  */
@@ -53,8 +53,39 @@ void fact(int x)
   return_label: return;
 }
 
+int r_id3_2;
+
+/*@ requires x ≥ 0;
+    assigns r_id3_2;
+    assigns r_id3_2 \from r_id3_2, x;
+    
+    behavior Relational_behavior:
+      ensures fact_acsl_1(\old(x), \at(r_id3_2,Pre), \at(r_id3_2,Post));
+      ensures fact_acsl_2(\old(x), \at(r_id3_2,Pre), \at(r_id3_2,Post));
+ */
+void fact_id3(int x);
+
+int r_id2_2;
+
+/*@ requires x ≥ 0;
+    assigns r_id2_2;
+    assigns r_id2_2 \from r_id2_2, x;
+    
+    behavior Relational_behavior:
+      ensures fact_acsl_1(\old(x), \at(r_id2_2,Pre), \at(r_id2_2,Post));
+      ensures fact_acsl_2(\old(x), \at(r_id2_2,Pre), \at(r_id2_2,Post));
+ */
+void fact_id2(int x);
+
 int r_id1_1;
 
+/*@ requires x ≥ 0;
+    assigns r_id1_1;
+    assigns r_id1_1 \from r_id1_1, x;
+    
+    behavior Relational_behavior:
+      ensures fact_acsl_1(\old(x), \at(r_id1_1,Pre), \at(r_id1_1,Post));
+ */
 void fact_id1(int x);
 
 /*@ requires x1 ≥ 0; */
@@ -71,17 +102,9 @@ void relational_wrapper_1(int x1)
     goto return_label_label_1;
   }
   return_label_label_1: ;
-  /*@ assert Rpp: x1 ≤ 1 ⇒ \at(r_id1_1,Here) ≡ 1; */
+  /*@ check Rpp: x1 ≤ 1 ⇒ \at(r_id1_1,Here) ≡ 1; */
   return;
 }
-
-int r_id2_2;
-
-void fact_id2(int x);
-
-int r_id3_2;
-
-void fact_id3(int x);
 
 /*@ requires x1 - 1 ≥ 0;
     requires x1 ≥ 0; */
@@ -111,38 +134,9 @@ void relational_wrapper_2(int x1)
     goto return_label_label_3;
   }
   return_label_label_3: ;
-  /*@ assert Rpp: x1 > 1 ⇒ \at(r_id2_2,Here) ≡ x1 * \at(r_id3_2,Here); */
+  /*@ check Rpp: x1 > 1 ⇒ \at(r_id2_2,Here) ≡ x1 * \at(r_id3_2,Here); */
   return;
 }
-
-/*@ requires x ≥ 0;
-    assigns r_id3_2;
-    assigns r_id3_2 \from r_id3_2, x;
-    
-    behavior Relational_behavior:
-      ensures fact_acsl_1(\old(x), \at(r_id3_2,Pre), \at(r_id3_2,Post));
-      ensures fact_acsl_2(\old(x), \at(r_id3_2,Pre), \at(r_id3_2,Post));
- */
-void fact_id3(int x);
-
-/*@ requires x ≥ 0;
-    assigns r_id2_2;
-    assigns r_id2_2 \from r_id2_2, x;
-    
-    behavior Relational_behavior:
-      ensures fact_acsl_1(\old(x), \at(r_id2_2,Pre), \at(r_id2_2,Post));
-      ensures fact_acsl_2(\old(x), \at(r_id2_2,Pre), \at(r_id2_2,Post));
- */
-void fact_id2(int x);
-
-/*@ requires x ≥ 0;
-    assigns r_id1_1;
-    assigns r_id1_1 \from r_id1_1, x;
-    
-    behavior Relational_behavior:
-      ensures fact_acsl_1(\old(x), \at(r_id1_1,Pre), \at(r_id1_1,Post));
- */
-void fact_id1(int x);
 
 
 [rpp] ***************************************

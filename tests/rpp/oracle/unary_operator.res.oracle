@@ -74,7 +74,7 @@ void relational_wrapper_1(int x1, int x2)
     }
     return_label_label_2: return_variable_relational_2 = __retres_2;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         x1 ≡ -x2 ∧ x1 ≢ 0 ⇒
         return_variable_relational_1 + return_variable_relational_2 ≡ 1;
@@ -112,7 +112,7 @@ void relational_wrapper_2(int x1)
     }
     return_label_label_4: return_variable_relational_4 = __retres_4;
   }
-  /*@ assert
+  /*@ check
       Rpp:
         x1 ≢ 0 ⇒
         return_variable_relational_3 + return_variable_relational_4 ≡ 1;

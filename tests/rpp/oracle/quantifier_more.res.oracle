@@ -49,7 +49,7 @@ void relational_wrapper_1(int x, int y)
   int return_variable_relational_2;
   return_variable_relational_1 = x;
   return_variable_relational_2 = y;
-  /*@ assert
+  /*@ check
       Rpp:
         ∃ int a, int b, int c, int d;
           a > 10 ∧ b < 2 ∧ d > c ∧

@@ -20,9 +20,6 @@ int IntCompare(int x, int y);
 
 /*@ requires \valid(t+(0..2));
   @ assigns \result \from o1,o2,t[0..2];
-  @ relational \forall struct MyClass x1,x2, int * t; \callpure(compare,x1,x2,t) == -(\callpure(compare,x2,x1,t));
-  @ relational \forall struct MyClass x1,x2,x3, int *t; (\callpure(compare,x1,x2,t) > 0 && \callpure(compare,x2,x3,t) > 0) ==> \callpure(compare,x1,x3,t) > 0;
-  @ relational \forall struct MyClass x1,x2,x3, int *t; \callpure(compare,x1,x2,t) == 0 ==> (\callpure(compare,x1,x3,t) == \callpure(compare,x2,x3,t));
 */
 int compare(struct MyClass o1, struct MyClass o2, int *t){
   int x = o1.Name;
@@ -47,3 +44,20 @@ int compare(struct MyClass o1, struct MyClass o2, int *t){
   }
   return IntCompare(x,y);
 }
+
+/*@ relational
+      \forall struct MyClass x1,x2, int * t;
+      \callpure(compare,x1,x2,t) == -(\callpure(compare,x2,x1,t));
+*/
+
+/*@ relational
+      \forall struct MyClass x1,x2,x3, int *t;
+      (\callpure(compare,x1,x2,t) > 0 && \callpure(compare,x2,x3,t) > 0)
+      ==> \callpure(compare,x1,x3,t) > 0;
+*/
+
+/*@ relational
+      \forall struct MyClass x1,x2,x3, int *t;
+      \callpure(compare,x1,x2,t) == 0
+      ==> (\callpure(compare,x1,x3,t) == \callpure(compare,x2,x3,t));
+*/

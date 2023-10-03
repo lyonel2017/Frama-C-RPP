@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -42,16 +42,13 @@ let generat_axiom l self new_predi new_labels logic_info logic_info_pure =
   let name_lemma =
     String.concat "_" ["Relational_lemma";string_of_int (Rpp_options.Counting_axiome.get ())]
   in
-  let predicate_named =
-    Logic_const.new_predicate new_predi
-  in
   let new_labels = match new_labels with
     | _ :: _ -> new_labels
     | [] -> [FormalLabel("L")]
   in
+  let new_predi = Logic_const.toplevel_predicate new_predi in
   let lemma =
-    Cil_types.Dlemma (name_lemma,false,new_labels,[],
-                      (Logic_const.pred_of_id_pred predicate_named),[],l)
+    Cil_types.Dlemma (name_lemma,new_labels,[], new_predi,[],l)
   in
   let functions =
     Hashtbl.fold (fun _ (logic_information,_) acc ->
@@ -78,7 +75,7 @@ let generat_axiom l self new_predi new_labels logic_info logic_info_pure =
       Annotations.add_global (Rpp_options.emitter) axiome;
     )
     self#get_filling_actions;
-  (axiome,name_lemma,predicate_named)
+  (axiome,name_lemma,new_predi)
 
 let check_type t1 t2 =
   match t1, t2 with
@@ -86,7 +83,7 @@ let check_type t1 t2 =
   | _ , _ -> assert false
 
 let param_generat self x y l label =
-  let x = Cil.get_varinfo self#behavior x in
+  let x = Visitor_behavior.Get.varinfo self#behavior x in
   let term_nodei =
     TLval(TVar(Cil.cvar_to_lvar x),TNoOffset)
   in
@@ -109,7 +106,7 @@ let param_generat self x y l label =
   term
 
 let pointer_param_generat self x y l =
-  let x = Cil.get_varinfo self#behavior x in
+  let x = Visitor_behavior.Get.varinfo self#behavior x in
   let term_nodei =
     TLval(TVar(Cil.cvar_to_lvar x),TNoOffset)
   in
@@ -132,7 +129,7 @@ let generat_behavior_pure l self logic_info_pure =
   Hashtbl.iter (
     fun _ (logic_information,kf) ->
       Queue.add(fun () ->
-          let kf = Cil.get_kernel_function self#behavior kf in
+          let kf = Visitor_behavior.Get.kernel_function self#behavior kf in
           let params = List.map2 (fun x y ->
               param_generat self x y l Old
             ) (Globals.Functions.get_params kf) (logic_information.l_profile)
@@ -179,7 +176,7 @@ let generat_behavior_pure l self logic_info_pure =
           let property =
             Property.ip_of_ensures kf (Kglobal) funbehavior ensures
           in
-          Property_status.emit (Rpp_options.emitter) [] property Property_status.True;
+          Property_status.emit (Rpp_options.emitter) ~hyps:[] property Property_status.True;
         )
         self#get_filling_actions)
     logic_info_pure.predicate_info_pure
@@ -270,7 +267,7 @@ let generat_behavior l self logic_info =
           let property =
             Property.ip_of_ensures kf (Kglobal) funbehavior ensures
           in
-          Property_status.emit (Rpp_options.emitter) [] property Property_status.True;
+          Property_status.emit (Rpp_options.emitter) ~hyps:[] property Property_status.True;
         )
         self#get_filling_actions)
     logic_info.predicate_info
@@ -337,9 +334,10 @@ let generat_behavior_for_kf l self logic_info (target_kf,replace_target) global_
           (*Since Cil_datatype.Predicate.equal don't support the annotation, we use string equality.
             This is a temporare solution and not very nice*)
           let test =
-            Annotations.fold_ensures(fun _ (_,pred_name) test ->
+            Annotations.fold_ensures(fun _ (_,pred) test ->
                 let s1 =
-                  Format.asprintf "Fold pred %a @." Printer.pp_predicate pred_name.ip_content
+                  Format.asprintf "Fold pred %a @."
+                    Printer.pp_predicate pred.ip_content.tp_statement
                 in
                 let s2 =
                   Format.asprintf "Fold pred %a @." Printer.pp_predicate predicate_name
@@ -362,7 +360,7 @@ let generat_behavior_for_kf l self logic_info (target_kf,replace_target) global_
             let property =
               Property.ip_of_ensures target_kf (Kglobal) funbehavior ensures
             in
-            Property_status.emit (Rpp_options.emitter) [] property Property_status.True;
+            Property_status.emit (Rpp_options.emitter) ~hyps:[] property Property_status.True;
           | true -> ()
         end
       else ()) logic_info.predicate_info
@@ -415,9 +413,10 @@ let generat_behavior_pure_for_kf l self logic_info_pure (target_kf,replace_targe
           (*Since Cil_datatype.Predicate.equal don't support the annotation, we use string equality.
             This is a temporare solution and not very nice*)
           let test =
-            Annotations.fold_ensures(fun _ (_,pred_name) test ->
+            Annotations.fold_ensures(fun _ (_,pred) test ->
                 let s1 =
-                  Format.asprintf "Fold pred %a @." Printer.pp_predicate pred_name.ip_content
+                  Format.asprintf "Fold pred %a @."
+                    Printer.pp_predicate pred.ip_content.tp_statement
                 in
                 let s2 =
                   Format.asprintf "Fold pred %a @." Printer.pp_predicate predicate_name
@@ -439,7 +438,7 @@ let generat_behavior_pure_for_kf l self logic_info_pure (target_kf,replace_targe
             let property =
               Property.ip_of_ensures target_kf (Kglobal) funbehavior ensures
             in
-            Property_status.emit (Rpp_options.emitter) [] property Property_status.True;
+            Property_status.emit (Rpp_options.emitter) ~hyps:[] property Property_status.True;
           | true -> ()
         end
       else ()) logic_info_pure.predicate_info_pure
@@ -521,9 +520,9 @@ let generat_help_behavior_pure_for_kf l logic_infos_pure (target_kf,replace_targ
         (*Since Cil_datatype.Predicate.equal don't support the annotation, we use string equality.
               This is a temporare solution and not very nice*)
         let test =
-          Annotations.fold_ensures(fun _ (_,pred_name) test ->
+          Annotations.fold_ensures(fun _ (_,pred) test ->
               let s1 =
-                Format.asprintf "Fold pred %a @." Printer.pp_predicate pred_name.ip_content
+                Format.asprintf "Fold pred %a @." Printer.pp_predicate pred.ip_content.tp_statement
               in
               let s2 =
                 Format.asprintf "Fold pred %a @." Printer.pp_predicate predicate_name
@@ -546,7 +545,7 @@ let generat_help_behavior_pure_for_kf l logic_infos_pure (target_kf,replace_targ
             let property =
               Property.ip_of_ensures target_kf (Kglobal) funbehavior ensures
             in
-            Property_status.emit (Rpp_options.emitter) [] property Property_status.True
+            Property_status.emit (Rpp_options.emitter) ~hyps:[] property Property_status.True
           | true -> ()
         end;
         aux q h
@@ -559,14 +558,23 @@ let generat_help_behavior_pure_for_kf l logic_infos_pure (target_kf,replace_targ
 
 
 (**
-   Function for generating the axiomatic definition related the
+   Function for generating the axiomatic definition related to the
    relational property and the corresponding behaviour for each
-   function related the the relational property
+   function related in the relational property
 *)
-let relationnel_axiom l self new_predi new_labels (logic_info) (logic_info_pure) =
-  let (axiome,name_lemma,predicate_named) =
-    generat_axiom l self new_predi new_labels logic_info logic_info_pure
+let relationnel_axiom
+    il_loc self new_predi new_labels (logic_info) (logic_info_pure)
+  =
+  let (axiome,il_name,il_pred) =
+    generat_axiom il_loc self new_predi new_labels logic_info logic_info_pure
   in
-  generat_behavior_pure l self logic_info_pure;
-  generat_behavior l self logic_info;
-  (axiome,(name_lemma,[],[],(Logic_const.pred_of_id_pred predicate_named),l))
+  generat_behavior_pure il_loc self logic_info_pure;
+  generat_behavior il_loc self logic_info;
+  Property.(axiome,
+   { il_name;
+     il_labels = [];
+     il_args = [];
+     il_pred;
+     il_attrs = [];
+     il_loc;
+   })

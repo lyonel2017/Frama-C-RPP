@@ -1,7 +1,7 @@
 (**************************************************************************)
 (*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2018                                               *)
+(*  Copyright (C) 2016-2023                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*    alternatives)                                                       *)
 (*                                                                        *)
@@ -19,5 +19,4 @@
 (**************************************************************************)
 
 val print_hello: string -> unit
-val main: unit -> unit
 class generation_of_prouve_system: Project.t -> Rpp_types.visitor
