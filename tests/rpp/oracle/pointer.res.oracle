@@ -41,7 +41,7 @@ axiomatic Relational_axiome_2 {
   lemma Relational_lemma_2{pre_id4, pre_id3}:
     ∀ int *y_id4, int return_variable_relational_4, int *y_id3,
         int return_variable_relational_3;
-      \separated(y_id3, y_id4) ⇒
+      \separated(y_id4, y_id3) ⇒
       h_acsl_2{pre_id4}(y_id4, return_variable_relational_4) ⇒
       h_acsl_2{pre_id3}(y_id3, return_variable_relational_3) ⇒
       \at(*y_id3,pre_id3) ≡ \at(*y_id4,pre_id4) ⇒
@@ -117,7 +117,7 @@ int *y_id3_2;
 
 int *y_id4_2;
 
-/*@ requires \separated(y_id3_2, y_id4_2); */
+/*@ requires \separated(y_id4_2, y_id3_2); */
 void relational_wrapper_2(void)
 {
   int return_variable_relational_3;

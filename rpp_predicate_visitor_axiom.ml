@@ -24,25 +24,33 @@ open Rpp_predicate_visitor
 
 let make_separate env separated call_data =
   let separated_terms =
-    List.fold_left(fun data i ->
+    List.map (fun i ->
         let terms = List.map
             (fun x -> Rpp_generator.do_one_terms_vis_axiom
                 i.id_sep call_data i.formal_binder
                 env.self_axiom x)
             i.separated_terms_axiom
-        in terms @ data
-      ) [] separated
+        in terms
+      ) separated
   in
+  let aux3 term l2 =
+    List.map (fun term2 -> term :: [term2]) l2
+  in
+  let rec aux2 l2 term =
+    match l2 with
+    | h :: q -> (aux3 term h) @ aux2 q term
+    | [] -> []
+  in
+  let rec aux1 l =
+    match l with
+    | h :: q ->
+      (List.fold_left (fun data term -> aux2 q term @ data) [] h) @ aux1 q
+    | [] -> []
+  in
+  let separated_terms = aux1 separated_terms in
   match separated_terms with
-  | h::_ ->
-    let pointer_predicate_separated =
-      Pseparated(separated_terms)
-    in
-    let pred =
-      {pred_name = [];pred_loc=h.term_loc; pred_content= pointer_predicate_separated}
-    in
-    Some pred
-  | [] ->  None
+  | [] -> []
+  | _ ->  List.map (fun x -> Pseparated x) separated_terms
 
 let id_convert_axiom identifier loc call_side_effect_data =
   let source = fst loc in
@@ -1124,20 +1132,15 @@ let predicate_visitor predicate self_behavior =
         env quan (new_quant,new_labels,new_pred_axiom) new_axiome_predicate
       =
       let loc = env.loc_axiom in
-      let new_pred_axiom =
-        List.fold_left
-          (fun acc predicate_axiom ->
-             Logic_const.(pimplies ~loc (unamed ~loc predicate_axiom, acc)))
-          new_axiome_predicate new_pred_axiom
-      in
-      let pred =
+      let sep_pred =
         make_separate
           env !call_data_separated !call_side_effect_data
       in
       let new_pred_axiom =
-        match pred with
-        | None -> new_pred_axiom
-        | Some x -> Logic_const.pimplies ~loc (x,new_pred_axiom)
+        List.fold_left
+          (fun acc predicate_axiom ->
+             Logic_const.(pimplies ~loc (unamed ~loc predicate_axiom, acc)))
+          new_axiome_predicate (new_pred_axiom @ sep_pred)
       in
       let new_axiome_predicate =
         Logic_const.pforall ~loc (quan@(new_quant),new_pred_axiom)
@@ -1150,20 +1153,15 @@ let predicate_visitor predicate self_behavior =
         env (new_quant,new_labels,new_pred_axiom) new_axiome_predicate
       =
       let loc = env.loc_axiom in
-      let new_pred_axiom =
-        List.fold_left
-          (fun acc predicate_axiom ->
-             Logic_const.(pimplies ~loc (unamed ~loc predicate_axiom,acc)))
-          new_axiome_predicate new_pred_axiom
-      in
-      let pred =
+      let sep_pred =
         make_separate
           env !call_data_separated !call_side_effect_data
       in
       let new_pred_axiom =
-        match pred with
-        | None -> new_pred_axiom
-        | Some x -> Logic_const.pimplies ~loc (x,new_pred_axiom)
+        List.fold_left
+          (fun acc predicate_axiom ->
+             Logic_const.(pimplies ~loc (unamed ~loc predicate_axiom,acc)))
+          new_axiome_predicate (new_pred_axiom @ sep_pred)
       in
       let predicate = Logic_const.pforall ~loc (new_quant,new_pred_axiom) in
       let logic = {predicate_info= predicate_info} in

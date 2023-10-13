@@ -475,40 +475,49 @@ let inliner env inline_data data globals data_annot num proof =
 let make_separate env inline_info call_side_effect_data=
   Queue.add(fun () ->
       let separated_terms =
-        List.fold_left(fun data i ->
+        List.map(fun i ->
             let terms = List.map
                 (fun x -> Rpp_generator.do_one_terms_vis
                     i.kf i.formals i.locals i.id_option
                     call_side_effect_data
                     env.self x)
                 i.separated_terms
-            in terms @ data
-          ) [] (inline_info)
+            in terms
+          ) (inline_info)
       in
-      begin
-        match separated_terms with
-        | h::_ ->
-          let pointer_predicate_separated =
-            Pseparated(separated_terms)
-          in
-          let predicate_name =
-            {pred_name = [];pred_loc=h.term_loc; pred_content= pointer_predicate_separated}
-          in
-          let requires =
-            Logic_const.new_predicate predicate_name
-          in
-          let funbehs =
-            Cil.mk_behavior ~name:"default!" ~requires:([requires]) ()
-          in
-          Annotations.add_behaviors ~register_children:true
-            (Rpp_options.emitter) (Globals.Functions.get (env.new_funct.svar)) ([funbehs]);
-
-        | [] ->  ()
-      end)
+      let aux3 term l2 =
+        List.map (fun term2 -> term :: [term2]) l2
+      in
+      let rec aux2 term l2 =
+        match l2 with
+        | h :: q -> ( aux3 term h) @ aux2 term q
+        | [] -> []
+      in
+      let rec aux1 l =
+        match l with
+        | h :: q ->
+          (List.fold_left (fun data term -> aux2 term q @ data) [] h) @ aux1 q
+        | [] -> []
+      in
+      let separated_terms = aux1 separated_terms in
+      let make_separated separated_terms =
+        let predicate_name =
+          Logic_const.unamed (Pseparated(separated_terms))
+        in
+        let requires =
+          Logic_const.new_predicate predicate_name
+        in
+        let funbehs =
+          Cil.mk_behavior ~name:"default!" ~requires:([requires]) ()
+        in
+        Annotations.add_behaviors ~register_children:true
+          (Rpp_options.emitter) (Globals.Functions.get (env.new_funct.svar)) ([funbehs]);
+      in
+      List.iter make_separated separated_terms;)
     env.self#get_filling_actions;
 
   (**
-     Visitor for checking there is no memory charing
+     Visitor for checking there is no memory sharing
   *)
 class separate_checker loc terms id = object(_)
   inherit Visitor.frama_c_inplace

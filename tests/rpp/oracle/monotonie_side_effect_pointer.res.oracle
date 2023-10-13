@@ -11,7 +11,7 @@ axiomatic Relational_axiome_1 {
   
   lemma Relational_lemma_1{pre_id2, post_id2, pre_id1, post_id1}:
     ∀ int x, int *y_id2, int *y_id1;
-      \separated(y_id1, y_id2) ⇒
+      \separated(y_id2, y_id1) ⇒
       k_acsl_1{pre_id2, post_id2}(x, y_id2) ⇒
       k_acsl_1{pre_id1, post_id1}(x, y_id1) ⇒
       \at(*y_id1,pre_id1) < \at(*y_id2,pre_id2) ∧ x > 0 ⇒
@@ -40,7 +40,7 @@ axiomatic Relational_axiome_2 {
   
   lemma Relational_lemma_2{pre_id4, post_id4, pre_id3, post_id3}:
     ∀ int *x1, int *x2;
-      \separated(x1, x2) ⇒
+      \separated(x2, x1) ⇒
       f_acsl_2{pre_id4, post_id4}(x2) ⇒
       f_acsl_2{pre_id3, post_id3}(x1) ⇒
       \at(*x1,pre_id3) < \at(*x2,pre_id4) ⇒
@@ -66,7 +66,7 @@ int *y_id1_1;
 
 int *y_id2_1;
 
-/*@ requires \separated(y_id1_1, y_id2_1);
+/*@ requires \separated(y_id2_1, y_id1_1);
     requires \valid(y_id2_1);
     requires *y_id2_1 > 0;
     requires \valid(y_id1_1);
@@ -90,7 +90,7 @@ void relational_wrapper_1(int x)
   return;
 }
 
-/*@ requires \separated(x1, x2);
+/*@ requires \separated(x2, x1);
     requires \valid(x2);
     requires \valid(x1); */
 void relational_wrapper_2(int *x1, int *x2)

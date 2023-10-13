@@ -14,7 +14,7 @@ axiomatic Relational_axiome_1 {
   
   lemma Relational_lemma_1{pre_id2, post_id2, pre_id1, post_id1}:
     ∀ int *x1, int *x2;
-      \separated(x1 + (0 .. 1), x2 + (0 .. 1)) ⇒
+      \separated(x2 + (0 .. 1), x1 + (0 .. 1)) ⇒
       f_acsl_1{pre_id2, post_id2}(x2) ⇒
       f_acsl_1{pre_id1, post_id1}(x1) ⇒
       is_eq{post_id1, pre_id2}(x1, x2, 2) ⇒
@@ -38,7 +38,7 @@ void f(int *x)
   return;
 }
 
-/*@ requires \separated(x1 + (0 .. 1), x2 + (0 .. 1));
+/*@ requires \separated(x2 + (0 .. 1), x1 + (0 .. 1));
     requires \valid(x2 + (0 .. 1));
     requires \valid(x1 + (0 .. 1));
  */

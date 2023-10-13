@@ -12,7 +12,6 @@ axiomatic Relational_axiome_1 {
   
   lemma Relational_lemma_1{pre_id1}:
     ∀ int x, int *tb, int *y_id1, int return_variable_relational_1;
-      \separated(y_id1, tb + (0 .. x)) ⇒
       k_acsl_1(tb, x, y_id1, return_variable_relational_1) ⇒
       return_variable_relational_1 ≡
       \at(*(tb + 1),pre_id1) + \at(*(tb + (x - 1)),pre_id1);
@@ -36,10 +35,8 @@ int k(int *t, int n)
 
 int *y_id1_1;
 
-/*@ requires \separated(y_id1_1, tb + (0 .. x));
-    requires \separated(tb + (0 .. x), y_id1_1);
-    requires x > 0;
- */
+/*@ requires \separated(tb + (0 .. x), y_id1_1);
+    requires x > 0; */
 void relational_wrapper_1(int x, int *tb)
 {
   int return_variable_relational_1;

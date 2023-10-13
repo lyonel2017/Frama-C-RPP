@@ -12,10 +12,12 @@ axiomatic Relational_axiome_1 {
     ∀ int *t1, int *t2, int *tn, int *t, int return_variable_relational_4,
         int return_variable_relational_3, int return_variable_relational_2,
         int return_variable_relational_1;
-      \separated(
-        t1 + (0 .. (int)2), t2 + (0 .. (int)2), tn + (0 .. (int)2),
-        t + (0 .. (int)4)
-        ) ⇒
+      \separated(t2 + (0 .. (int)2), t1 + (0 .. (int)2)) ⇒
+      \separated(tn + (0 .. (int)2), t1 + (0 .. (int)2)) ⇒
+      \separated(tn + (0 .. (int)2), t2 + (0 .. (int)2)) ⇒
+      \separated(t + (0 .. (int)4), t1 + (0 .. (int)2)) ⇒
+      \separated(t + (0 .. (int)4), t2 + (0 .. (int)2)) ⇒
+      \separated(t + (0 .. (int)4), tn + (0 .. (int)2)) ⇒
       f_acsl_1{pre_id4}(t, (int)4, return_variable_relational_4) ⇒
       f_acsl_1{pre_id3}(tn, (int)2, return_variable_relational_3) ⇒
       f_acsl_1{pre_id2}(t2, (int)2, return_variable_relational_2) ⇒
@@ -105,8 +107,27 @@ int f_id1(int *t, int n);
 
 /*@ requires
       \separated(
-        t1 + (0 .. aux_local_variable_1), t2 + (0 .. aux_local_variable_2),
-        tn + (0 .. aux_local_variable_3), t + (0 .. aux_local_variable_4)
+        t2 + (0 .. aux_local_variable_2), t1 + (0 .. aux_local_variable_1)
+        );
+    requires
+      \separated(
+        tn + (0 .. aux_local_variable_3), t1 + (0 .. aux_local_variable_1)
+        );
+    requires
+      \separated(
+        tn + (0 .. aux_local_variable_3), t2 + (0 .. aux_local_variable_2)
+        );
+    requires
+      \separated(
+        t + (0 .. aux_local_variable_4), t1 + (0 .. aux_local_variable_1)
+        );
+    requires
+      \separated(
+        t + (0 .. aux_local_variable_4), t2 + (0 .. aux_local_variable_2)
+        );
+    requires
+      \separated(
+        t + (0 .. aux_local_variable_4), tn + (0 .. aux_local_variable_3)
         );
     requires \valid(t + (0 .. 4));
     requires 4 ≥ 1;

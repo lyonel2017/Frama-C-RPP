@@ -27,10 +27,15 @@ axiomatic Relational_axiome_1 {
   
   lemma Relational_lemma_1{pre_id2, post_id2, pre_id1, post_id1}:
     ∀ int *a1, int *a2, int *b1, int *b2, int *c1, int *c2, int n;
-      \separated(
-        c1 + (0 .. n * n - 1), a1 + (0 .. n * n - 1), b1 + (0 .. n * n - 1),
-        c2 + (0 .. n * n - 1), a2 + (0 .. n * n - 1), b2 + (0 .. n * n - 1)
-        ) ⇒
+      \separated(c2 + (0 .. n * n - 1), b1 + (0 .. n * n - 1)) ⇒
+      \separated(c2 + (0 .. n * n - 1), a1 + (0 .. n * n - 1)) ⇒
+      \separated(c2 + (0 .. n * n - 1), c1 + (0 .. n * n - 1)) ⇒
+      \separated(a2 + (0 .. n * n - 1), b1 + (0 .. n * n - 1)) ⇒
+      \separated(a2 + (0 .. n * n - 1), a1 + (0 .. n * n - 1)) ⇒
+      \separated(a2 + (0 .. n * n - 1), c1 + (0 .. n * n - 1)) ⇒
+      \separated(b2 + (0 .. n * n - 1), b1 + (0 .. n * n - 1)) ⇒
+      \separated(b2 + (0 .. n * n - 1), a1 + (0 .. n * n - 1)) ⇒
+      \separated(b2 + (0 .. n * n - 1), c1 + (0 .. n * n - 1)) ⇒
       matrix_mult_acsl_1{pre_id2, post_id2}(a2, b2, c2, n) ⇒
       matrix_mult_acsl_1{pre_id1, post_id1}(a1, b1, c1, n) ⇒
       \at(*c1,post_id1) < \at(*c2,post_id2);
@@ -46,9 +51,6 @@ axiomatic Relational_axiome_2 {
   
   lemma Relational_lemma_2{pre_id3, post_id3}:
     ∀ int *a1, int *c1, int *b1, int n;
-      \separated(
-        c1 + (0 .. n * n - 1), a1 + (0 .. n * n - 1), b1 + (0 .. n * n - 1)
-        ) ⇒
       matrix_mult_acsl_2{pre_id3, post_id3}(a1, b1, c1, n) ⇒
       \at(*c1,post_id3) < 0;
   
@@ -158,11 +160,15 @@ void matrix_mult_id3(int *a, int *b, int *c, int n);
  */
 void matrix_mult_id1(int *a, int *b, int *c, int n);
 
-/*@ requires
-      \separated(
-        c1 + (0 .. n * n - 1), a1 + (0 .. n * n - 1), b1 + (0 .. n * n - 1),
-        c2 + (0 .. n * n - 1), a2 + (0 .. n * n - 1), b2 + (0 .. n * n - 1)
-        );
+/*@ requires \separated(c2 + (0 .. n * n - 1), b1 + (0 .. n * n - 1));
+    requires \separated(c2 + (0 .. n * n - 1), a1 + (0 .. n * n - 1));
+    requires \separated(c2 + (0 .. n * n - 1), c1 + (0 .. n * n - 1));
+    requires \separated(a2 + (0 .. n * n - 1), b1 + (0 .. n * n - 1));
+    requires \separated(a2 + (0 .. n * n - 1), a1 + (0 .. n * n - 1));
+    requires \separated(a2 + (0 .. n * n - 1), c1 + (0 .. n * n - 1));
+    requires \separated(b2 + (0 .. n * n - 1), b1 + (0 .. n * n - 1));
+    requires \separated(b2 + (0 .. n * n - 1), a1 + (0 .. n * n - 1));
+    requires \separated(b2 + (0 .. n * n - 1), c1 + (0 .. n * n - 1));
     requires \separated(a2 + (0 .. n * n - 1), c2 + (0 .. n * n - 1));
     requires \separated(b2 + (0 .. n * n - 1), c2 + (0 .. n * n - 1));
     requires \valid_read(a2 + (0 .. n * n - 1));
@@ -244,11 +250,7 @@ void relational_wrapper_1(int *a1, int *a2, int *b1, int *b2, int *c1,
   return;
 }
 
-/*@ requires
-      \separated(
-        c1 + (0 .. n * n - 1), a1 + (0 .. n * n - 1), b1 + (0 .. n * n - 1)
-        );
-    requires \separated(a1 + (0 .. n * n - 1), c1 + (0 .. n * n - 1));
+/*@ requires \separated(a1 + (0 .. n * n - 1), c1 + (0 .. n * n - 1));
     requires \separated(b1 + (0 .. n * n - 1), c1 + (0 .. n * n - 1));
     requires \valid_read(a1 + (0 .. n * n - 1));
     requires \valid_read(b1 + (0 .. n * n - 1));

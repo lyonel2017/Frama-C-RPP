@@ -87,7 +87,6 @@ axiomatic Relational_axiome_4 {
   
   lemma Relational_lemma_4{pre_id1}:
     ∀ uint8_t *x_id1, uint8_t return_variable_relational_3;
-      \separated(x_id1) ⇒
       h_acsl_4(x_id1, return_variable_relational_3) ⇒
       return_variable_relational_3 ≡ 0;
   
@@ -163,7 +162,6 @@ void relational_wrapper_3(void)
 
 uint8_t *x_id1_4;
 
-/*@ requires \separated(x_id1_4); */
 void relational_wrapper_4(void)
 {
   uint8_t return_variable_relational_5;
