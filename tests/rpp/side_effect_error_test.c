@@ -1,4 +1,6 @@
 /* run.config
+   COMMENT: we're using an inexistent id (Pre_id5) that should raise an error
+   EXIT: 1
    OPT: -rpp
 */
 

@@ -1,0 +1,5 @@
+[kernel] Parsing side_effect_error_test.c (with preprocessing)
+[kernel:annot-error] side_effect_error_test.c:22: Failure: 
+  logic label `Pre_id5' not found. Ignoring global annotation
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] Frama-C aborted: invalid user input.

@@ -1,6 +1,0 @@
-[kernel] Parsing tests/rpp/rec_2.c (with preprocessing)
-[kernel:annot-error] tests/rpp/rec_2.c:6: Warning: unexpected token 'relational'
-[kernel] User Error: warning annot-error treated as fatal error.
-[kernel] User Error: stopping on file "tests/rpp/rec_2.c" that has errors. Add
-  '-kernel-msg-key pp' for preprocessing command.
-[kernel] Frama-C aborted: invalid user input.

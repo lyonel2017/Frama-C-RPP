@@ -1,4 +1,6 @@
 /* run.config
+   COMMENT: unsupported feature: we can't use *x in both traces.
+   EXIT: 1
    OPT: -rpp
 */
 

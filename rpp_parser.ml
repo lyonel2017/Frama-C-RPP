@@ -1,21 +1,9 @@
 (**************************************************************************)
-(*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2023                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
-(*    alternatives)                                                       *)
+(*  SPDX-License-Identifier LGPL-2.1                                      *)
+(*  Copyright (C)                                                         *)
+(*  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file LICENSE).                      *)
 (**************************************************************************)
 
 open Logic_typing
@@ -59,30 +47,27 @@ let type_relational typing_context loc l =
           (test#logic_type None)  x.term_type (Printer.pp_typ) t
           Printer.pp_term x (pred.vname)
     | Linteger ->
-      begin match t with
-        | TInt _ -> ()
-        | TNamed({ttype = TInt _},_) -> ()
-        | _ -> ctxt.error loc  "Cast are not supported:@. @[%a and %a are not compatible@] \
-                                for term @[%a@] in call of %s @."
-                 (Printer.pp_logic_type)  x.term_type (Printer.pp_typ) t
-                 Printer.pp_term x (pred.vname)
-      end
+      if not (Ast_types.is_integral t) then
+        ctxt.error loc "Cast are not supported:@. @[%a and %a are not compatible@] \
+                        for term @[%a@] in call of %s @."
+          (Printer.pp_logic_type)  x.term_type (Printer.pp_typ) t
+          Printer.pp_term x (pred.vname)
     | Lreal ->
-      begin match t with
-        | TFloat _ -> ()
-        | _ -> ctxt.error loc  "Cast are not supported:@. @[%a and %a are not compatible@] \
-                                for term @[%a@] in call of %s @."
-                 (Printer.pp_logic_type)  x.term_type (Printer.pp_typ) t
-                 Printer.pp_term x (pred.vname)
-      end
-    | _ ->  ctxt.error loc "Function %s is called with a parameter with type \
-                            is not supported:@. @[%a@] @." (pred.vname) Printer.pp_term x
+      if not (Ast_types.is_float t) then
+        ctxt.error loc  "Cast are not supported:@. @[%a and %a are not compatible@] \
+                         for term @[%a@] in call of %s @."
+          (Printer.pp_logic_type)  x.term_type (Printer.pp_typ) t
+          Printer.pp_term x (pred.vname)
+    | _ ->  ctxt.error loc
+              "@[<v 2>Function %s is called with a parameter with \
+               an unsupported type:@;@[%a@]"
+              pred.vname Printer.pp_term x
   in
 
   let is_func var ctxt =
-    match var.vtype with
-    | TFun _ -> var
-    | _ -> ctxt.error loc "Expected a C function: @ @[%a@] @." Printer.pp_varinfo var
+    if Ast_types.is_fun var.vtype then var
+    else
+      ctxt.error loc "Expected a C function: @ @[%a@] @." Printer.pp_varinfo var
   in
 
   let test_origin ctxt found =
@@ -113,36 +98,16 @@ let type_relational typing_context loc l =
 
   let check_call_param ctxt env p f =
     match p.lexpr_node with
-    | PLapp ("\\callpure", [], _) ->  ctxt.type_term ctxt env p (** an application. *)
-    | PLvar _ -> typing_context.type_term ctxt env p (** a variable *)
-    | PLarrow _ -> typing_context.type_term ctxt env p (** field access ({t a->x})*)
-    | PLconstant _ -> ctxt.type_term ctxt env p (** a constant. *)
-    | PLbinop _ -> ctxt.type_term ctxt env p (** binary operator. *)
-    | PLdot _ -> ctxt.type_term ctxt env p (** field access ({t a.x}) *)
-    | PLarrget _ -> ctxt.type_term ctxt env p (** array access. *)
-    | PLunop _ -> ctxt.type_term ctxt env p (** unary operator. *)
+    | PLapp ("\\callpure", [], _) ->  ctxt.type_term ctxt env p
+    | PLvar _ -> typing_context.type_term ctxt env p
+    | PLarrow _ -> typing_context.type_term ctxt env p
+    | PLconstant _ -> ctxt.type_term ctxt env p
+    | PLbinop _ -> ctxt.type_term ctxt env p
+    | PLdot _ -> ctxt.type_term ctxt env p
+    | PLarrget _ -> ctxt.type_term ctxt env p
+    | PLunop _ -> ctxt.type_term ctxt env p
     | _ -> ctxt.error loc "Unsupported terme@. @[%a@] @.in parameter for function %s @."
              Logic_print.print_lexpr p f
-  in
-
-  let fun_n_param p =
-    match p.vtype with
-    | TFun (_,Some l,_,_) -> List.length l
-    | TFun (_,None,_,_) -> 0
-    | _ -> assert false
-  in
-
-  let fun_type_return p =
-    match p.vtype with
-    | TFun (t,_,_,_) -> t
-    | _ -> assert false
-  in
-
-  let fun_type_param p =
-    match p.vtype with
-    | TFun (_,Some t,_,_) -> t
-    | TFun (_,None,_,_) ->  []
-    | _ -> assert false
   in
 
   let type_term ctxt env p =
@@ -153,52 +118,55 @@ let type_relational typing_context loc l =
           | Some x -> (x, (List.tl param)))
       in
       let pred = check_is_function_name ctxt (List.hd param) in
-      let length_pre = List.length (List.tl param) and length_f = fun_n_param pred in
-      if length_pre <> length_f then (
+      let (rt,args,_,_) = Cil.splitFunctionType pred.vtype in
+      if Option.is_none args then
+        ctxt.error loc "Function %a does not have a prototype" Printer.pp_varinfo pred;
+      let args = Option.get args in
+      let length_pre = List.length (List.tl param) and length_f = List.length args in
+      if length_pre <> length_f then
         ctxt.error loc "Expected %d parameter for the call of the pure function %s @."
-          length_f pred.vname
-      )
-      else(
-        let predn = List.map (fun p -> check_call_param ctxt env p (pred.vname)) (List.tl param) in
-        List.iter2 (fun x (_,t,_) -> function_parameter_check ctxt x t pred)
-          (predn) (fun_type_param pred);
-        let li = List.hd (ctxt.find_all_logic_functions "\\callpure") in
-        li.l_type <- Some(Cil_types.Ctype(fun_type_return pred));
-        let inline = Logic_const.tinteger ~loc:pred.vdecl inline in
-        let lv_funct = Cil.cvar_to_lvar pred in
-        let funct = {term_node = TLval(TVar(lv_funct),TNoOffset);
-                     term_loc = inline.term_loc;
-                     term_type=Cil_types.Ctype(pred.vtype);
-                     term_name = []}
-        in
-        Logic_const.term ~loc:p.lexpr_loc (Tapp(li,[],(inline :: [funct]) @ predn))
-          (Cil_types.Ctype(fun_type_return pred)))
+          length_f pred.vname;
+      let predn = List.map (fun p -> check_call_param ctxt env p (pred.vname)) (List.tl param) in
+      List.iter2 (fun x (_,t,_) -> function_parameter_check ctxt x t pred) predn args;
+      let li = List.hd (Logic_env.find_all_logic_functions "\\callpure") in
+      li.l_type <- Some(Cil_types.Ctype rt);
+      let inline = Logic_const.tinteger ~loc:pred.vdecl inline in
+      let lv_funct = Cil.cvar_to_lvar pred in
+      let funct = {term_node = TLval(TVar(lv_funct),TNoOffset);
+                   term_loc = inline.term_loc;
+                   term_type=Cil_types.Ctype(pred.vtype);
+                   term_name = []}
+      in
+      Logic_const.term ~loc:p.lexpr_loc (Tapp(li,[],(inline :: [funct]) @ predn))
+        (Cil_types.Ctype rt)
 
     | PLapp ("\\callresult", [], param) ->
       if List.length param <> 1 then
         ctxt.error loc "Expected one parameter for \\callresult built-in (identifier):@. @[%a@] @."
           Logic_print.print_lexpr p
-      else
-        (
-          let id = List.hd param in
-          let id = match id.lexpr_node with
-            | PLvar n -> n
-            | _ -> ctxt.error loc "Expect an identifier as parameter for \
-                                   built-in \\callresult: @. @[%a@] @."
-                     Logic_print.print_lexpr p
-          in
-          let f =
-            (try (Hashtbl.find id_hash id)
-             with
-             | Not_found -> ctxt.error loc "Unknown identifier %s for @. @[%a@] @."
-                              id Logic_print.print_lexpr p
-             | _ -> assert false
-            )
-          in
-          let li = List.hd (ctxt.find_all_logic_functions "\\callresult") in
-          li.l_type <- Some(Cil_types.Ctype(fun_type_return f));
-          let ti = Logic_const.tstring ~loc:p.lexpr_loc id in
-          Logic_const.term ~loc:p.lexpr_loc (Tapp(li,[],[ti])) (Cil_types.Ctype(fun_type_return f)))
+      else begin
+        let id = List.hd param in
+        let id = match id.lexpr_node with
+          | PLvar n -> n
+          | _ ->
+            ctxt.error loc
+              "Expect an identifier as parameter for built-in \\callresult: @. @[%a@] @."
+              Logic_print.print_lexpr p
+        in
+        let f =
+          (try (Hashtbl.find id_hash id)
+           with
+           | Not_found -> ctxt.error loc "Unknown identifier %s for @. @[%a@] @."
+                            id Logic_print.print_lexpr p
+           | _ -> assert false
+          )
+        in
+        let li = List.hd (Logic_env.find_all_logic_functions "\\callresult") in
+        let (rt,_,_,_) = Cil.splitFunctionType f.vtype in
+        li.l_type <- Some(Cil_types.Ctype rt);
+        let ti = Logic_const.tstring ~loc:p.lexpr_loc id in
+        Logic_const.term ~loc:p.lexpr_loc (Tapp(li,[],[ti])) (Cil_types.Ctype rt)
+      end
 
     | PLapp ("\\callpure", _, _) ->
       ctxt.error loc "Expect no label for built-in \\callpure: @. @[%a@] @."
@@ -230,8 +198,12 @@ let type_relational typing_context loc l =
           | Some x -> (x, (List.tl param)))
       in
       let pred = check_is_function_name ctxt (List.hd param) in
+      let (rt, args, _, _) = Cil.splitFunctionType pred.vtype in
+      if Option.is_none args then
+        ctxt.error loc "Function %a does not have a prototype" Printer.pp_varinfo pred;
+      let args = Option.get args in
       let (funct_param, id) = check_identifier ctxt (List.tl param) pred in
-      let length_pre = (List.length funct_param) and length_f = fun_n_param pred in
+      let length_pre = (List.length funct_param) and length_f = List.length args in
       if length_pre <> length_f then (
         ctxt.error loc "Expected %d parameter for the \\call of the function %s: @. @[%a@] @."
           length_f pred.vname  Logic_print.print_lexpr p
@@ -249,13 +221,11 @@ let type_relational typing_context loc l =
           let predn =
             List.map (fun p -> check_call_param ctxt env p (pred.vname)) (List.rev funct_param)
           in
-          List.iter2 (fun x (_,t,_) -> function_parameter_check ctxt x t pred)
-            (predn) (fun_type_param pred);
-
-          let li = List.hd (ctxt.find_all_logic_functions "\\call") in
+          List.iter2 (fun x (_,t,_) -> function_parameter_check ctxt x t pred) predn args;
+          let li = List.hd (Logic_env.find_all_logic_functions "\\call") in
           let inline = Logic_const.tinteger ~loc:pred.vdecl inline in
           let tid = Logic_const.tstring ~loc:pred.vdecl id in
-          li.l_type <- Some(Cil_types.Ctype(fun_type_return pred));
+          li.l_type <- Some(Cil_types.Ctype rt);
           let lv_funct = Cil.cvar_to_lvar pred in
           let funct = {term_node = TLval(TVar(lv_funct),TNoOffset);
                        term_loc = inline.term_loc;
@@ -265,7 +235,7 @@ let type_relational typing_context loc l =
           let res =
             Logic_const.term
               ~loc:p.lexpr_loc (Tapp(li,[],tid::inline::[funct]@predn))
-              (Cil_types.Ctype(fun_type_return pred))
+              (Cil_types.Ctype rt)
           in
           let label_pre = "Pre_" ^ id in
           let label_post = "Post_" ^ id in
@@ -297,7 +267,7 @@ let type_relational typing_context loc l =
              (env, call :: calls))
           param (env, [])
       in
-      let li = List.hd (ctxt.find_all_logic_functions "\\callset") in
+      let li = List.hd (Logic_env.find_all_logic_functions "\\callset") in
       let named_pred =
         {
           pred_name =[];
@@ -371,5 +341,5 @@ let type_relational typing_context loc l =
   | _ -> typing_context.error loc "expecting one predicate in relational clause @."
 
 let () =
-  Acsl_extension.register_global "relational" type_relational true
+  Acsl_extension.register_global ~plugin:"rpp" "relational" type_relational true
   (* Acsl_extension.register_behavior "relational" type_relational true *)

@@ -1,7 +1,0 @@
-[kernel] Parsing tests/rpp/pure_and_not_pure.c (with preprocessing)
-[kernel:annot-error] tests/rpp/pure_and_not_pure.c:6: Warning: 
-  unexpected token 'assigns'
-[kernel] User Error: warning annot-error treated as fatal error.
-[kernel] User Error: stopping on file "tests/rpp/pure_and_not_pure.c" that has errors. Add
-  '-kernel-msg-key pp' for preprocessing command.
-[kernel] Frama-C aborted: invalid user input.

@@ -1,0 +1,5 @@
+[kernel] Parsing id_checker.c (with preprocessing)
+[kernel:annot-error] id_checker.c:29: Failure: 
+  logic label `Post_id1' not found. Ignoring global annotation
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] Frama-C aborted: invalid user input.

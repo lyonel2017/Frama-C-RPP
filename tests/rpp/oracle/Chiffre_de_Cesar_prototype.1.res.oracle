@@ -1,4 +1,4 @@
-[kernel] Parsing tests/rpp/Chiffre_de_Cesar_prototype.c (with preprocessing)
+[kernel] Parsing Chiffre_de_Cesar_prototype.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -110,10 +110,10 @@ void relational_wrapper_2(struct tableau message,
   /*@ assert Rpp: is_good(message_beta2, length); */
   return_variable_relational_3 = Decryptage_aux_2(message_beta2,length,key);
   /*@ check
-      Rpp:
-        is_eq(message_beta2, message_beta1, length) ⇒
-        message_beta1 ≡ return_variable_relational_2 ⇒
-        is_eq(return_variable_relational_3, message, length);
+        Rpp:
+          is_eq(message_beta2, message_beta1, length) ⇒
+          message_beta1 ≡ return_variable_relational_2 ⇒
+          is_eq(return_variable_relational_3, message, length);
   */
   return;
 }

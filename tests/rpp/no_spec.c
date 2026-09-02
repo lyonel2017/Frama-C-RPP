@@ -1,4 +1,6 @@
 /* run.config
+   COMMENT: we can't generate the self-composed function if we don't have assigns \from info
+   EXIT: 1
    OPT: -rpp
 */
 int y;
