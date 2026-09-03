@@ -1,4 +1,4 @@
-(lang dune 3.3)
+(lang dune 3.15)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;  SPDX-License-Identifier LGPL-2.1                                      ;;
@@ -14,6 +14,6 @@
 
 (package (name frama-c-rpp)
  (depends
-  ("frama-c" (and (>= 28.0~) (< 29.0~)))
+  ("frama-c" (and (>= 33.0~) (< 34~)))
  )
 )

@@ -25,12 +25,9 @@ _build/*
 /tests/*/result_*/
 
 #benchmarks
-/benchmarks/ptests_config
 /benchmarks/*/result/
 /benchmarks/*/result_*/
-/benchmarks/journal/intra.byte
-/benchmarks/*/*.opt
-/benchmarks/pdg/*.dot
+/benchmarks/*/oracle/dune
 
 #doc
 /doc/*/*.dot
@@ -57,3 +54,4 @@ _build/*
 /.frama-c/
 /rpp-manual.pdf
 /headers/headache_config.txt
+/release.zip

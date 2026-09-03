@@ -33,7 +33,7 @@ other properties in a completely automatic and transparent way.
 
 ## Installation
 
-*RPP v0.0.1* requires [Frama-C v24.0 Chromium](https://frama-c.com/fc-versions/chromium.html).
+*RPP v0.0.4* requires [Frama-C v33.0 Arsenic](https://frama-c.com/fc-versions/arsenic.html).
 For more information see [Frama-C](http://frama-c.com).
 
 For installation, run following commands in the *RPP* directory:
@@ -51,9 +51,6 @@ For installation, run following commands in the *RPP* directory:
 
             frama-c-gui -rpp file.c
 
-- For graphic user interface (call from gui): select a relational clause in the gui,
-right click and select *RPP*. A new project will be generated ("RPP proof system").
-
 - For generating only the self-composition transformation:
 
            frama-c -rpp -rpp-pro file.c
@@ -64,7 +61,7 @@ right click and select *RPP*. A new project will be generated ("RPP proof system
 
 ## Example of relational properties specification
 
-Concider function *f*:
+Consider function *f*:
 
 ```c
         int f(int x){
@@ -121,6 +118,6 @@ More examples are available in :
         test/rpp/
         benchmarks/stackoverflow
 
-More documentations can be found in:
+More documentation can be found in:
 
          doc/

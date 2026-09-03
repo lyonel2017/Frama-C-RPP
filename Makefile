@@ -27,6 +27,7 @@ clean:: purge-tests
 ##########################################################################
 # Tests
 
+PTEST_ALL_DIRS:=tests benchmarks
 include ${FRAMAC_SHARE}/Makefile.testing
 
 ##########################################################################
