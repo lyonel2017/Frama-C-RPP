@@ -128,7 +128,7 @@ let check_function_side_effect funct loc =
                 Printer.pp_logic_var l_v
           end
         | _ -> Rpp_options.Self.fatal ~source:(fst loc)
-                 "Something went wrong during verification of assignes definition: \
+                 "Something went wrong during verification of assigns definition: \
                   @. @[%a@] @. is not supported."
                  Printer.pp_term h
       end
@@ -180,9 +180,9 @@ let check_function_side_effect funct loc =
         | TLval(TMem(_),TNoOffset) -> supported_side_effect q acc ((h.it_content)::acc_p)
         | TLval(TMem(_),_)->
           Rpp_options.Self.abort ~source:(fst loc)
-            "Unsupported paramter in \\assigns \\from annotation (pointer)"
+            "Unsupported parameter in \\assigns \\from annotation (pointer)"
         | _ -> Rpp_options.Self.abort ~source:(fst loc)
-                 "Not supported paramter in \\assigns \\from annotation:@. @[%a@] @."
+                 "Not supported parameter in \\assigns \\from annotation:@. @[%a@] @."
                  Printer.pp_term h.it_content
       end
   in
@@ -231,7 +231,7 @@ let check_function_side_effect funct loc =
 
   (*TODO: Put all formal and globales in the side effect if option is activated
     Use a visitor: need to detect local memory access
-    Qet all mem acces and say separation*)
+    Qet all mem access and say separation*)
 
   let f1 = Cil_datatype.Varinfo.equal in
   let f2 = Cil_datatype.Term.equal in
@@ -269,13 +269,13 @@ let pretty_effect_data func data =
   Format.printf "%sAssigns globale pointer: %a @." space
     (Pretty_utils.pp_list ~sep:"," ~pre:"[" ~suf:"]" Printer.pp_term )
     (f data.assigns_p);
-  Format.printf "%sAssigns pointer given as paramter: %a @." space
+  Format.printf "%sAssigns pointer given as parameter: %a @." space
     (Pretty_utils.pp_list ~sep:"," ~pre:"[" ~suf:"]" Printer.pp_term)
     (f data.assigns_p_f);
   Format.printf "%sFrom globale pointer: %a @." space
     (Pretty_utils.pp_list ~sep:"," ~pre:"[" ~suf:"]" Printer.pp_term)
     (f data.from_p);
-  Format.printf "%sFrom pointer given as paramter: %a @." space
+  Format.printf "%sFrom pointer given as parameter: %a @." space
     (Pretty_utils.pp_list ~sep:"," ~pre:"[" ~suf:"]" Printer.pp_term)
     (f data.from_p_f)
 
@@ -774,7 +774,7 @@ let predicate_visitor
               try (Cil_datatype.Logic_var.Map.find logic_var !quant_map) with
                 Not_found ->
                 Rpp_options.Self.abort ~source:(fst env.loc)
-                  "Unknow logical variable %s in \\at" logic_var.lv_name
+                  "Unknown logical variable %s in \\at" logic_var.lv_name
             in
             assert_param_varinfo
           | Some v ->
@@ -826,7 +826,7 @@ let predicate_visitor
               try Cil_datatype.Logic_var.Map.find logic_var !quant_map with
                 Not_found ->
                 Rpp_options.Self.abort ~source:(fst env.loc)
-                  "Unknow logical variable %s in \\at" logic_var.lv_name
+                  "Unknown logical variable %s in \\at" logic_var.lv_name
             in
             assert_param_varinfo
           | Some v ->
@@ -1022,7 +1022,7 @@ let predicate_visitor
             match Cil_datatype.Logic_var.Map.find l_v !quant_map with
             | exception Not_found ->
               Rpp_options.Self.abort ~source:(fst env.loc)
-                "Unknow logical variable %a in \\at built-in"
+                "Unknown logical variable %a in \\at built-in"
                 Printer.pp_logic_var l_v
             | _ ->
               Rpp_options.Self.abort ~source:(fst env.loc)
@@ -1049,7 +1049,7 @@ let predicate_visitor
           | Not_found ->
             Rpp_options.Self.abort ~source:(fst env.loc)
               "The variable %a is not supposed to be\
-               used in the assignement of another variable"
+               used in the assignment of another variable"
               Printer.pp_varinfo v
         in
         let the_term_node_assert = TLval(TVar(new_lv_assert),new_off) in

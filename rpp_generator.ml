@@ -35,12 +35,12 @@ class aux_visitor vis_beh var_ret = object(self)
 
   val stmt_hashtb = Hashtbl.create 3
 
-  (*Return statment are replaced by an affectation to the local variable
+  (*Return statement are replaced by an affectation to the local variable
     ("var_ret") used in the proof of the relational property*)
   method! vstmt_aux s =
     (*Set the statement to origine status to avoid the visitor to lose
       the binding with the statement annotation: it is not the best
-      solution but it work => find beter solution for the futur*)
+      solution but it work => find better solution for the future*)
     let s =  Visitor_behavior.Get_orig.stmt self#behavior s in
     match (s.skind, s.labels) with
     | Return (Some e,l),[] ->
@@ -292,7 +292,7 @@ class aux_visitor_2 vis_beh = object(_)
       ChangeDoChildrenPost(new_funbehavior, fun x -> x)
 end
 
-exception Unknow_term of Cil_types.logic_var
+exception Unknown_term of Cil_types.logic_var
 exception Local_return
 
 (**
@@ -360,7 +360,7 @@ class aux_visitor_3 vis_beh l_v_list ?(quan=[]) ?(pre=[]) formal_map = object(_)
       match data with
       | h::_ when h.lv_id ==  lv.lv_id -> DoChildren
       | _::q  -> aux3 lv q
-      | [] -> raise (Unknow_term lv)
+      | [] -> raise (Unknown_term lv)
     in
     let rec aux2 lv data =
       match data with
@@ -391,7 +391,7 @@ let do_one_require_vis self new_funct globals formal_map kf requires =
   in
   List.fold_right (fun x acc ->
       match  Visitor.visitFramacIdPredicate vis x with
-      | exception Unknow_term lv ->
+      | exception Unknown_term lv ->
         Rpp_options.Self.abort ~source:(fst x.ip_content.tp_statement.pred_loc)
           "Function %s is supposed no to depend on %a"
           (Kernel_function.get_name kf)

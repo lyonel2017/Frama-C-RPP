@@ -14,12 +14,12 @@ module Self = Plugin.Register(struct
 
 module Enabled = Self.False(struct
     let option_name = "-rpp"
-    let help = "when on (off by default), prove relationnel properties and generate the correspnding logical definition."
+    let help = "when on (off by default), prove relationnel properties and generate the corresponding logical definition."
   end)
 
 module Enable_only_hyp = Self.False(struct
     let option_name = "-rpp-hyp"
-    let help = "when on (off by default), only generate the logical defintion of the relational proprerties."
+    let help = "when on (off by default), only generate the logical definition of the relational proprerties."
   end)
 
 module Enable_only_prove = Self.False(struct

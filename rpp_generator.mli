@@ -6,7 +6,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Function returning the type refering to the new project *)
+(** Function returning the type referring to the new project *)
 val get_typ_in_current_project:
   Cil_types.typ -> Visitor_behavior.t -> Cil_types.location -> Cil_types.typ
 

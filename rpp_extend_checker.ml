@@ -109,7 +109,7 @@ let rpp_extend_checker check =
                   DoChildren
                 | _ ->
                   Rpp_options.Self.fatal ~source:loc
-                    "Expected a logical variable as seconde parameter :@. @[%a@] @."
+                    "Expected a logical variable as second parameter :@. @[%a@] @."
                     (Printer.pp_term) t
               end
             | _ ->
@@ -138,14 +138,14 @@ let rpp_extend_checker check =
                          Cil.DoChildren
                        else
                          Rpp_options.Self.fatal ~source:loc
-                           "Expected a function as thrid parameter:@. @[%a@] @."
+                           "Expected a function as third parameter:@. @[%a@] @."
                            (Printer.pp_term) t
                      | _ -> Rpp_options.Self.fatal ~source:loc
                               "Expected a logical variable as third parameter:@. @[%a@] @."
                               (Printer.pp_term) t
                    end
                  | _ -> Rpp_options.Self.fatal ~source:loc
-                          "Expected an integer for seconde parameter:@. @[%a@] @."
+                          "Expected an integer for second parameter:@. @[%a@] @."
                           (Printer.pp_term) t
                 end
               | _ -> Rpp_options.Self.fatal ~source:loc

@@ -592,7 +592,7 @@ let predicate_visitor predicate self_behavior =
             try Cil_datatype.Logic_var.Map.find logic_var !quant_map with
             | Not_found ->
               Rpp_options.Self.abort ~source:(fst env.loc_axiom)
-                "Unknow logical variable %s in \\at" logic_var.lv_name
+                "Unknown logical variable %s in \\at" logic_var.lv_name
           in (None,Some(new_logic_var))
       in
       match Str.bounded_split (Str.regexp "_") label 2 with
@@ -616,7 +616,7 @@ let predicate_visitor predicate self_behavior =
               | Not_found ->
                 Rpp_options.Self.abort ~source:(fst env.loc_axiom)
                   "The pointer %a is not supposed to be \
-                   used in the assignement of another variable"
+                   used in the assignment of another variable"
                   Printer.pp_varinfo v
             in
             new_lv_axiom
@@ -812,7 +812,7 @@ let predicate_visitor predicate self_behavior =
           match Cil_datatype.Logic_var.Map.find l_v !quant_map with
           | exception Not_found ->
             Rpp_options.Self.abort ~source:(fst env.loc_axiom)
-              "Unknow logical variable %a in \\at built-in"
+              "Unknown logical variable %a in \\at built-in"
               Printer.pp_logic_var l_v
           | _ ->
             Rpp_options.Self.abort ~source:(fst env.loc_axiom)
@@ -1096,7 +1096,7 @@ let predicate_visitor predicate self_behavior =
              | Not_found ->
                Rpp_options.Self.fatal ~source:(fst env.loc_axiom)
                  "Quantified logic variable %a is not in the new \
-                  quantified logic varible" Printer.pp_logic_var x
+                  quantified logic variable" Printer.pp_logic_var x
            in
            new_logic_var)
         quan

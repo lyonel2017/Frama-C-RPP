@@ -36,7 +36,7 @@ let check_result_from_formals kf loc af =
             | true -> ()
             | false ->
               Rpp_options.Self.abort ~source:loc
-                "Variable %a is not a paramter of function %s ."
+                "Variable %a is not a parameter of function %s ."
                 Printer.pp_logic_var lv (Kernel_function.get_name kf)
           end
         | _ -> Rpp_options.Self.abort ~source:loc
@@ -381,11 +381,11 @@ class virtual ['env, 'call_data, 'callset, 'relprop] rpp_visitor = object (self)
                else
                  Rpp_options.Self.fatal ~source:loc
                    "Something went wrong during parsing: Expected\
-                    a function as seconde or first parameter"
+                    a function as second or first parameter"
              | _ ->
                Rpp_options.Self.fatal ~source:loc
                  "Something went wrong during parsing: Expected\
-                  a logical variable as seconde parameter")
+                  a logical variable as second parameter")
          | _ ->
            Rpp_options.Self.fatal ~source:loc
              "Something went wrong during parsing: Expected\
@@ -422,7 +422,7 @@ class virtual ['env, 'call_data, 'callset, 'relprop] rpp_visitor = object (self)
       self#visit_term_app_result env id (term.term_type)
     | Tapp({l_var_info={lv_name ="\\callresult"}},_, _::_) ->
       Rpp_options.Self.fatal ~source:loc "Something went wrong during parsing:\
-                                          Expect one existing indentifier for \
+                                          Expect one existing identifier for \
                                           built-in \\callresult:@. @[%a@] @."
         Printer.pp_term term
 
@@ -559,7 +559,7 @@ class virtual ['env, 'call_data, 'callset, 'relprop] rpp_visitor = object (self)
             | _ ->
               Rpp_options.Self.fatal ~source:loc
                 "Something went wrong during parsing: \
-                 Expected an integer for seconde parameter")
+                 Expected an integer for second parameter")
          | _ ->
            Rpp_options.Self.fatal ~source:loc
              "Something went wrong during parsing: \
@@ -594,7 +594,7 @@ class virtual ['env, 'call_data, 'callset, 'relprop] rpp_visitor = object (self)
     | _ ->  let (loc,_) = callset.pred_loc in
       Rpp_options.Self.fatal ~source:loc
         "Expected \\callset built-in but have:@. @[%a@] @. \
-         Whise error must normaly not be raised"
+         Whise error must normally not be raised"
         Printer.pp_predicate callset
 
   method visit_rpp_predicate_forall_callset env quan callset pred =
@@ -648,6 +648,6 @@ class virtual ['env, 'call_data, 'callset, 'relprop] rpp_visitor = object (self)
       self#visit_rpp_predicate_implies env predicate
     | _ ->
       Rpp_options.Self.abort ~source:loc
-        "Error in predicate: Unsuported predicate in relational clause:@. @[%a@] @."
+        "Error in predicate: Unsupported predicate in relational clause:@. @[%a@] @."
         Printer.pp_predicate predicate
 end

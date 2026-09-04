@@ -81,7 +81,7 @@ let type_relational typing_context loc l =
     | PLvar x ->
       let test =
         try ctxt.find_var x  with
-        | _ -> ctxt.error loc "Unknow function: @ @[%s@]  @." x
+        | _ -> ctxt.error loc "Unknown function: @ @[%s@]  @." x
       in
       test_origin ctxt test
     | _ ->
