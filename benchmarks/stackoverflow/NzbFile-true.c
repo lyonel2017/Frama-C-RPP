@@ -5,7 +5,7 @@
 /*
  * Based on http://sohu.io/questions/2211707/comparison-method-violates-its-general-contract
  * Not working yet: the first hyper property cannot be valid in the implement given be Marcelo Sousa and Isil Dillig.
-                    The return value must be symetric.
+                    The return value must be symmetric.
  */
 
 #include <stdio.h>

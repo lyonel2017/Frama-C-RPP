@@ -1,4 +1,6 @@
 /* run.config
+   COMMENT: \let is currently unsupported
+   EXIT:1
    OPT: -rpp
 */
 

@@ -1,4 +1,6 @@
 /* run.config
+   COMMENT: should be rejected (using a non-existent id in the second relational property)
+   EXIT: 1
    OPT: -rpp
 */
 

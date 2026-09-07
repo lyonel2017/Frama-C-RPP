@@ -1,4 +1,4 @@
-[kernel] Parsing tests/rpp/prototype.c (with preprocessing)
+[kernel] Parsing prototype.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -13,7 +13,7 @@ axiomatic Relational_axiome_3 {
   lemma Relational_lemma_3{L}:
     ∀ int x1, int x2; x1 < x2 ⇒ f_acsl_pure_3(x1) < g_acsl_pure_3(x2);
   
-  }
+}
  */
 /*@
 axiomatic Relational_axiome_2 {
@@ -22,7 +22,7 @@ axiomatic Relational_axiome_2 {
   lemma Relational_lemma_2{L}:
     ∀ int x1, int x2; x1 < x2 ⇒ f_acsl_pure_2(x1) < f_acsl_pure_2(x2);
   
-  }
+}
  */
 /*@ assigns \result;
     assigns \result \from x;
@@ -49,14 +49,14 @@ axiomatic Relational_axiome_4 {
   
   lemma Relational_lemma_4{L}:
     ∀ int x_id2_pre, int x_id2_post, int return_variable_relational_2,
-        int x_id1_pre, int x_id1_post, int return_variable_relational_1;
+      int x_id1_pre, int x_id1_post, int return_variable_relational_1;
       k_acsl_4(x_id2_pre, x_id2_post, return_variable_relational_2) ⇒
       k_acsl_4(x_id1_pre, x_id1_post, return_variable_relational_1) ⇒
       x_id1_pre < x_id2_pre ⇒
       x_id1_post < x_id2_post ∧
       return_variable_relational_1 ≡ return_variable_relational_2;
   
-  }
+}
  */
 /*@ assigns x;
     assigns x \from x;
@@ -64,19 +64,19 @@ axiomatic Relational_axiome_4 {
     behavior Relational_behavior_4:
       ensures k_acsl_4(\at(x,Pre), \at(x,Post), \result);
  */
-int k();
+int k(void);
 
 int x_id2_4;
 
 /*@ assigns x_id2_4;
     assigns x_id2_4 \from x_id2_4; */
-int k_id2();
+int k_id2(void);
 
 int x_id1_4;
 
 /*@ assigns x_id1_4;
     assigns x_id1_4 \from x_id1_4; */
-int k_id1();
+int k_id1(void);
 
 /*@ assigns \result;
     assigns \result \from x; */
@@ -103,7 +103,7 @@ void relational_wrapper_1(void)
 /*@ axiomatic Relational_axiome_1 {
       lemma Relational_lemma_1{L}: 1 < 2;
       
-      }
+    }
 
 */
 void relational_wrapper_2(int x1, int x2)
@@ -113,9 +113,9 @@ void relational_wrapper_2(int x1, int x2)
   return_variable_relational_1 = f_aux_2(x1);
   return_variable_relational_2 = f_aux_2(x2);
   /*@ check
-      Rpp:
-        x1 < x2 ⇒
-        return_variable_relational_1 < return_variable_relational_2;
+        Rpp:
+          x1 < x2 ⇒
+          return_variable_relational_1 < return_variable_relational_2;
   */
   return;
 }
@@ -127,9 +127,9 @@ void relational_wrapper_3(int x1, int x2)
   return_variable_relational_3 = f_aux_3(x1);
   return_variable_relational_4 = g_aux_3(x2);
   /*@ check
-      Rpp:
-        x1 < x2 ⇒
-        return_variable_relational_3 < return_variable_relational_4;
+        Rpp:
+          x1 < x2 ⇒
+          return_variable_relational_3 < return_variable_relational_4;
   */
   return;
 }
@@ -141,10 +141,10 @@ void relational_wrapper_4(void)
   return_variable_relational_5 = k_id1();
   return_variable_relational_6 = k_id2();
   /*@ check
-      Rpp:
-        \at(x_id1_4,Pre) < \at(x_id2_4,Pre) ⇒
-        \at(x_id1_4,Here) < \at(x_id2_4,Here) ∧
-        return_variable_relational_5 ≡ return_variable_relational_6;
+        Rpp:
+          \at(x_id1_4,Pre) < \at(x_id2_4,Pre) ⇒
+          \at(x_id1_4,Here) < \at(x_id2_4,Here) ∧
+          return_variable_relational_5 ≡ return_variable_relational_6;
   */
   return;
 }

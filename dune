@@ -1,0 +1,32 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                        ;;
+;;  SPDX-License-Identifier LGPL-2.1                                      ;;
+;;  Copyright (C)                                                         ;;
+;;  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  ;;
+;;                                                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+( rule
+  (alias frama-c-configure)
+  (deps (universe))
+  (action ( progn
+            (echo "RPP:" %{lib-available:frama-c-rpp.core} "\n")
+            (echo " - Frama-C:" %{lib-available:frama-c.kernel} "\n")
+          )
+  )
+)
+
+( library
+  (optional)
+  (name rpp)
+  (public_name frama-c-rpp.core)
+  (flags -open Frama_c_kernel :standard -w -9)
+  (libraries frama-c.kernel)
+  (instrumentation (backend landmarks)) ; optional, for profiling; see Frama-C
+                                        ; Developer Manual for details
+)
+
+( plugin
+  (optional)
+  (name rpp) (libraries frama-c-rpp.core) (site (frama-c plugins))
+)

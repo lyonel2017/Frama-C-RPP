@@ -1,26 +1,31 @@
 (**************************************************************************)
-(*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2023                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
-(*    alternatives)                                                       *)
+(*  SPDX-License-Identifier LGPL-2.1                                      *)
+(*  Copyright (C)                                                         *)
+(*  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file LICENSE).                      *)
 (**************************************************************************)
 
 open Cil_types
 open Cil
 open Rpp_types
+
+let get_typ_in_current_project t self loc=
+  let rec aux t = let tnode = aux_node t.tnode in { t with tnode }
+  and aux_node = function
+    | (TVoid | TInt(_) | TFloat _ | TBuiltin_va_list) as t -> t
+    | TPtr t ->
+      let new_t = aux t in TPtr new_t
+    | TArray(t,e) ->
+      let new_t = aux t in TArray(new_t,e)
+    | TFun(_) ->
+      Rpp_options.Self.abort ~source:(fst loc)
+        "Error in predicate: Function types are not supported yet"
+    | TNamed t -> let new_t = Visitor_behavior.Get.typeinfo self t in TNamed new_t
+    | TComp c ->let new_c = Visitor_behavior.Get.compinfo self c in TComp new_c
+    | TEnum e -> let new_e = Visitor_behavior.Get.enuminfo self e in TEnum new_e
+  in
+  aux t
 
 (**
    Visitor for coping function bodies
@@ -30,27 +35,32 @@ class aux_visitor vis_beh var_ret = object(self)
 
   val stmt_hashtb = Hashtbl.create 3
 
-  (*Return statment are replaced by an affectation to the local variable
+  (*Return statement are replaced by an affectation to the local variable
     ("var_ret") used in the proof of the relational property*)
   method! vstmt_aux s =
     (*Set the statement to origine status to avoid the visitor to lose
       the binding with the statement annotation: it is not the best
-      solution but it work => find beter solution for the futur*)
+      solution but it work => find better solution for the future*)
     let s =  Visitor_behavior.Get_orig.stmt self#behavior s in
     match (s.skind, s.labels) with
     | Return (Some e,l),[] ->
       let var_ret = match var_ret with
         |None -> let (loc,_) = l in
           Rpp_options.Self.fatal ~source:loc
-            "Function is supposed to return something, but no return variable have been created"
+            "Function is supposed to return something, \
+             but no return variable has been created"
         | Some x -> x
       in
       let return_lval =
         (Var(var_ret),NoOffset)
       in
-      let new_stmt =
-        Cil.mkStmt ~valid_sid:true (Instr(Set(return_lval,e,l)))
+      let newt = Cil.typeOfLval return_lval in
+      let oldt =
+        Visitor.visitFramacType self#frama_c_plain_copy (Cil.typeOf e)
       in
+      let e = Cil.mkCastT ~oldt ~newt e in
+      let instr = Instr (Set(return_lval, e, l)) in
+      let new_stmt = Cil.mkStmt ~valid_sid:true instr in
       ChangeDoChildrenPost(new_stmt, fun x -> x)
 
     | Return (None,l), [] ->
@@ -58,7 +68,8 @@ class aux_visitor vis_beh var_ret = object(self)
         | None -> None
         | Some _ -> let (loc,_) = l in
           Rpp_options.Self.fatal ~source:loc
-            "Function is supposed to return nothing, but a return variable have been created"
+            "Function is supposed to return nothing, \
+             but a return variable has been created"
       in
       let new_stmt =
         Cil.mkEmptyStmt ~valid_sid:true ()
@@ -116,9 +127,9 @@ class aux_visitor vis_beh var_ret = object(self)
                    let return_lval =
                      (Var(var_ret),NoOffset)
                    in
-                   let new_stmt =
-                     Cil.mkStmt ~valid_sid:true (Instr(Set(return_lval,e,l)))
-                   in
+                   let e = Cil.mkCast ~newt:(Cil.typeOfLval return_lval) e in
+                   let instr = Instr (Set(return_lval, e, l)) in
+                   let new_stmt = Cil.mkStmt ~valid_sid:true instr in
                    new_stmt.labels <-[Label(new_name,l,b)];
                    Hashtbl.add stmt_hashtb name new_stmt;
                    new_stmt))
@@ -208,9 +219,13 @@ class aux_visitor vis_beh var_ret = object(self)
                   | Some x -> x
                 in
                 let return_lval = (Var(var_ret),NoOffset) in
-                let new_stmt =
-                  Cil.mkStmt ~valid_sid:true (Instr(Set(return_lval,e,l)))
+                let newt = Cil.typeOfLval return_lval in
+                let oldt =
+                  Visitor.visitFramacType self#frama_c_plain_copy (Cil.typeOf e)
                 in
+                let e = Cil.mkCastT ~oldt ~newt e in
+                let instr = Instr (Set(return_lval, e, l)) in
+                let new_stmt = Cil.mkStmt ~valid_sid:true instr in
                 new_stmt.labels <-[Label(new_name,l,b)];
                 Hashtbl.add stmt_hashtb name new_stmt;
                 new_stmt))
@@ -277,7 +292,7 @@ class aux_visitor_2 vis_beh = object(_)
       ChangeDoChildrenPost(new_funbehavior, fun x -> x)
 end
 
-exception Unknow_term of Cil_types.logic_var
+exception Unknown_term of Cil_types.logic_var
 exception Local_return
 
 (**
@@ -322,7 +337,7 @@ class aux_visitor_3 vis_beh l_v_list ?(quan=[]) ?(pre=[]) formal_map = object(_)
       end
 
     | Prel _ | Pseparated _ | Pvalid _
-    | Pvalid_read _ |Pnot _ | Pimplies _ -> DoChildren
+    | Pvalid_read _ | Pnot _ | Pimplies _ | Por _ -> DoChildren
 
     | _ -> Rpp_options.Self.abort
              "Unsupported predicate in requires clause:@. @[%a@] @."
@@ -345,7 +360,7 @@ class aux_visitor_3 vis_beh l_v_list ?(quan=[]) ?(pre=[]) formal_map = object(_)
       match data with
       | h::_ when h.lv_id ==  lv.lv_id -> DoChildren
       | _::q  -> aux3 lv q
-      | [] -> raise (Unknow_term lv)
+      | [] -> raise (Unknown_term lv)
     in
     let rec aux2 lv data =
       match data with
@@ -368,15 +383,15 @@ end
 
 let do_one_require_vis self new_funct globals formal_map kf requires =
   let formals =
-      (Kernel_function.get_formals (Globals.Functions.get new_funct.svar))
-       @ globals
+    (Kernel_function.get_formals (Globals.Functions.get new_funct.svar))
+    @ globals
   in
   let vis =
     new aux_visitor_3 self#behavior formals formal_map
   in
   List.fold_right (fun x acc ->
       match  Visitor.visitFramacIdPredicate vis x with
-      | exception Unknow_term lv ->
+      | exception Unknown_term lv ->
         Rpp_options.Self.abort ~source:(fst x.ip_content.tp_statement.pred_loc)
           "Function %s is supposed no to depend on %a"
           (Kernel_function.get_name kf)
@@ -902,7 +917,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
         | _ -> ()
       end;
 
-    method private replace_func id v rename exp1 expl return l s name =
+    method private replace_func id v rename expl return l s name =
       let aux vari =
         try Globals.Functions.get vari with
         | Not_found ->  Rpp_options.Self.fatal
@@ -925,10 +940,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
         in
         let annot,current_kf =
           Project.on proj (
-            fun x ->
-              let x = aux x in
-              let beha = Annotations.behaviors ~populate:false x in
-              (beha,x)
+            fun x -> let x = aux x in (Annotations.behaviors x, x)
           ) (Visitor_behavior.Get_orig.varinfo vis#behavior v)
         in
         let formalsi = Kernel_function.get_formals new_kf in
@@ -944,7 +956,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
           | None ->
             self#add_rela_pure_func v rename new_kf current_kf;
         end;
-        let new_exp = {exp1 with enode = Lval(Var(new_vi),NoOffset)} in
+        let new_exp = Var(new_vi) in
         s.skind <- Instr(Call(return,new_exp,expl,l));
         s
 
@@ -962,9 +974,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
           | None ->
             self#add_rela_pure_func v rename kf current_kf;
         end;
-        let new_exp =
-          {exp1 with enode = Lval(Var(Globals.Functions.get_vi kf),NoOffset)}
-        in
+        let new_exp = Var(Globals.Functions.get_vi kf) in
         s.skind <- Instr(Call(return,new_exp,expl,l));
         s
 
@@ -984,8 +994,8 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
       match s.skind with
       | Instr(Call(return,exp1,expl,l)) ->
         begin
-          match exp1.enode with
-          | Lval(Var(v),NoOffset) ->
+          match exp1 with
+          | Var v ->
             begin
               let rename =
                 self#is_inlined v
@@ -996,8 +1006,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
                   String.concat "_" [v.vname;id]
                 in
                 let new_s =
-                  self#replace_func
-                    (Some id) v rename exp1 expl return l s name
+                  self#replace_func (Some id) v rename expl return l s name
                 in
                 Cil.ChangeDoChildrenPost(new_s, fun x->x)
 
@@ -1007,8 +1016,7 @@ class aux_visitor_4 vis current add_global id global_map proj annot_data loc num
                     [v.vname;"aux";string_of_int num]
                 in
                 let new_s =
-                  self#replace_func
-                    None v rename exp1 expl return l s name
+                  self#replace_func None v rename expl return l s name
                 in
                 Cil.ChangeDoChildrenPost(new_s, fun x->x)
             end
@@ -1079,22 +1087,22 @@ let do_one_terms_vis kf formalsi locals id global_map self terms=
       let f p =
         let vis = new aux_visitor_6 self#behavior in
         vis#set_current_kf kf;
-      Visitor.visitFramacTerm vis p
+        Visitor.visitFramacTerm vis p
       in
       let formalsinit = match param with
-      | None | Some [] -> []
-      | Some formalsinit -> formalsinit
+        | None | Some [] -> []
+        | Some formalsinit -> formalsinit
       in
       binder_sub f terms id self formalsinit formalsi global_map
     end
 
   | Definition (funct,_) ->
-  let f p =
-    let vis = new aux_visitor_6 self#behavior in
-    vis#set_current_func funct;
-    vis#set_current_kf kf;
-    Visitor.visitFramacTerm vis p
-  in
+    let f p =
+      let vis = new aux_visitor_6 self#behavior in
+      vis#set_current_func funct;
+      vis#set_current_kf kf;
+      Visitor.visitFramacTerm vis p
+    in
     binder f terms funct id self locals formalsi global_map
 
 (**
@@ -1112,34 +1120,17 @@ let do_one_require_copy kf formalsi id global_map self proj=
   | Declaration (_,_,param,_) ->
     begin
       let formalsinit = match param with
-      | None | Some [] -> []
-      | Some formalsinit -> formalsinit
+        | None | Some [] -> []
+        | Some formalsinit -> formalsinit
       in
-          binder_sub
-            f ((Annotations.behaviors ~populate:false kf)) id self formalsinit formalsi global_map
+      binder_sub
+        f ((Annotations.behaviors kf)) id self formalsinit formalsi global_map
     end
   | Definition (funct,_) ->
     begin
-        binder_sub
-          f ((Annotations.behaviors ~populate:false kf)) id self funct.sformals formalsi global_map
+      binder_sub
+        f ((Annotations.behaviors kf)) id self funct.sformals formalsi global_map
     end
-
-(**
-   Function returning the type refering to the new project
-*)
-let rec get_typ_in_current_project t self loc=
-  match t with
-  | TVoid(_) -> t
-  | TInt(_) -> t
-  | TFloat(_) -> t
-  | TPtr(t,a) -> let new_t = get_typ_in_current_project t self loc in TPtr(new_t,a)
-  | TArray(t,e,b,a) -> let new_t = get_typ_in_current_project t self loc in TArray(new_t,e,b,a)
-  | TFun(_) ->  Rpp_options.Self.abort ~source:loc
-                  "Error in predicate: Function types are not supported yet"
-  | TNamed (t,a) -> let new_c = Visitor_behavior.Get.typeinfo self t in TNamed(new_c,a)
-  | TComp (c,b,a) ->let new_c = Visitor_behavior.Get.compinfo self c in TComp(new_c,b,a)
-  | TEnum (e,a) -> let new_e = Visitor_behavior.Get.enuminfo self e in TEnum(new_e,a)
-  | TBuiltin_va_list(_) -> t
 
 (**
    Function making a copie of the local variable of copie funct for new_funct
@@ -1154,7 +1145,8 @@ let make_local new_funct copie_funct i self loc =
       in
       let old_blk_vi = new_funct.sbody.blocals in
       let varinfo =
-        Cil.makeLocalVar new_funct name (get_typ_in_current_project h.vtype self loc)
+        Cil.makeLocalVar new_funct name
+          (get_typ_in_current_project h.vtype self loc)
       in
       varinfo.vdefined <- h.vdefined;
       new_funct.sbody.blocals <- old_blk_vi;
@@ -1181,9 +1173,7 @@ let sort_funbehavior funbehavior =
 (**
    Function detecting if a function is variadic
 *)
-let is_variadic_function vi = match vi.vtype with
-  | TFun(_, _, is_v, _) -> is_v
-  | _ -> false
+let is_variadic_function vi = Ast_types.is_variadic vi.vtype
 
 (**
    Function detecting the function to be inlined and call the inline function
@@ -1193,10 +1183,7 @@ let inliner self proj funct id global_map = object (_)
 
   method !vstmt_aux stmt =
     match stmt.skind with
-    | Instr(Call(return,
-                 { enode = Lval(Var vi, NoOffset)} ,
-                 args,
-                 loc)) ->
+    | Instr(Call(return, Var vi, args, loc)) ->
       begin
         if is_variadic_function vi then
           begin
@@ -1227,7 +1214,6 @@ let inliner self proj funct id global_map = object (_)
                                  Printer.pp_varinfo vi
               | x -> x
             in
-            let _,loc = loc in
             let locals =
               make_local
                 (funct) inline_funct
@@ -1337,104 +1323,99 @@ let inliner self proj funct id global_map = object (_)
 end
 
 let no_inline resi self kf l formalsi proof id global_map proj annot_data num =
-      let return_lval = match resi with
-        | None -> None
-        | Some x -> Some(Var(x),NoOffset)
+  let return_lval = match resi with
+    | None -> None
+    | Some x -> Some(Var(x),NoOffset)
+  in
+  let current_kf = Visitor_behavior.Get.kernel_function self#behavior kf in
+  let var_funct = match current_kf.fundec with
+    | Definition (f,_) -> f.svar
+    | Declaration (_,v,_,_) -> v
+  in
+  let func = Var var_funct in
+  let params =
+    List.map (fun x -> Cil.new_exp ~loc:l (Lval(Var(x),NoOffset)))
+      formalsi
+  in
+  let k = Instr(Call(return_lval, func, params, l))
+  in
+  let s = Cil.mkStmt ~valid_sid:true k
+  in
+  let b = {battrs = [];
+           bscoping = true;
+           blocals = [];
+           bstatics = [];
+           bstmts = [s]}
+  in
+  if not proof then
+    begin
+      let funct_vis = new aux_visitor_4
+        self None self#add_new_global
+        id global_map proj annot_data l num
       in
-      let current_kf = Visitor_behavior.Get.kernel_function self#behavior kf in
-      let var_funct = match current_kf.fundec with
-        | Definition (f,_) -> f.svar
-        | Declaration (_,v,_,_) -> v
-      in
-      let new_exp_node =
-        Lval(Var(var_funct),NoOffset)
-      in
-      let new_exp =
-        Cil.new_exp ~loc:l new_exp_node
-      in
-      let params =
-        List.map (fun x -> Cil.new_exp ~loc:l (Lval(Var(x),NoOffset)))
-          formalsi
-      in
-      let k = Instr(Call(return_lval, new_exp, params, l))
-      in
-      let s = Cil.mkStmt ~valid_sid:true k
-      in
-      let b = {battrs = [];
-               bscoping = true;
-               blocals = [];
-               bstatics = [];
-               bstmts = [s]}
-      in
-      if not proof then
-        begin
-          let funct_vis = new aux_visitor_4
-            self None self#add_new_global
-            id global_map proj annot_data l num
-          in
-          Visitor.visitFramacBlock funct_vis b
-        end
-      else
-        b
+      Visitor.visitFramacBlock funct_vis b
+    end
+  else
+    b
 
 let do_inline self kf new_funct resi funct proj locals formalsi global_map id proof n l num annot_data =
-      let f p =
-        (*Save the current new kf and make a binding with the wrapper
-          function for code annotation generation*)
-        let buffer_kf = Visitor_behavior.Get.kernel_function self#behavior kf in
+  let f p =
+    (*Save the current new kf and make a binding with the wrapper
+      function for code annotation generation*)
+    let buffer_kf = Visitor_behavior.Get.kernel_function self#behavior kf in
 
-        Visitor_behavior.Set.kernel_function self#behavior
-          kf
-          (Globals.Functions.get (new_funct.svar));
+    Visitor_behavior.Set.kernel_function self#behavior
+      kf
+      (Globals.Functions.get (new_funct.svar));
 
-        let vis = new aux_visitor (self#behavior) resi in
-        vis#set_current_func funct;
-        vis#set_current_kf kf;
-        let bodys = new_funct.sbody in
-        let locals = new_funct.slocals in
-        let formals = new_funct.sformals in
-        let body =
-          Project.on proj (Visitor.visitFramacBlock vis) p
-        in
-        new_funct.sbody <- bodys;
-        new_funct.slocals <- locals;
-        new_funct.sformals <- formals;
-        (*Make binding for reversing the last binding with the kf*)
-        Visitor_behavior.Set.kernel_function self#behavior
-          kf
-          buffer_kf;
-        body
+    let vis = new aux_visitor (self#behavior) resi in
+    vis#set_current_func funct;
+    vis#set_current_kf kf;
+    let bodys = new_funct.sbody in
+    let locals = new_funct.slocals in
+    let formals = new_funct.sformals in
+    let body =
+      Project.on proj (Visitor.visitFramacBlock vis) p
+    in
+    new_funct.sbody <- bodys;
+    new_funct.slocals <- locals;
+    new_funct.sformals <- formals;
+    (*Make binding for reversing the last binding with the kf*)
+    Visitor_behavior.Set.kernel_function self#behavior
+      kf
+      buffer_kf;
+    body
+  in
+  let body =
+    binder f (funct.sbody) funct id self locals formalsi global_map
+  in
+  (* Inlining all function  *)
+  let rec aux b i =
+    match i with
+    | 0 -> b
+    | k ->
+      let vis =
+        inliner self proj new_funct id global_map
       in
-      let body =
-        binder f (funct.sbody) funct id self locals formalsi global_map
+      let block =
+        Visitor.visitFramacBlock vis b
       in
-  (** Inlining all function  *)
-      let rec aux b i =
-        match i with
-        | 0 -> b
-        | k ->
-          let vis =
-            inliner self proj new_funct id global_map
-          in
-          let block =
-            Visitor.visitFramacBlock vis b
-          in
-          aux block (k - 1)
+      aux block (k - 1)
+  in
+  let new_body = aux body (n - 1) in
+  if not proof then
+    begin
+      let funct_vis = new aux_visitor_4
+        self (Some kf)
+        self#add_new_global
+        id global_map proj annot_data l num
       in
-      let new_body = aux body (n - 1) in
-      if not proof then
-        begin
-          let funct_vis = new aux_visitor_4
-            self (Some kf)
-            self#add_new_global
-            id global_map proj annot_data l num
-          in
-          funct_vis#set_current_func new_funct;
-          funct_vis#set_current_kf (Globals.Functions.get (new_funct.svar));
-          let new_body = Visitor.visitFramacBlock funct_vis new_body in
-          new_body
-        end
-      else new_body
+      funct_vis#set_current_func new_funct;
+      funct_vis#set_current_kf (Globals.Functions.get (new_funct.svar));
+      let new_body = Visitor.visitFramacBlock funct_vis new_body in
+      new_body
+    end
+  else new_body
 
 
 (**

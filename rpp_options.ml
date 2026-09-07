@@ -1,21 +1,9 @@
 (**************************************************************************)
-(*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2023                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
-(*    alternatives)                                                       *)
+(*  SPDX-License-Identifier LGPL-2.1                                      *)
+(*  Copyright (C)                                                         *)
+(*  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file LICENSE).                      *)
 (**************************************************************************)
 
 module Self = Plugin.Register(struct
@@ -26,12 +14,12 @@ module Self = Plugin.Register(struct
 
 module Enabled = Self.False(struct
     let option_name = "-rpp"
-    let help = "when on (off by default), prove relationnel properties and generate the correspnding logical definition."
+    let help = "when on (off by default), prove relationnel properties and generate the corresponding logical definition."
   end)
 
 module Enable_only_hyp = Self.False(struct
     let option_name = "-rpp-hyp"
-    let help = "when on (off by default), only generate the logical defintion of the relational proprerties."
+    let help = "when on (off by default), only generate the logical definition of the relational proprerties."
   end)
 
 module Enable_only_prove = Self.False(struct

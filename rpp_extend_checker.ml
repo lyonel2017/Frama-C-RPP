@@ -1,36 +1,13 @@
 (**************************************************************************)
-(*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2023                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
-(*    alternatives)                                                       *)
+(*  SPDX-License-Identifier LGPL-2.1                                      *)
+(*  Copyright (C)                                                         *)
+(*  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file LICENSE).                      *)
 (**************************************************************************)
 
 open Filecheck
 open Cil_types
-
-let fun_type_param p =
-  match p.vtype with
-  | TFun (_,Some t,_,_) -> t
-  | TFun (_,None,_,_) ->  []
-  | _ -> assert false;;
-
-let fun_type_return p =
-  match p.vtype with
-  | TFun (t,_,_,_) -> t
-  | _ -> assert false;;
 
 let id_checker identifier loc id_hash =
   match identifier with
@@ -42,7 +19,7 @@ let id_checker identifier loc id_hash =
       | _ -> ())
   |  _ -> ()
 
-let id_update identifier loc id_hash  =
+let _id_update identifier loc id_hash  =
   match identifier with
   | FormalLabel(s) ->
     (match Str.bounded_split (Str.regexp "_") s 2 with
@@ -61,39 +38,40 @@ let id_update identifier loc id_hash  =
      | _ -> identifier)
   | _ -> identifier
 
-let check_param_type param funct loc=
-  List.iter2 (fun x (_,t,_) ->
-      match x.term_type with
-      | Ctype(ty) ->
-        if Cil_datatype.Typ.equal t ty then ()
-        else
-          Rpp_options.Self.fatal ~source:loc
-            "Cast are not supported:@. @[%a and %a are not \
-             compatible@] for term @[%a@] in callpure of %s @."
-            (Printer.pp_logic_type)  x.term_type
-            (Printer.pp_typ) t (Printer.pp_term) x (funct.vname)
-      | Linteger ->
-        begin match t with
-          | TInt _ -> ()
-          | _ -> Rpp_options.Self.fatal ~source: loc
-                   "Cast are not supported:@. @[%a and %a are not compatible@] \
-                    for term @[%a@] in callpure of %s @."
-                   (Printer.pp_logic_type)  x.term_type (Printer.pp_typ) t
-                   Printer.pp_term x (funct.vname)
-        end
-      | Lreal ->
-        begin match t with
-          | TFloat _ -> ()
-          | _ -> Rpp_options.Self.fatal ~source: loc
-                   "Cast are not supported:@. @[%a and %a are not compatible@] \
-                    for term @[%a@] in callpure of %s @."
-                   (Printer.pp_logic_type)  x.term_type (Printer.pp_typ) t
-                   Printer.pp_term x (funct.vname)
-        end
-      | _ -> Rpp_options.Self.fatal ~source:loc
-               "Function %s is called with a parameter with type \
-                is not a C type:@. @[%a@] @." (funct.vname) Printer.pp_term x
-    ) param (fun_type_param funct)
+let check_param_type fname param formals loc=
+  match formals with
+  | Some l ->
+    List.iter2 (fun x (_,t,_) ->
+        match x.term_type with
+        | Ctype(ty) ->
+          if Cil_datatype.Typ.equal t ty then ()
+          else
+            Rpp_options.Self.fatal ~source:loc
+              "Cast are not supported:@. @[%a and %a are not \
+               compatible@] for term @[%a@] in callpure of %s @."
+              (Printer.pp_logic_type)  x.term_type
+              (Printer.pp_typ) t (Printer.pp_term) x (fname)
+        | Linteger ->
+          if not (Ast_types.is_integral t) then
+            Rpp_options.Self.fatal ~source: loc
+              "Cast are not supported:@. @[%a and %a are not compatible@] \
+               for term @[%a@] in callpure of %s @."
+              (Printer.pp_logic_type)  x.term_type (Printer.pp_typ) t
+              Printer.pp_term x (fname)
+        | Lreal ->
+          if not (Ast_types.is_float t) then
+            Rpp_options.Self.fatal ~source: loc
+              "Cast are not supported:@. @[%a and %a are not compatible@] \
+               for term @[%a@] in callpure of %s @."
+              (Printer.pp_logic_type)  x.term_type (Printer.pp_typ) t
+              Printer.pp_term x (fname)
+        | _ -> Rpp_options.Self.fatal ~source:loc
+                 "Function %s is called with a parameter with type \
+                  is not a C type:@. @[%a@] @." (fname) Printer.pp_term x
+      ) param l
+  | None ->
+    Rpp_options.Self.fatal ~source:loc
+      "Function %s is declared without prototype. Can't use it in a relational property" fname
 
 let rpp_extend_checker check =
   let module Origin = (val check: Extensible_checker) in
@@ -106,7 +84,7 @@ let rpp_extend_checker check =
       val id_hash = Hashtbl.create 3
 
       method! vterm t =
-        let (loc,_) = t.term_loc in
+        let loc = fst t.term_loc in
         match t.term_node with
         | Tapp({l_var_info={lv_name ="\\callpure"}},[],terms) ->
           begin
@@ -115,32 +93,29 @@ let rpp_extend_checker check =
               begin
                 match q with
                 | {term_node=TLval(TVar({lv_origin=Some(x)}),TNoOffset)} :: p ->
-                  begin
-                    match x with
-                    | {vtype=TFun(_)} ->
-                      check_param_type p x loc;
-                      if Cil_datatype.Logic_type.equal (t.term_type) (Ctype(fun_type_return x)) then ()
-                      else
-                        begin
+                  if Ast_types.is_fun x.vtype then begin
+                    let (rt, args, _is_va,_) = Cil.splitFunctionType x.vtype in
+                    check_param_type x.vname p args loc;
+                    if not (Cil_datatype.Logic_type.equal (t.term_type) (Ctype rt)) then
                         Rpp_options.Self.fatal ~source:loc
-                           "\\callpure type (@[%a@]) is different from result type \
-                            of function @[%a@] (@[%a@]):@.@[%a@]"
-                          Printer.pp_logic_type (t.term_type) Printer.pp_varinfo x
-                          Printer.pp_logic_type (Ctype(fun_type_return x))
-                          (Printer.pp_term) t
-                        end;
-                      Cil.DoChildren
-                    | _ ->  Rpp_options.Self.fatal ~source:loc
-                             "Expected a function as seconde parameter::@. @[%a@] @."
-                             (Printer.pp_term) t
-                  end
-                | _ ->  Rpp_options.Self.fatal ~source:loc
-                          "Expected a logical variable as seconde parameter :@. @[%a@] @."
-                         (Printer.pp_term) t
+                        "\\callpure type (@[%a@]) is different from result type \
+                         of function @[%a@] (@[%a@]):@.@[%a@]"
+                        Printer.pp_logic_type t.term_type Printer.pp_varinfo x
+                        Printer.pp_typ rt Printer.pp_term t
+                  end else
+                    Rpp_options.Self.fatal ~source:loc
+                      "Expected a function as second parameter::@. @[%a@] @."
+                      (Printer.pp_term) t;
+                  DoChildren
+                | _ ->
+                  Rpp_options.Self.fatal ~source:loc
+                    "Expected a logical variable as second parameter :@. @[%a@] @."
+                    (Printer.pp_term) t
               end
-            | _ ->  Rpp_options.Self.fatal ~source:loc
-                      "Expected an integer for first parameter:@. @[%a@] @."
-                      (Printer.pp_term) t
+            | _ ->
+              Rpp_options.Self.fatal ~source:loc
+                "Expected an integer for first parameter:@. @[%a@] @."
+                (Printer.pp_term) t
           end
 
         | Tapp({l_var_info={lv_name ="\\call"}},[],terms) ->
@@ -156,22 +131,21 @@ let rpp_extend_checker check =
                    begin
                      match q with
                      | {term_node=TLval(TVar({lv_origin=Some(x)}),TNoOffset)} :: p ->
-                       begin
-                         match x with
-                         | {vtype=TFun(_)} ->
-                          check_param_type p x loc;
-                          Hashtbl.add id_hash s x;
-                          Cil.DoChildren
-                         | _ ->  Rpp_options.Self.fatal ~source:loc
-                                   "Expected a function as thrid parameter:@. @[%a@] @."
-                                   (Printer.pp_term) t
-                       end
+                       if Ast_types.is_fun x.vtype then
+                         let (_, args, _, _) = Cil.splitFunctionType x.vtype in
+                         check_param_type x.vname p args loc;
+                         Hashtbl.add id_hash s x;
+                         Cil.DoChildren
+                       else
+                         Rpp_options.Self.fatal ~source:loc
+                           "Expected a function as third parameter:@. @[%a@] @."
+                           (Printer.pp_term) t
                      | _ -> Rpp_options.Self.fatal ~source:loc
                               "Expected a logical variable as third parameter:@. @[%a@] @."
                               (Printer.pp_term) t
                    end
                  | _ -> Rpp_options.Self.fatal ~source:loc
-                          "Expected an integer for seconde parameter:@. @[%a@] @."
+                          "Expected an integer for second parameter:@. @[%a@] @."
                           (Printer.pp_term) t
                 end
               | _ -> Rpp_options.Self.fatal ~source:loc
@@ -192,20 +166,23 @@ let rpp_extend_checker check =
             begin
               match term.term_node with
               | TConst (LStr(s)) ->
-                let v = (try (Hashtbl.find id_hash s) with
-                    | Not_found -> Rpp_options.Self.fatal ~source:loc
-                                     "Unknown identifier %s in \\callresult:@. @[%a@] @."
-                                     s (Printer.pp_term) t
-                    | _ -> assert false)
+                let v =
+                  match Hashtbl.find_opt id_hash s with
+                  | Some v -> v
+                  | None ->
+                    Rpp_options.Self.fatal ~source:loc
+                      "Unknown identifier %s in \\callresult:@. @[%a@] @."
+                      s (Printer.pp_term) t
                 in
-                if (Cil_datatype.Logic_type.equal (Ctype(fun_type_return v)) (t.term_type)) then ()
+                let (rt,_,_,_) = Cil.splitFunctionType v.vtype in
+                if (Cil_datatype.Logic_type.equal (Ctype rt) (t.term_type)) then ()
                 else
                   begin
                     Rpp_options.Self.fatal ~source:loc
                       "\\callresult type (@[%a@]) is different from result type of function @[%a@] \
                        (@[%a@]) with identifier %s @."
                       Printer.pp_logic_type (t.term_type) Printer.pp_varinfo v
-                      Printer.pp_logic_type (Ctype(fun_type_return v)) s
+                      Printer.pp_logic_type (Ctype rt) s
                   end
               | _ -> Rpp_options.Self.fatal ~source:loc
                        "\\callresult contain no string : @[%a@] @." Printer.pp_term term

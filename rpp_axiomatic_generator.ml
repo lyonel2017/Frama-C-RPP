@@ -1,21 +1,9 @@
 (**************************************************************************)
-(*  This file is part of RPP plug-in of Frama-C.                          *)
 (*                                                                        *)
-(*  Copyright (C) 2016-2023                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
-(*    alternatives)                                                       *)
+(*  SPDX-License-Identifier LGPL-2.1                                      *)
+(*  Copyright (C)                                                         *)
+(*  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file LICENSE).                      *)
 (**************************************************************************)
 
 open Cil_types
@@ -32,9 +20,7 @@ let map_extend f l ll =
   in
   aux f l ll []
 
-(**
-   Generation of the axiomatic definition
- **)
+(* Generation of the axiomatic definition *)
 let generat_axiom l self new_predi new_labels logic_info logic_info_pure =
   let name_axiome =
     String.concat "_" ["Relational_axiome";string_of_int (Rpp_options.Counting_axiome.next ())]
@@ -118,9 +104,8 @@ let pointer_param_generat self x y l =
   in
   check_type y.lv_type x.vtype;
   term
-(**
-   Generation of behaviour clauses for the pure function involved in the relational propertie
-*)
+
+(* Generation of behaviour clauses for the pure function involved in the relational propertie *)
 let generat_behavior_pure l self logic_info_pure =
   let name_behavior =
     String.concat "_" ["Relational_behavior";
@@ -182,26 +167,20 @@ let generat_behavior_pure l self logic_info_pure =
     logic_info_pure.predicate_info_pure
 
 let make_result kf sub l =
-  match Kernel_function.get_return_type kf, sub with
-  | TVoid(_), [] -> []
-  | _ , [y]->
-    begin
-      let t =
-        Kernel_function.get_return_type kf
-      in
-      let term_node =
-        TLval(TResult(t),TNoOffset)
-      in
-      let term = {
-        term_node = term_node;
-        term_loc = l;
-        term_type = Ctype(t);
-        term_name = []}
-      in
-      check_type y.lv_type t;
-      [term]
-    end
-  | _ , _ -> assert false
+  let rt = Kernel_function.get_return_type kf in
+  match sub with
+  | [] when Ast_types.is_void rt -> []
+  | [y] ->
+    let term_node = TLval(TResult(rt),TNoOffset) in
+    let term = {
+      term_node = term_node;
+      term_loc = l;
+      term_type = Ctype(rt);
+      term_name = []}
+    in
+    check_type y.lv_type rt;
+    [term]
+  | _  -> assert false
 
 let make_labels logic_information =
   match logic_information.l_labels with
@@ -214,9 +193,7 @@ let make_labels logic_information =
   | [] -> []
   | _ -> assert false
 
-(**
-   Generation of behaviour clauses for the function involved in the relational propertie
-*)
+(* Generation of behaviour clauses for the function involved in the relational propertie *)
 let generat_behavior l self logic_info =
   let name_behavior =
     String.concat "_" ["Relational_behavior";
@@ -272,9 +249,7 @@ let generat_behavior l self logic_info =
         self#get_filling_actions)
     logic_info.predicate_info
 
-(**
-   Generation of behaviour clauses for the target function involved in the relational propertie
-*)
+(* Generation of behaviour clauses for the target function involved in the relational propertie *)
 let generat_behavior_for_kf l self logic_info (target_kf,replace_target) global_map =
   let name_behavior =
     "Relational_behavior"
@@ -365,9 +340,7 @@ let generat_behavior_for_kf l self logic_info (target_kf,replace_target) global_
         end
       else ()) logic_info.predicate_info
 
-(**
-   Generation of behaviour clauses for the target pure function involved in the relational propertie
-*)
+(* Generation of behaviour clauses for the target pure function involved in the relational propertie *)
 let generat_behavior_pure_for_kf l self logic_info_pure (target_kf,replace_target)=
   let name_behavior =
     "Relational_behavior"
@@ -443,9 +416,7 @@ let generat_behavior_pure_for_kf l self logic_info_pure (target_kf,replace_targe
         end
       else ()) logic_info_pure.predicate_info_pure
 
-(**
-   Generation of behaviour clauses for the target pure function involved in the relational propertie
-*)
+(* Generation of behaviour clauses for the target pure function involved in the relational propertie *)
 let generat_help_behavior_pure_for_kf l logic_infos_pure (target_kf,replace_target)=
   let name_behavior =
     "Relational_behavior_helper"
@@ -557,8 +528,7 @@ let generat_help_behavior_pure_for_kf l logic_infos_pure (target_kf,replace_targ
   )functions
 
 
-(**
-   Function for generating the axiomatic definition related to the
+(* Function for generating the axiomatic definition related to the
    relational property and the corresponding behaviour for each
    function related in the relational property
 *)

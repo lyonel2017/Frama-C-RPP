@@ -1,0 +1,8 @@
+[kernel] Parsing typechecking.c (with preprocessing)
+[kernel:annot-error] typechecking.c:12: Failure: 
+  Cast are not supported:
+   int and float are not compatible for term 
+   x2 in call of f 
+  . Ignoring global annotation
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] Frama-C aborted: invalid user input.

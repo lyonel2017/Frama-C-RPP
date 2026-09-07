@@ -1,4 +1,4 @@
-[kernel] Parsing tests/rpp/Chiffre_de_Cesar_prototype.c (with preprocessing)
+[kernel] Parsing Chiffre_de_Cesar_prototype.c (with preprocessing)
 [rpp] ***************************************
 [rpp] Rpp start
 [rpp] ***************************************
@@ -23,7 +23,7 @@ axiomatic Relational_axiome_1 {
     ∀ struct tableau message, int key, int length;
       is_good(Cryptage_acsl_pure_1(message, length, key), length);
   
-  }
+}
  */
 /*@
 axiomatic Relational_axiome_2 {
@@ -35,13 +35,13 @@ axiomatic Relational_axiome_2 {
   
   lemma Relational_lemma_2{L}:
     ∀ struct tableau message, struct tableau message_beta1,
-        struct tableau message_beta2, int key, int length;
+      struct tableau message_beta2, int key, int length;
       is_eq(message_beta2, message_beta1, length) ⇒
       message_beta1 ≡ Cryptage_acsl_pure_2(message, length, key) ⇒
       is_eq(Decryptage_acsl_pure_2(message_beta2, length, key), message,
            length);
   
-  }
+}
  */
 /*@ requires 1 ≤ length ≤ 100;
     requires 0 < PubKey < 127;

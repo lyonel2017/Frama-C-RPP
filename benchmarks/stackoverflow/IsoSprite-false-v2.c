@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rpp
+   OPT: -rpp -no-variadic-translation
 */
 
 /*

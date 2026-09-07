@@ -22,7 +22,7 @@ int g(int x);
 
 
 /*@ assigns x \from x; */
-int k();
+int k(void);
 
 /*@ relational
       \rela(

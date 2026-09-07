@@ -2,14 +2,14 @@
    OPT: -rpp
 */
 
-typedef struct matrix2{
+struct matrix2{
 	int t[4];
 };
 
 /*@ assigns \result \from m_t;*/
 struct matrix2 trans(struct matrix2 m_t){
         struct matrix2 m_t_2;
-	
+
 	m_t_2.t[0] = m_t.t[0];
 	m_t_2.t[1] = m_t.t[2];
 	m_t_2.t[2] = m_t.t[1];
